@@ -149,9 +149,12 @@ class StudentGrades:
             return 
 
         for row in self.uncompleted_qualifications.index:
+
             is_pred_grade = pd.isna(self.uncompleted_qualifications['Predicted\rGrade'][row])
             is_grade = pd.isna(self.uncompleted_qualifications['Grade'][row])
+
             if is_pred_grade ^ is_grade :
+
                 if is_pred_grade:
                     valid_grade = self.uncompleted_qualifications['Grade'][row] 
                 else:
@@ -172,6 +175,8 @@ class StudentGrades:
                 self.predicted_entries.append(entry)
 
         return self.predicted_entries
+
+
 
 
 
