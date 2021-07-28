@@ -15,10 +15,10 @@ class InputError(Error):
         self.message = message
 
 import os
-from posixpath import isabs
 import tabula
 
 from collections import Counter
+
 
 def is_file_valid(file):
     return file.endswith(".pdf") and "unicode" in file
@@ -66,13 +66,29 @@ def fix_broken_table(current_page_number, current_table, filename):
     else:
         return current_table
 
+def raw_table_headers():
+    acheived_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre Number']
+    predicted_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre\rNumber', 'Predicted\rGrade']
+    examresults_headers = ['Date', 'Body', 'Exam Level', 'Sitting', 'Subject', 'Grade']
+
+    return (acheived_headers, predicted_headers, examresults_headers)
+
+
 def desired_tables():
 
-    acheived_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre Number']
+    acheived_headers, predicted_headers, examresults_headers = raw_table_headers()
     achieved_counter = Counter(acheived_headers)
-    predicted_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre\rNumber', 'Predicted\rGrade']
     predicted_counter = Counter(predicted_headers)
-    examresults_headers = ['Date', 'Body', 'Exam Level', 'Sitting', 'Subject', 'Grade']
     examresults_counter = Counter(examresults_headers)
 
     return (achieved_counter, predicted_counter, examresults_counter)
+
+def completed_qualification_valid_exams():
+    return ("GCE Advanced\rLevel", "USA-Advanced\rPlacement Test", 
+             "SQA Advanced\rHighers", "Cambridge Pre-\rU Certificate", "USA - SAT\r(redesigned\rfrom 2016)" )
+
+def exam_results_valid_exams():
+    return ("SQA Advanced\rHighers", "Pre-U Certificate", "Reformed A Level\rEngland")
+
+def detail_string():
+    return "Module Details/Unit Grades"
