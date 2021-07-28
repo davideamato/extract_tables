@@ -41,7 +41,7 @@ def check_broken_table(current_page_number, filename, current_table):
     # print("{} {}".format(len(tables[0].columns), len(current_table.columns)))
 
     if tables[0].empty:
-        return tables[0].columns.values
+        return tables[0].columns.to_series()
     elif len(tables[0].columns) == len(current_table.columns):
         tables[0].columns = current_table.columns
         return tables[0]
