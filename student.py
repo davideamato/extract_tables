@@ -79,33 +79,41 @@ class StudentGrades:
         self.completed_entries = []
         self.results_entries = []
 
-        self.not_yet_completed_predicted_grades()        
+        self.predicted_grade_entries()        
 
-    def not_yet_completed_predicted_grades(self):
-        if self.uncompleted_qualifications is not None:
+    def examresult_entries(self):
+        if self.exam_results is None:
+            return 
 
-            for row in self.uncompleted_qualifications.index:
-                is_pred_grade = pd.isna(self.uncompleted_qualifications['Predicted\rGrade'][row])
-                is_grade = pd.isna(self.uncompleted_qualifications['Grade'][row])
-                if is_pred_grade ^ is_grade :
-                    if is_pred_grade:
-                        valid_grade = self.uncompleted_qualifications['Grade'][row] 
-                    else:
-                        valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row] 
+        for row in self.exam_results.index:
 
-                    if pd.isna(self.uncompleted_qualifications['Body'][row]):
-                        qualification = self.uncompleted_qualifications['Exam'][row]
-                    else:
-                        qualification = self.uncompleted_qualifications['Body'][row] 
 
-                    entry = GradeEntry(
-                        qualification,
-                        self.uncompleted_qualifications['Subject'][row],
-                        valid_grade,
-                        True,
-                        self.uncompleted_qualifications['Date'][row].split("-")[-1],
-                    )
-                    self.predicted_entries.append(entry)
+    def predicted_grade_entries(self):
+        if self.uncompleted_qualifications is None:
+            return 
+
+        for row in self.uncompleted_qualifications.index:
+            is_pred_grade = pd.isna(self.uncompleted_qualifications['Predicted\rGrade'][row])
+            is_grade = pd.isna(self.uncompleted_qualifications['Grade'][row])
+            if is_pred_grade ^ is_grade :
+                if is_pred_grade:
+                    valid_grade = self.uncompleted_qualifications['Grade'][row] 
+                else:
+                    valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row] 
+
+                if pd.isna(self.uncompleted_qualifications['Body'][row]):
+                    qualification = self.uncompleted_qualifications['Exam'][row]
+                else:
+                    qualification = self.uncompleted_qualifications['Body'][row] 
+
+                entry = GradeEntry(
+                    qualification,
+                    self.uncompleted_qualifications['Subject'][row],
+                    valid_grade,
+                    True,
+                    self.uncompleted_qualifications['Date'][row].split("-")[-1],
+                )
+                self.predicted_entries.append(entry)
 
         return self.predicted_entries
 
