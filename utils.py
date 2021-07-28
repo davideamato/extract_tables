@@ -73,6 +73,8 @@ def raw_table_headers():
 
     return (acheived_headers, predicted_headers, examresults_headers)
 
+def escape_backslash_r(input_string):
+    return input_string.encode('unicode-escape').decode().replace("\\r", " ")
 
 def desired_tables():
 
