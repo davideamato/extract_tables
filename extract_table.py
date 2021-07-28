@@ -7,7 +7,7 @@ import os
 import tabula
 
 from utils import desired_tables, get_all_files_in_dir, fix_broken_table, get_applicant_ids
-from student import StudentGrades
+from student import ExtractedStudents, StudentGrades
 
 path_to_files = os.path.abspath("pdfs/")
 
@@ -27,7 +27,7 @@ EXIT_STRING = 'Type of school, college or training centre:'
 #     #     print("EXIT CONDITION")
 #     print("")
 
-all_students = [0]*len(all_files)
+all_students = ExtractedStudents(applicant_ids)
 counter = 0
 
 for file, app_id in zip(all_files, applicant_ids):
@@ -62,7 +62,7 @@ for file, app_id in zip(all_files, applicant_ids):
                 exit_loop = True 
 
         if exit_loop:
-            all_students[counter] = StudentGrades(app_id, grade_tables, grade_counters)
+            all_students.add_student_sequentially(StudentGrades(app_id, grade_tables, grade_counters), counter)
             break
 
         page_number += 1
