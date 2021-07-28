@@ -86,12 +86,17 @@ class StudentGrades:
                 is_grade = pd.isna(self.uncompleted_qualifications['Grade'][row])
                 if is_pred_grade ^ is_grade :
                     if is_pred_grade:
-                        valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row] 
-                    else:
                         valid_grade = self.uncompleted_qualifications['Grade'][row] 
+                    else:
+                        valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row] 
+
+                    if pd.isna(self.uncompleted_qualifications['Body'][row]):
+                        qualification = self.uncompleted_qualifications['Exam'][row]
+                    else:
+                        qualification = self.uncompleted_qualifications['Body'][row] 
 
                     entry = GradeEntry(
-                        self.uncompleted_qualifications['Body'][row],
+                        qualification,
                         self.uncompleted_qualifications['Subject'][row],
                         valid_grade,
                         True,
