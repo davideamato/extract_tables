@@ -26,6 +26,14 @@ def get_all_files_in_dir(abs_path):
 
     return [os.path.join(abs_path, file) for file in os.listdir(abs_path) if file.endswith(".pdf")]
 
+def get_applicant_ids(abs_path):
+
+    if not os.path.isabs(abs_path):
+        raise InputError(os.path.isabs(abs_path), "Path provided is not absolute")
+
+    return [file.split("_")[2] for file in os.listdir(abs_path) if file.endswith(".pdf")]
+
+
 def check_broken_table(current_page_number, filename, current_table):
 
     tables = tabula.read_pdf(filename, pages=str(current_page_number + 1), lattice=True, guess=True, pandas_options={"header": 0},)
