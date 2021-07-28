@@ -1,24 +1,27 @@
+'''
+    Contains the objects for table extraction 
+'''
 
-from utils import desired_tables, raw_table_headers
+from utils import desired_tables, escape_backslash_r
 
 import pandas as pd
 
 class GradeEntry:
     def __init__(self, qualification, subject, grade, is_predicted, year):
-        self.qualification = qualification
-        self.subject = subject
+        self.qualification = escape_backslash_r(qualification)
+        self.subject = escape_backslash_r(subject) 
         self.grade = grade
         self.is_predicted = is_predicted
         self.year = year
 
     def __repr__(self):
         # return "Entry Qualification: %s"
-        return "Qualification: %s Subject: %s Grade: %s Year: %s Is Predicted? %r" \
-            % (self.qualification, self.subject, self.grade, self.year, self.is_predicted)
+        return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted {}".format( \
+            self.qualification, self.subject, self.grade, self.year, self.is_predicted)
 
     def __str__(self):
-        return "Qualification: %s \n Subject: %s \n Grade: %s \n Year: %s \n Is Predicted? %r" \
-            % (self.qualification, self.subject, self.grade, self.year, self.is_predicted)
+        return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted {}".format( \
+            self.qualification, self.subject, self.grade, self.year, self.is_predicted)
 
 class ExtractedStudents:
     def __init__(self, applicant_ids):
