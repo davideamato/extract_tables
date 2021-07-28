@@ -47,8 +47,11 @@ def check_broken_table(current_page_number, filename, current_table):
     if tables[0].empty:
         return tables[0].columns.to_series()
     elif len(tables[0].columns) == len(current_table.columns):
+        # Moves header into next row
         tables[0] = tables[0].reset_index().T.reset_index().T
+        # But, I have a new cloumn, so delete
         del tables[0][0]
+        # Rename header so it can append easily
         tables[0].columns = current_table.columns
         return tables[0]
     else:
