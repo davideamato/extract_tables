@@ -1,3 +1,8 @@
+import os
+import tabula
+
+from collections import Counter
+
 class Error(Exception):
     """Base class for exceptions in this module."""
     pass
@@ -14,35 +19,35 @@ class InputError(Error):
         self.expression = expression
         self.message = message
 
-import os
-import tabula
-
-from collections import Counter
-
-
 def is_file_valid(file):
     return file.endswith(".pdf") and "unicode" in file
 
+def is_abs_path(input_path):
+    if not os.path.isabs(input_path):
+        raise InputError(os.path.isabs(input_path), "Path provided is not absolute")
+    
+    return True
+
 def get_all_files_in_dir(abs_path):
 
-    if not os.path.isabs(abs_path):
-        raise InputError(os.path.isabs(abs_path), "Path provided is not absolute")
-
-    return [os.path.join(abs_path, file) for file in os.listdir(abs_path) if is_file_valid(file)]
+    if is_abs_path(abs_path):
+        return [os.path.join(abs_path, file) for file in os.listdir(abs_path) if is_file_valid(file)]
 
 def get_applicant_ids(abs_path):
 
-    if not os.path.isabs(abs_path):
-        raise InputError(os.path.isabs(abs_path), "Path provided is not absolute")
-
-    return [file.split("_")[2] for file in os.listdir(abs_path) if is_file_valid(file)]
+    if is_abs_path(abs_path):
+        return [file.split("_")[2] for file in os.listdir(abs_path) if is_file_valid(file)]
+        
 
 
 def check_broken_table(current_page_number, filename, current_table):
+    '''
+        Determines if a table continues onto the next page
+        If it does, return a the data in a form that can be appended to the original table
+    '''
 
+    # Extract tables from next page
     tables = tabula.read_pdf(filename, pages=str(current_page_number + 1), lattice=True, guess=True, pandas_options={"header": 0},)
-
-    # print("{} {}".format(len(tables[0].columns), len(current_table.columns)))
 
     if tables[0].empty:
         return tables[0].columns.to_series()
@@ -92,9 +97,10 @@ def desired_tables():
 
 def completed_qualification_valid_exams():
     return ("GCE Advanced\rLevel", "USA-Advanced\rPlacement Test", 
-             "SQA Advanced\rHighers", "GCE Advanced\rSubsidiary", 
-             "Cambridge Pre-\rU Certificate\r(Principal\rSub",
-             "USA - SAT\r(redesigned\rfrom 2016)", "USA-SAT\rSubject" )
+             "SQA Advanced\rHighers", 
+             "Cambridge Pre-\rU Certificate\r(Principal\rSub")
+            #  "GCE Advanced\rSubsidiary", 
+            #  "USA - SAT\r(redesigned\rfrom 2016)", "USA-SAT\rSubject" )
 
 def exam_results_valid_exams():
     return ("SQA Advanced\rHighers", "Pre-U Certificate", "Reformed A Level\rEngland")
