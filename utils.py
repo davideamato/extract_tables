@@ -30,7 +30,7 @@ def check_broken_table(current_page_number, filename, current_table):
 
     tables = tabula.read_pdf(filename, pages=str(current_page_number + 1), lattice=True, guess=True, pandas_options={"header": 0},)
 
-    print("{} {}".format(len(tables[0].columns), len(current_table.columns)))
+    # print("{} {}".format(len(tables[0].columns), len(current_table.columns)))
 
     if tables[0].empty:
         return tables[0].columns.values
@@ -55,6 +55,7 @@ def fix_broken_table(current_page_number, current_table, filename):
         return current_table
 
 def desired_tables():
+
     acheived_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre Number']
     achieved_counter = Counter(acheived_headers)
     predicted_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre\rNumber', 'Predicted\rGrade']
