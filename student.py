@@ -2,7 +2,7 @@
     Contains the objects for table extraction 
 '''
 
-from utils import desired_tables, escape_backslash_r
+from utils import completed_qualification_valid_exams, desired_tables, escape_backslash_r, exam_results_valid_exams
 
 import pandas as pd
 
@@ -80,6 +80,40 @@ class StudentGrades:
         self.results_entries = []
 
         self.predicted_grade_entries()        
+        self.examresult_entries()
+        self.completed_grade_entries()
+
+    def __repr__(self):
+        return "{} \n {} \n {}".format(self.completed_qualifications, self.uncompleted_qualifications, self.exam_results)
+
+    def completed_grade_entries(self):
+        if self.completed_qualifications is None:
+            return 
+
+        for row in self.completed_qualifications.index:
+
+            if self.is_completed_qual_valid(row):
+
+                entry = GradeEntry(
+                    self.completed_qualifications['Exam'][row],
+                    self.completed_qualifications['Subject'][row],
+                    self.completed_qualifications['Grade'][row],
+                    False,
+                    self.completed_qualifications['Date'][row].split("-")[-1],
+                )
+
+                self.completed_entries.append(entry)
+
+        return self.completed_entries
+
+    def is_completed_qual_valid(self, row):
+        if pd.isna(self.completed_qualifications['Exam'][row]):
+            return False
+
+        if self.completed_qualifications['Exam'][row] in completed_qualification_valid_exams():
+            return True
+        else:
+            return False
 
     def examresult_entries(self):
         if self.exam_results is None:
@@ -87,6 +121,28 @@ class StudentGrades:
 
         for row in self.exam_results.index:
 
+            if self.is_examresult_valid(row):
+
+                entry = GradeEntry(
+                    self.exam_results['Exam Level'][row],
+                    self.exam_results['Subject'][row],
+                    self.exam_results['Grade'][row],
+                    False,
+                    self.exam_results['Date'][row].split("-")[-1],
+                )
+
+                self.results_entries.append(entry)
+
+        return self.results_entries
+
+    def is_examresult_valid(self, row):
+        if pd.isna(self.exam_results['Exam Level'][row]):
+            return False
+
+        if self.exam_results['Exam Level'][row] in exam_results_valid_exams():
+            return True
+        else:
+            return False
 
     def predicted_grade_entries(self):
         if self.uncompleted_qualifications is None:
