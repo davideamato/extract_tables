@@ -2,5 +2,5 @@
 *
 
 # Except python files and this file
-!.py
+!*.py
 !.gitignore
