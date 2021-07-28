@@ -36,9 +36,6 @@ print("Extracting tables for {} students".format(len(all_files)))
 # Iterate over all files and applicant IDs
 for file, app_id in zip(all_files, applicant_ids):
 
-    # print("")
-    # print(app_id)
-
     # Start on 2nd page as 1st doesn't contain impt info 
     page_number = 2
     exit_loop = False
@@ -94,8 +91,6 @@ for file, app_id in zip(all_files, applicant_ids):
     # Go to next student
     counter += 1
 
-all_students.write_to_file(path_to_files)
-
 for student in all_students:
     print("UCAS ID: {}".format(student.ucas_id))
     # print(student.uncompleted_qualifications)
@@ -117,3 +112,5 @@ for student in all_students:
         for entry in student.results_entries:
             print(entry)
     print("")
+
+all_students.write_to_excel(path_to_files)
