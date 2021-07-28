@@ -64,7 +64,7 @@ class ExtractedStudents:
 
         ws.cell(row=1, column = 1, value="{}".format("UCAS ID"))
         ws.cell(row=1, column = 2, value="{}".format("Qualification Type"))
-        for i in range(3):
+        for i in range(0, 8, 2):
             ws.cell(row=1, column = 3 + i, value="{}".format("Subject"))
             ws.cell(row=1, column = 4 + i, value="{}".format("Grade"))
 
