@@ -2,11 +2,15 @@
     Contains the objects for table extraction 
 '''
 
-from utils import completed_qualification_valid_exams, desired_tables, escape_backslash_r, exam_results_valid_exams
+from utils import InputError, completed_qualification_valid_exams, desired_tables, escape_backslash_r, exam_results_valid_exams, is_abs_path
 
-import pandas as pd
+from pandas import isna 
+import os
 
 class GradeEntry:
+    '''
+        Class to store the grades
+    '''
     def __init__(self, qualification, subject, grade, is_predicted, year):
         self.qualification = escape_backslash_r(qualification)
         self.subject = escape_backslash_r(subject) 
@@ -24,6 +28,9 @@ class GradeEntry:
             self.qualification, self.subject, self.grade, self.year, self.is_predicted)
 
 class ExtractedStudents:
+    '''
+        Class that stores all the students and co-ordinates the output
+    '''
     def __init__(self, applicant_ids):
         self.student_ids = applicant_ids 
 
@@ -51,12 +58,63 @@ class ExtractedStudents:
             raise RuntimeError("The order of adding students is incorrect \n" \
                 "This should be done sequentially IDs in list should correspond")
 
-    def write_to_file(self, input_abs_path):
+    def populate_worksheet(self, desired_data, ws):
+        if desired_data not in self.all_students[0].which_grades.keys():
+            raise InputError(False, "Key given not found in dictionary")
+
+        ws.cell(row=1, column = 1, value="{}".format("UCAS ID"))
+        ws.cell(row=1, column = 2, value="{}".format("Qualification Type"))
+        for i in range(3):
+            ws.cell(row=1, column = 3 + i, value="{}".format("Subject"))
+            ws.cell(row=1, column = 4 + i, value="{}".format("Grade"))
+
+        lb = 2
+
+        for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
+
+            ws.cell(row=row_counter, column = 1, value="{}".format(student.ucas_id))
+
+            if student.which_grades[desired_data]:
+                ws.cell(row=row_counter, column = 2, value="{}".format(student.which_grades[desired_data][0].qualification)) 
+                col_counter = 3
+
+                for entry in student.which_grades[desired_data]:
+                    ws.cell(row=row_counter, column = col_counter, value="{}".format(entry.subject)) 
+                    ws.cell(row=row_counter, column = col_counter+1, value="{}".format(entry.grade)) 
+                    col_counter += 2
+
+        return ws
+
+
+    def write_to_excel(self, input_abs_path):
+        is_abs_path(input_abs_path)
+
+        from openpyxl import Workbook
+
+        wb = Workbook()
+
+        # Create and populate workshets
+        completed = wb.create_sheet("Completed Qualifications")
+        completed = self.populate_worksheet("completed", completed)
+
+        predicted = wb.create_sheet("Predicted Grades")
+        predicted = self.populate_worksheet("predicted", predicted)
+
+        exam_results = wb.create_sheet("Exam Results")
+        exam_results = self.populate_worksheet("results", exam_results)
+
+        compiled_single = wb.create_sheet("Compiled", 0) 
+
+        wb.save(os.path.join(input_abs_path,"output.xlsx"))
+
         return 0
 
     
 
 class StudentGrades:
+    '''
+        Class for a single pdf/student
+    '''
 
     def __init__(self, id, extracted_tables, table_headers):
         self.ucas_id = id
@@ -83,12 +141,18 @@ class StudentGrades:
         self.examresult_entries()
         self.completed_grade_entries()
 
+        self.which_grades = {"completed": self.completed_entries, 
+                             "predicted": self.predicted_entries,
+                             "results": self.results_entries}
+
     def __repr__(self):
-        return "{} \n {} \n {}".format(self.completed_qualifications, self.uncompleted_qualifications, self.exam_results)
+        return "{} \n {} \n {}".format(self.completed_qualifications, 
+                                        self.uncompleted_qualifications, 
+                                        self.exam_results)
 
     def completed_grade_entries(self):
         if self.completed_qualifications is None:
-            return 
+            return None 
 
         for row in self.completed_qualifications.index:
 
@@ -107,7 +171,7 @@ class StudentGrades:
         return self.completed_entries
 
     def is_completed_qual_valid(self, row):
-        if pd.isna(self.completed_qualifications['Exam'][row]):
+        if isna(self.completed_qualifications['Exam'][row]):
             return False
 
         if self.completed_qualifications['Exam'][row] in completed_qualification_valid_exams():
@@ -117,7 +181,7 @@ class StudentGrades:
 
     def examresult_entries(self):
         if self.exam_results is None:
-            return 
+            return None
 
         for row in self.exam_results.index:
 
@@ -136,7 +200,7 @@ class StudentGrades:
         return self.results_entries
 
     def is_examresult_valid(self, row):
-        if pd.isna(self.exam_results['Exam Level'][row]):
+        if isna(self.exam_results['Exam Level'][row]):
             return False
 
         if self.exam_results['Exam Level'][row] in exam_results_valid_exams():
@@ -146,12 +210,12 @@ class StudentGrades:
 
     def predicted_grade_entries(self):
         if self.uncompleted_qualifications is None:
-            return 
+            return None
 
         for row in self.uncompleted_qualifications.index:
 
-            is_pred_grade = pd.isna(self.uncompleted_qualifications['Predicted\rGrade'][row])
-            is_grade = pd.isna(self.uncompleted_qualifications['Grade'][row])
+            is_pred_grade = isna(self.uncompleted_qualifications['Predicted\rGrade'][row])
+            is_grade = isna(self.uncompleted_qualifications['Grade'][row])
 
             if is_pred_grade ^ is_grade :
 
@@ -160,7 +224,7 @@ class StudentGrades:
                 else:
                     valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row] 
 
-                if pd.isna(self.uncompleted_qualifications['Body'][row]):
+                if isna(self.uncompleted_qualifications['Body'][row]):
                     qualification = self.uncompleted_qualifications['Exam'][row]
                 else:
                     qualification = self.uncompleted_qualifications['Body'][row] 
