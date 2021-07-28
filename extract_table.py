@@ -98,13 +98,22 @@ all_students.write_to_file(path_to_files)
 
 for student in all_students:
     print("UCAS ID: {}".format(student.ucas_id))
-    print(student.uncompleted_qualifications)
-    print("")
+    # print(student.uncompleted_qualifications)
+    # print("")
     # print("{}".format(student.predicted_entries))
+    if student.completed_entries:
+        print("Completed Qualifications")
+        # print(student.completed_qualifications)
+        for entry in student.completed_entries:
+            print(entry)
     if student.predicted_entries:
+        print("Predicted Grades")
+        # print(student.uncompleted_qualifications)
         for entry in student.predicted_entries:
             print(entry)
-            # print("{}".format(entry.qualification))
-            # print("{}".format(entry.subject))
-            # print("{}".format(entry.grade))
+    if student.results_entries:
+        print("Examination Results")
+        # print(student.exam_results)
+        for entry in student.results_entries:
+            print(entry)
     print("")
