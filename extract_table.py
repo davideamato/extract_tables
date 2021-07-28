@@ -1,3 +1,6 @@
+'''
+    File extract table of grades from UCAS forms
+'''
 
 import subprocess
 
@@ -7,7 +10,8 @@ import os
 import tabula
 
 from utils import desired_tables, get_all_files_in_dir, fix_broken_table, get_applicant_ids
-from student import ExtractedStudents, StudentGrades
+from student import ExtractedStudents
+from student import StudentGrades
 
 path_to_files = os.path.abspath("pdfs/")
 
@@ -18,21 +22,13 @@ applicant_ids = get_applicant_ids(path_to_files)
 TARGET_TABLES = desired_tables()
 EXIT_STRING = 'Type of school, college or training centre:'
 
-# tables = tabula.read_pdf(file, pages="all", lattice=True, guess=True, pandas_options={"header": 0},)
-# for table in tables:
-#     print(table)
-#     print(table.columns)
-
-#     # if 'Type of school, college or training centre:' in table.columns:
-#     #     print("EXIT CONDITION")
-#     print("")
-
 all_students = ExtractedStudents(applicant_ids)
 counter = 0
 
 for file, app_id in zip(all_files, applicant_ids):
 
-    # print(app_id)
+    print("")
+    print(app_id)
 
     page_number = 2
     exit_loop = False
@@ -42,7 +38,8 @@ for file, app_id in zip(all_files, applicant_ids):
 
     while True:
         try:
-            tables = tabula.read_pdf(file, pages=str(page_number), lattice=True, guess=True, pandas_options={"header": 0},)
+            tables = tabula.read_pdf(file, pages=str(page_number), lattice=True,
+                                     guess=True, pandas_options={"header": 0},)
         except subprocess.CalledProcessError:
             break
 
@@ -59,14 +56,15 @@ for file, app_id in zip(all_files, applicant_ids):
                 print(table)
                 print("")
             elif EXIT_STRING in table_headers:
-                exit_loop = True 
+                exit_loop = True
 
         if exit_loop:
-            all_students.add_student_sequentially(StudentGrades(app_id, grade_tables, grade_counters), counter)
+            all_students.add_student_sequentially(
+                StudentGrades(app_id, grade_tables, grade_counters), counter)
             break
 
         page_number += 1
 
     counter += 1
 
-
+all_students.write_to_file(path_to_files)
