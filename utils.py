@@ -15,23 +15,27 @@ class InputError(Error):
         self.message = message
 
 import os
+from posixpath import isabs
 import tabula
 
 from collections import Counter
+
+def is_file_valid(file):
+    return file.endswith(".pdf") and "unicode" in file
 
 def get_all_files_in_dir(abs_path):
 
     if not os.path.isabs(abs_path):
         raise InputError(os.path.isabs(abs_path), "Path provided is not absolute")
 
-    return [os.path.join(abs_path, file) for file in os.listdir(abs_path) if file.endswith(".pdf")]
+    return [os.path.join(abs_path, file) for file in os.listdir(abs_path) if is_file_valid(file)]
 
 def get_applicant_ids(abs_path):
 
     if not os.path.isabs(abs_path):
         raise InputError(os.path.isabs(abs_path), "Path provided is not absolute")
 
-    return [file.split("_")[2] for file in os.listdir(abs_path) if file.endswith(".pdf")]
+    return [file.split("_")[2] for file in os.listdir(abs_path) if is_file_valid(file)]
 
 
 def check_broken_table(current_page_number, filename, current_table):
