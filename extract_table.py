@@ -6,7 +6,7 @@ import os
 
 from collections import Counter
 
-from utils import get_all_files_in_dir, fix_broken_table
+from utils import desired_tables, get_all_files_in_dir, fix_broken_table
 
 
 all_files = get_all_files_in_dir(os.path.abspath("pdfs/"))
@@ -14,14 +14,15 @@ all_files = get_all_files_in_dir(os.path.abspath("pdfs/"))
 
 # file = 'UCAS_Applicant_1462950865_unicode.pdf'
 file = all_files[0]
+tables = tabula.read_pdf(file, pages="all", lattice=True, guess=True, pandas_options={"header": 0},)
+
+for table in tables:
+    print(table)
+    print(len(table.columns))
+    print("")
 
 
-acheived_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre Number']
-achieved_counter = Counter(acheived_headers)
-predicted_headers = ['Date', 'Body', 'Exam', 'Subject', 'Grade', 'Result', 'Centre\rNumber', 'Predicted\rGrade']
-predicted_counter = Counter(predicted_headers)
-examresults_headers = ['Date', 'Body', 'Exam Level', 'Sitting', 'Subject', 'Grade']
-examresults_counter = Counter(examresults_headers)
+target_tables = desired_tables()
 
 page_number = 2
 exit_loop = False
@@ -37,15 +38,11 @@ while True:
         #     table.columns 
 
         header_counter = Counter(list(table.columns.values))
-        if header_counter == achieved_counter:
-            fix_broken_table(page_number, table, file)
+        if header_counter in target_tables:
+            table = fix_broken_table(page_number, table, file)
 
             print(table)
-        elif header_counter == predicted_counter or header_counter == examresults_counter:
-            fix_broken_table(page_number, table, file)
-            # exit_loop = True
-
-            print(table)
+            print("")
 
     if exit_loop:
         break
