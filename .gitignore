@@ -4,3 +4,4 @@
 # Except python files and this file
 !*.py
 !.gitignore
+!requirements.txt

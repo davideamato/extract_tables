@@ -1,0 +1,4 @@
+tabula_py==2.2.0
+pandas==0.25.3
+openpyxl==3.0.7
+tabula==1.0.5
