@@ -47,6 +47,8 @@ def check_broken_table(current_page_number, filename, current_table):
     if tables[0].empty:
         return tables[0].columns.to_series()
     elif len(tables[0].columns) == len(current_table.columns):
+        tables[0] = tables[0].reset_index().T.reset_index().T
+        del tables[0][0]
         tables[0].columns = current_table.columns
         return tables[0]
     else:
@@ -87,7 +89,9 @@ def desired_tables():
 
 def completed_qualification_valid_exams():
     return ("GCE Advanced\rLevel", "USA-Advanced\rPlacement Test", 
-             "SQA Advanced\rHighers", "Cambridge Pre-\rU Certificate", "USA - SAT\r(redesigned\rfrom 2016)" )
+             "SQA Advanced\rHighers", "GCE Advanced\rSubsidiary", 
+             "Cambridge Pre-\rU Certificate\r(Principal\rSub",
+             "USA - SAT\r(redesigned\rfrom 2016)", "USA-SAT\rSubject" )
 
 def exam_results_valid_exams():
     return ("SQA Advanced\rHighers", "Pre-U Certificate", "Reformed A Level\rEngland")
