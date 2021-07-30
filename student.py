@@ -2,7 +2,7 @@
     Contains the objects for table extraction 
 '''
 
-from utils import InputError, completed_qualification_valid_exams, desired_tables, escape_backslash_r, exam_results_valid_exams, is_abs_path
+from utils import InputError, completed_qualification_valid_exams, desired_tables, detail_string, escape_backslash_r, exam_results_valid_exams, is_abs_path
 
 from pandas import isna 
 import os
@@ -19,7 +19,6 @@ class GradeEntry:
         self.year = year
 
     def __repr__(self):
-        # return "Entry Qualification: %s"
         return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted {}".format( \
             self.qualification, self.subject, self.grade, self.year, self.is_predicted)
 
@@ -64,6 +63,7 @@ class ExtractedStudents:
 
         ws.cell(row=1, column = 1, value="{}".format("UCAS ID"))
         ws.cell(row=1, column = 2, value="{}".format("Qualification Type"))
+
         for i in range(0, 8, 2):
             ws.cell(row=1, column = 3 + i, value="{}".format("Subject"))
             ws.cell(row=1, column = 4 + i, value="{}".format("Grade"))
@@ -237,6 +237,24 @@ class StudentGrades:
                     self.uncompleted_qualifications['Date'][row].split("-")[-1],
                 )
                 self.predicted_entries.append(entry)
+
+            elif type(self.uncompleted_qualifications['Date'][row]) is str:
+                if is_pred_grade & is_grade and self.uncompleted_qualifications['Date'][row] in detail_string():
+                    all_module_details = qualification = self.uncompleted_qualifications['Body'][row]
+                    individual_modules = all_module_details.split("Title:")
+                    print(individual_modules)
+                    for module in individual_modules:
+                        module_info = module.split("Date:")[0]
+                        entry = GradeEntry(
+                            None,
+                            module_info,
+                            None,
+                            True,
+                            None,
+                        )
+                        self.predicted_entries.append(entry)
+
+
 
         return self.predicted_entries
 

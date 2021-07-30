@@ -49,7 +49,9 @@ def check_broken_table(current_page_number, filename, current_table):
     # Extract tables from next page
     tables = tabula.read_pdf(filename, pages=str(current_page_number + 1), lattice=True, guess=True, pandas_options={"header": 0},)
 
-    if tables[0].empty:
+    if not tables:
+        return None
+    elif tables[0].empty:
         return tables[0].columns.to_series()
     elif len(tables[0].columns) == len(current_table.columns):
         # Moves header into next row
@@ -84,7 +86,8 @@ def raw_table_headers():
     return (acheived_headers, predicted_headers, examresults_headers)
 
 def escape_backslash_r(input_string):
-    return input_string.encode('unicode-escape').decode().replace("\\r", " ")
+    if input_string is not None:
+        return input_string.encode('unicode-escape').decode().replace("\\r", " ")
 
 def desired_tables():
 
