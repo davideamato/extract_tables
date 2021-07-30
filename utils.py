@@ -101,12 +101,37 @@ def desired_tables():
 def completed_qualification_valid_exams():
     return ("GCE Advanced\rLevel", "USA-Advanced\rPlacement Test", 
              "SQA Advanced\rHighers", 
-             "Cambridge Pre-\rU Certificate\r(Principal\rSub")
+             "Cambridge Pre-\rU Certificate\r(Principal\rSub",
+             "Matura-\rPoland")
             #  "GCE Advanced\rSubsidiary", 
             #  "USA - SAT\r(redesigned\rfrom 2016)", "USA-SAT\rSubject" )
 
 def exam_results_valid_exams():
-    return ("SQA Advanced\rHighers", "Pre-U Certificate", "Reformed A Level\rEngland")
+    return ("SQA Advanced\rHighers", "Pre-U Certificate", "Reformed A Level\rEngland",
+            "GCE A Level (H2)", "GCE A Level (H1)"
+    )
+
+def predicted_qualification_valid_exams():
+    return ("Spain-Titulo\rde Bachiller", "Matura-\rPoland", "GCE\rAdvanced\rLevel",
+             "Romania-\rDiploma de\rBacalaureat", 
+             "France -\rBaccalaureat\rGeneral (from\r2021)", 
+             "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel")
 
 def detail_string():
     return "Module Details/Unit Grades"
+
+def predicted_math():
+    return {"GCE Advanced Level": ["Mathematics", "Mathematics (MEI)"],
+            "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel": ["Mathematics"],
+            }
+
+def predicted_further_math():
+    return {"GCE Advanced Level": ["Further Mathematics (MEI)"],
+            "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel": ["Further\rMathematics"],
+    
+    }
+
+def predicted_physics():
+    return {"GCE Advanced Level": ["Physics A", "Physics"],
+            "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel": ["Physics"],
+    }
