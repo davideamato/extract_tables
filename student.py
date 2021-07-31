@@ -2,7 +2,9 @@
     Contains the objects for table extraction 
 '''
 
-from utils import InputError, completed_qualification_valid_exams, desired_tables, detail_string, escape_backslash_r, exam_results_valid_exams, is_abs_path
+from utils import (InputError, completed_qualification_valid_exams, desired_tables, detail_string,
+                   escape_backslash_r, exam_results_valid_exams, is_abs_path, math_mapping, physics_mapping,
+                   fm_mapping)
 
 from pandas import isna
 import os
@@ -61,16 +63,22 @@ class ExtractedStudents:
             raise RuntimeError("The order of adding students is incorrect \n"
                                "This should be done sequentially IDs in list should correspond")
 
-    def populate_worksheet(self, desired_data, ws):
-        if desired_data not in self.all_students[0].which_grades.keys():
-            raise InputError(False, "Key given not found in dictionary")
-
+    @staticmethod
+    def populate_normal_header(ws):
         ws.cell(row=1, column=1, value="{}".format("UCAS ID"))
         ws.cell(row=1, column=2, value="{}".format("Qualification Type"))
 
         for i in range(0, 8, 2):
             ws.cell(row=1, column=3 + i, value="{}".format("Subject"))
             ws.cell(row=1, column=4 + i, value="{}".format("Grade"))
+
+        return ws
+
+    def populate_worksheet(self, desired_data, ws):
+        if desired_data not in self.all_students[0].which_grades.keys():
+            raise InputError(False, "Key given not found in dictionary")
+
+        ws = self.populate_normal_header(ws)
 
         lb = 2
 
@@ -93,7 +101,8 @@ class ExtractedStudents:
 
         return ws
 
-    def compile_for_master(self, ws):
+    @staticmethod
+    def populate_master_header(ws):
 
         ws.cell(row=1, column=1, value="{}".format("UCAS ID"))
         ws.cell(row=1, column=2, value="{}".format("Qualification"))
@@ -106,15 +115,90 @@ class ExtractedStudents:
             ws.cell(row=1, column=6 + i, value="{}".format("Subject"))
             ws.cell(row=1, column=7 + i, value="{}".format("Grade"))
 
+        return ws
+
+    def compile_for_master(self, ws):
+
+        ws = self.populate_master_header(ws) 
+
         lb = 2
 
         for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
-
             ws.cell(row=row_counter, column=1,
                     value="{}".format(student.ucas_id))
 
+            is_more_than_four = False
+
+            categorised_entries = self.sort_into_subjects(student)
+
+            core_subjects = ["math", "physics", "fm"]
+
+            if categorised_entries["fm"]:
+                is_fm = True
+                ws.cell(row=row_counter, column=10, value="Yes")
+            else:
+                is_fm = False
+                ws.cell(row=row_counter, column=10, value="No")
+
+            any_issues = self.log_issues(categorised_entries)
+            if any_issues is None:
+                ws.cell(row=row_counter, column=3, value="")
+            else:
+                ws.cell(row=row_counter, column=3, value=any_issues)
+
+
+                            
+                        
 
         return ws
+
+    @staticmethod
+    def log_issues(categorised_entries):
+        # All lists in categorised entries are empty
+        if not all(categorised_entries.values()):
+            return "No valid qual & subjects."
+
+        log = []
+
+        for subject, entries in categorised_entries:
+            if len(entries) > 1 and subject != "additional_subjects":
+                log.append("Multiple {} Qual.".format(subject))
+            elif len(entries) > 2:
+                log.append("More than 4 subjects.")
+
+        if len(log) > 1:
+            return " ".join(log)
+        elif len(log) == 1:
+            return log[0]
+        else:
+            return None
+
+
+    @staticmethod
+    def sort_into_subjects(student):
+
+        categorised_entries = {
+            "math": [],
+            "physics": [],
+            "fm": [],
+            "additional_subjects": [],
+        }
+
+        # Grade type => results/predicted/completed
+        for grade_entries in student.which_grade.values():
+            # List of entries are not empty
+            if grade_entries:
+                for entry in grade_entries:
+                    if entry.subject in math_mapping().get(entry.qualification, set()):
+                        categorised_entries["math"].append(entry)
+                    elif entry.subject in physics_mapping().get(entry.qualification, set()):
+                        categorised_entries["physics"].append(entry)
+                    elif entry.subject in fm_mapping().get(entry.qualification, set()):
+                        categorised_entries["fm"].append(entry)
+                    else:
+                        categorised_entries["additional_subjects"].append(entry)
+
+        return categorised_entries
 
     def write_to_excel(self, input_abs_path):
         is_abs_path(input_abs_path)
@@ -179,9 +263,11 @@ class StudentGrades:
         self.examresult_entries()
         self.completed_grade_entries()
 
-        self.which_grades = {"completed": self.completed_entries,
-                             "predicted": self.predicted_entries,
-                             "results": self.results_entries}
+        self.which_grades = {
+            "results": self.results_entries,
+            "completed": self.completed_entries,
+            "predicted": self.predicted_entries,
+        }
 
     def __repr__(self):
         return "{} \n {} \n {}".format(self.completed_qualifications,
@@ -301,7 +387,7 @@ class StudentGrades:
                 )
                 self.predicted_entries.append(entry)
 
-            elif  (not is_pred_grade) & (not is_grade):
+            elif (not is_pred_grade) & (not is_grade):
 
                 if "Unnamed" in self.uncompleted_qualifications['Grade'][row]:
                     valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row]
@@ -323,13 +409,12 @@ class StudentGrades:
                 )
                 self.predicted_entries.append(entry)
 
-
-
             elif type(self.uncompleted_qualifications['Date'][row]) is str:
                 if is_pred_grade & is_grade and self.uncompleted_qualifications['Date'][row] in detail_string():
                     all_module_details = qualification = self.uncompleted_qualifications[
                         'Body'][row]
-                    individual_modules = all_module_details.split("Title:")
+                    # Ignores the first entry which would just be the date
+                    individual_modules = all_module_details.split("Title:")[1:]
                     print(individual_modules)
                     for module in individual_modules:
                         module_info = module.split("Date:")[0]
