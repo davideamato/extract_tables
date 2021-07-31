@@ -2,10 +2,9 @@
     Contains the objects for table extraction 
 '''
 
-from collections import Counter
 from utils import (InputError, completed_qualification_valid_exams, desired_tables, detail_string,
                    escape_backslash_r, exam_results_valid_exams, is_abs_path, math_mapping, physics_mapping,
-                   fm_mapping)
+                   fm_mapping, qualifications_with_overall_score)
 
 from pandas import isna
 import os
@@ -147,6 +146,12 @@ class ExtractedStudents:
 
             categorised_entries = self.sort_into_subjects(student)
 
+            qualification = student.unique_qualifications()
+
+            # Intersection of qualification set and set of qualifications with overall score
+            if qualification & qualifications_with_overall_score():
+                print("FIND THE OVERALL SCORE ")
+
             if categorised_entries["fm"]:
                 is_fm = True
                 ws.cell(row=row_counter, column=10, value="Yes")
@@ -157,7 +162,8 @@ class ExtractedStudents:
             any_issues = self.log_issues(categorised_entries)
 
             if any_issues is None:
-                ws.cell(row=row_counter, column=3, value="M&P missing, need manual entry")
+                ws.cell(row=row_counter, column=3,
+                        value="M&P missing, need manual entry")
                 continue
 
             subjectCounter = 0
@@ -198,7 +204,6 @@ class ExtractedStudents:
                     #     excel_col = map_subject_num_to_cols.get(subjectCounter)
                     #     for col, val in zip(excel_col, subject_entries[0]):
                     #         ws.cell(row=row_counter, column=col, value=val)
-
 
                     exam_result_entries = [
                         entry for entry in subject_entries if entry.is_exam_result]
@@ -258,11 +263,12 @@ class ExtractedStudents:
 
         max_year = max(years)
         most_recent = [
-            entry for entry in lst_of_entries if entry.year == max_year ]
+            entry for entry in lst_of_entries if entry.year == max_year]
         if len(most_recent) > 1:
             # Max year is repeated
 
-            grades = [str(entry.grade) for entry in most_recent if entry.grade is not None]
+            grades = [str(entry.grade)
+                      for entry in most_recent if entry.grade is not None]
             any_issues[-1] += "highest most recent "
 
             return lst_of_entries[grades.index(max(grades))]
@@ -278,14 +284,14 @@ class ExtractedStudents:
 
     @staticmethod
     def log_issues(categorised_entries):
-        convert_lst_to_bool = [not bool(cat_entry) for cat_entry in categorised_entries.values()]
+        convert_lst_to_bool = [not bool(cat_entry)
+                               for cat_entry in categorised_entries.values()]
         # All lists in categorised entries are empty
         if all(convert_lst_to_bool):
             return "No valid qual & subjects."
 
         if all(convert_lst_to_bool[:3]):
             return None
-            
 
         log = []
 
@@ -401,6 +407,18 @@ class StudentGrades:
         return "{} \n {} \n {}".format(self.completed_qualifications,
                                        self.uncompleted_qualifications,
                                        self.exam_results)
+
+    def unique_qualifications(self):
+        unique_quals = set()
+        [unique_quals.add(item.qualification) for grade_entries in self.which_grades.values(
+        ) if grade_entries for item in grade_entries]
+        # [grade_entries for grade_entries in self.which_grades.values() if grade_entries]
+        # for entries in self.which_grades.values():
+        #     if entries:
+        #         for item in entries:
+        #             unique_quals.add(item)
+
+        return unique_quals
 
     # def handle_detailed_entry(self, input_qualification, rowCounter):
     #     target = input_qualification['Date'][rowCounter]
