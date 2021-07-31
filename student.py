@@ -15,20 +15,35 @@ class GradeEntry:
         Class to store the grades
     '''
 
-    def __init__(self, qualification, subject, grade, is_predicted, year):
+    def __init__(self, qualification, subject, grade, is_predicted, year, is_exam_result):
         self.qualification = escape_backslash_r(qualification)
         self.subject = escape_backslash_r(subject)
         self.grade = grade
         self.is_predicted = is_predicted
+        self.is_exam_result = is_exam_result
         self.year = year
 
+        self.grade_info = [self.grade, self.subject]
+        self.index = 2
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index == 0:
+            raise StopIteration
+
+        self.index -= 1
+
+        return self.grade_info[self.index]
+
     def __repr__(self):
-        return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted {}".format(
-            self.qualification, self.subject, self.grade, self.year, self.is_predicted)
+        return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted: {} Exam Result: {}".format(
+            self.qualification, self.subject, self.grade, self.year, self.is_predicted, self.is_exam_result)
 
     def __str__(self):
-        return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted {}".format(
-            self.qualification, self.subject, self.grade, self.year, self.is_predicted)
+        return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted: {} Exam Result: {}".format(
+            self.qualification, self.subject, self.grade, self.year, self.is_predicted, self.is_exam_result)
 
 
 class ExtractedStudents:
@@ -112,14 +127,14 @@ class ExtractedStudents:
         ws.cell(row=1, column=10, value="{}".format("FM?"))
 
         for i in range(0, 4, 2):
-            ws.cell(row=1, column=6 + i, value="{}".format("Subject"))
             ws.cell(row=1, column=7 + i, value="{}".format("Grade"))
+            ws.cell(row=1, column=6 + i, value="{}".format("Subject"))
 
         return ws
 
     def compile_for_master(self, ws):
 
-        ws = self.populate_master_header(ws) 
+        ws = self.populate_master_header(ws)
 
         lb = 2
 
@@ -127,30 +142,111 @@ class ExtractedStudents:
             ws.cell(row=row_counter, column=1,
                     value="{}".format(student.ucas_id))
 
-            is_more_than_four = False
-
             categorised_entries = self.sort_into_subjects(student)
 
-            core_subjects = ["math", "physics", "fm"]
-
             if categorised_entries["fm"]:
-                is_fm = True
                 ws.cell(row=row_counter, column=10, value="Yes")
             else:
-                is_fm = False
                 ws.cell(row=row_counter, column=10, value="No")
 
             any_issues = self.log_issues(categorised_entries)
+
+            subjectCounter = 0
+            map_subject_num_to_cols = {0: [4], 1: [5], 2: [6, 7], 3: [8, 9]}
+            for subject_entries in categorised_entries.values():
+
+                excel_col = map_subject_num_to_cols.get(subjectCounter)
+                # If there is only one subject entry, then just populate
+                # OR if it is at the 3rd subject, then just populate with the first (if not empty)
+
+                if len(subject_entries) == 1 or (subjectCounter == 2 and not subject_entries):
+                    for col, val in zip(excel_col, subject_entries[0]):
+                        ws.cell(row=row_counter, column=col, value=val)
+
+                # If it is the 4th subject, then just populate with the 2nd
+                # If there are more this will be logged
+                elif subjectCounter == 3 and len(subject_entries) > 1:
+                    for col, val in zip(excel_col, subject_entries[1]):
+                        ws.cell(row=row_counter, column=col, value=val)
+
+                else:
+                    # most_recent_entry = subject_entries[0]
+                    # for entry in subject_entries[1:]:
+                    #     if entry.year > most_recent_entry.year:
+                    #         most_recent_entry = entry
+
+                    # # If it is the most recent entry && predicted => most likely to be the one I want
+                    # if most_recent_entry.is_predicted:
+                    #     excel_col = map_subject_num_to_cols.get(subjectCounter)
+                    #     for col, val in zip(excel_col, subject_entries[0]):
+                    #         ws.cell(row=row_counter, column=col, value=val)
+
+                    exam_result_entries = [
+                        entry for entry in subject_entries if entry.is_exam_result]
+                    predicted_entries = [
+                        entry for entry in subject_entries if entry.is_predicted]
+                    excel_col = excel_col[0]
+
+                    map_counter_to_subject = {0: "math", 1: "physics", 2: "3rd", 3: "4th"}
+                    any_issues.append("For {}, selected ".format(map_counter_to_subject[subjectCounter]))
+
+                    # # REFACTOR
+                    if len(exam_result_entries) == 1:
+                        ws.cell(row=row_counter, column=excel_col,
+                                value=exam_result_entries[0].grade)
+                        any_issues[-1] += "exam result"
+                    elif len(exam_result_entries) > 1:
+                        selected = self.select_an_entry(
+                            exam_result_entries, any_issues)
+                        ws.cell(row=row_counter, column=excel_col,
+                                value=selected.grade)
+                        any_issues[-1] += "exam result"
+                    elif len(predicted_entries) == 1:
+                        ws.cell(row=row_counter, column=excel_col,
+                                value=predicted_entries[0].grade)
+                        any_issues[-1] += "predicted grade"
+                    elif len(predicted_entries) > 1:
+                        selected = self.select_an_entry(
+                            exam_result_entries, any_issues)
+                        ws.cell(row=row_counter, column=excel_col,
+                                value=selected.grade)
+                        any_issues[-1] += "predicted grade"
+                    else:
+                        selected = self.select_an_entry(
+                            subject_entries, any_issues)
+                        ws.cell(row=row_counter, column=excel_col,
+                                value=selected.grade)
+
+                subjectCounter += 1
+
+            any_issues = self.compress_log(any_issues)
             if any_issues is None:
                 ws.cell(row=row_counter, column=3, value="")
             else:
                 ws.cell(row=row_counter, column=3, value=any_issues)
-
-
-                            
-                        
-
         return ws
+
+    @staticmethod
+    def select_an_entry(lst_of_entries, any_issues):
+
+        years = [entry.year for entry in lst_of_entries]
+
+        if len(years) == len(set(years)):
+            grades = [entry.grade for entry in lst_of_entries]
+            any_issues[-1] += "highest "
+            return lst_of_entries[grades.index(max(years))] 
+        else:
+            any_issues[-1] += "most recent "
+            return lst_of_entries[years.index(max(years))]
+
+    @staticmethod
+    def compress_log(log):
+        if len(log) > 1:
+            return " ".join(log)
+        elif len(log) == 1:
+            return log[0]
+        else:
+            return None
 
     @staticmethod
     def log_issues(categorised_entries):
@@ -160,18 +256,15 @@ class ExtractedStudents:
 
         log = []
 
-        for subject, entries in categorised_entries:
+        for subject, entries in categorised_entries.items():
             if len(entries) > 1 and subject != "additional_subjects":
-                log.append("Multiple {} Qual.".format(subject))
+                log.append("Multiple {} qual.".format(subject))
             elif len(entries) > 2:
                 log.append("More than 4 subjects.")
+            else:
+                log.append("{} missing.".format(subject))
 
-        if len(log) > 1:
-            return " ".join(log)
-        elif len(log) == 1:
-            return log[0]
-        else:
-            return None
+        return log
 
 
     @staticmethod
@@ -185,7 +278,7 @@ class ExtractedStudents:
         }
 
         # Grade type => results/predicted/completed
-        for grade_entries in student.which_grade.values():
+        for grade_entries in student.which_grades.values():
             # List of entries are not empty
             if grade_entries:
                 for entry in grade_entries:
@@ -196,7 +289,8 @@ class ExtractedStudents:
                     elif entry.subject in fm_mapping().get(entry.qualification, set()):
                         categorised_entries["fm"].append(entry)
                     else:
-                        categorised_entries["additional_subjects"].append(entry)
+                        categorised_entries["additional_subjects"].append(
+                            entry)
 
         return categorised_entries
 
@@ -218,6 +312,7 @@ class ExtractedStudents:
         exam_results = self.populate_worksheet("results", exam_results)
 
         compiled_single = wb.create_sheet("Compiled", 0)
+        compiled_single = self.compile_for_master(compiled_single)
 
         wb.save(os.path.join(input_abs_path, "output.xlsx"))
 
@@ -240,19 +335,19 @@ class StudentGrades:
 
         for header, tbl in zip(table_headers, extracted_tables):
             if header == target_tables[0]:
-                print("")
-                print("Completed Qualification")
-                print(tbl)
+                # print("")
+                # print("Completed Qualification")
+                # print(tbl)
                 self.completed_qualifications = tbl
             elif header == target_tables[1]:
-                print("")
-                print("Predicted Grades")
-                print(tbl)
+                # print("")
+                # print("Predicted Grades")
+                # print(tbl)
                 self.uncompleted_qualifications = tbl
             elif header == target_tables[2]:
-                print("")
-                print("Exam Results")
-                print(tbl)
+                # print("")
+                # print("Exam Results")
+                # print(tbl)
                 self.exam_results = tbl
 
         self.predicted_entries = []
@@ -311,6 +406,7 @@ class StudentGrades:
                     self.completed_qualifications['Grade'][row],
                     False,
                     self.completed_qualifications['Date'][row].split("-")[-1],
+                    False,
                 )
 
                 self.completed_entries.append(entry)
@@ -340,6 +436,7 @@ class StudentGrades:
                     self.exam_results['Grade'][row],
                     False,
                     self.exam_results['Date'][row].split("-")[-1],
+                    True,
                 )
 
                 self.results_entries.append(entry)
@@ -384,6 +481,7 @@ class StudentGrades:
                     True,
                     self.uncompleted_qualifications['Date'][row].split(
                         "-")[-1],
+                    False,
                 )
                 self.predicted_entries.append(entry)
 
@@ -406,6 +504,7 @@ class StudentGrades:
                     True,
                     self.uncompleted_qualifications['Date'][row].split(
                         "-")[-1],
+                    False
                 )
                 self.predicted_entries.append(entry)
 
@@ -415,7 +514,7 @@ class StudentGrades:
                         'Body'][row]
                     # Ignores the first entry which would just be the date
                     individual_modules = all_module_details.split("Title:")[1:]
-                    print(individual_modules)
+                    # print(individual_modules)
                     for module in individual_modules:
                         module_info = module.split("Date:")[0]
                         entry = GradeEntry(
@@ -424,6 +523,7 @@ class StudentGrades:
                             None,
                             True,
                             None,
+                            False,
                         )
                         self.predicted_entries.append(entry)
 
