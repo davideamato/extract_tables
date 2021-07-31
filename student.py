@@ -130,8 +130,8 @@ class ExtractedStudents:
         ws.cell(row=1, column=11, value="{}".format("Overall Grade"))
 
         for i in range(0, 4, 2):
-            ws.cell(row=1, column=7 + i, value="{}".format("Grade"))
-            ws.cell(row=1, column=6 + i, value="{}".format("Subject"))
+            ws.cell(row=1, column=6 + i, value="{}".format("Grade"))
+            ws.cell(row=1, column=7 + i, value="{}".format("Subject"))
 
         return ws
 
@@ -155,6 +155,10 @@ class ExtractedStudents:
                 ws.cell(row=row_counter, column=10, value="No")
 
             any_issues = self.log_issues(categorised_entries)
+
+            if any_issues is None:
+                ws.cell(row=row_counter, column=3, value="M&P missing, need manual entry")
+                continue
 
             subjectCounter = 0
             map_subject_num_to_cols = {0: [4], 1: [5], 2: [6, 7], 3: [8, 9]}
@@ -220,7 +224,7 @@ class ExtractedStudents:
                         any_issues[-1] += "predicted grade"
                     elif len(predicted_entries) > 1:
                         selected = self.select_an_entry(
-                            exam_result_entries, any_issues)
+                            predicted_entries, any_issues)
                         any_issues[-1] += "predicted grade"
                     else:
                         selected = self.select_an_entry(
@@ -244,7 +248,7 @@ class ExtractedStudents:
     def select_an_entry(lst_of_entries, any_issues):
         # ASSUMPTION: MOST RECENT GRADE = BEST GRADE
 
-        years = [entry.year for entry in lst_of_entries]
+        years = [entry.year for entry in lst_of_entries if entry.year is not None]
 
         if len(years) == len(set(years)):
             # All unique years
@@ -254,11 +258,11 @@ class ExtractedStudents:
 
         max_year = max(years)
         most_recent = [
-            entry for entry in lst_of_entries if entry.year == max_year]
+            entry for entry in lst_of_entries if entry.year == max_year ]
         if len(most_recent) > 1:
             # Max year is repeated
 
-            grades = [entry.grade for entry in most_recent]
+            grades = [str(entry.grade) for entry in most_recent if entry.grade is not None]
             any_issues[-1] += "highest most recent "
 
             return lst_of_entries[grades.index(max(grades))]
@@ -274,9 +278,14 @@ class ExtractedStudents:
 
     @staticmethod
     def log_issues(categorised_entries):
+        convert_lst_to_bool = [not bool(cat_entry) for cat_entry in categorised_entries.values()]
         # All lists in categorised entries are empty
-        if all([not bool(cat_entry) for cat_entry in categorised_entries.values()]):
+        if all(convert_lst_to_bool):
             return "No valid qual & subjects."
+
+        if all(convert_lst_to_bool[:3]):
+            return None
+            
 
         log = []
 
@@ -286,7 +295,7 @@ class ExtractedStudents:
                 log.append("Multiple {} qual.".format(subject))
             elif entries_length > 2:
                 log.append("More than 4 subjects.")
-            elif entries_length == 0:
+            elif entries_length == 0 and subject != "fm":
                 log.append("{} missing.".format(subject))
 
         return log
