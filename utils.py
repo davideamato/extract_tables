@@ -61,12 +61,14 @@ def check_broken_table(current_page_number, filename, current_table):
     elif tables[0].empty:
         return tables[0].columns.to_series()
     elif len(tables[0].columns) == len(current_table.columns):
+        # print(tables[0])
         # Moves header into next row
         tables[0] = tables[0].reset_index().T.reset_index().T
         # But, I have a new cloumn, so delete
         del tables[0][0]
         # Rename header so it can append easily
         tables[0].columns = current_table.columns
+        # print(tables[0])
         return tables[0]
     else:
         return None
@@ -83,6 +85,7 @@ def fix_broken_table(current_page_number, current_table, filename):
         updated_table = current_table.append(
             continued_values, ignore_index=True)
 
+        # print(updated_table)
         return updated_table
     else:
         return current_table
@@ -115,12 +118,13 @@ def desired_tables():
 
 
 def completed_qualification_valid_exams():
-    return ("GCE Advanced\rLevel",
+    return set(["GCE Advanced\rLevel",
             "Cambridge Pre-\rU Certificate\r(Principal\rSub",
             "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
             "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
             "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel"
             "SQA Advanced\rHighers",
+            "SQA\rAdvanced\rHighers",
             "Spain-Titulo\rde Bachiller",
             "USA-Advanced\rPlacement Test",
             "International\rBaccalaureate\rDiploma",
@@ -130,13 +134,13 @@ def completed_qualification_valid_exams():
             "France -\rBaccalaureat\rGeneral (from\r2021)",
             "France\r-Baccalaureat",
             "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
-            )
+    ])
     #  "GCE Advanced\rSubsidiary",
     #  "USA - SAT\r(redesigned\rfrom 2016)", "USA-SAT\rSubject" )
 
 
 def exam_results_valid_exams():
-    return (
+    return set([
         "Reformed A Level\rEngland",
         "SQA Advanced\rHighers",
         "Pre-U Certificate",
@@ -147,17 +151,18 @@ def exam_results_valid_exams():
         "IB Standard Level",
         "Int. Baccalaureate",
         "IB Total points"
-    )
+        ])
 
 
 def predicted_qualification_valid_exams():
-    return (
+    return set([
         "GCE\rAdvanced\rLevel",
         "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
         "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
         "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
         "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel"
-        "SQA Scottish\rHighers",
+        "SQA Advanced\rHighers",
+        "SQA\rAdvanced\rHighers",
         "France -\rBaccalaureat\rGeneral (from\r2021)",
         "France\r-Baccalaureat",
         "International\rBaccalaureate\rDiploma",
@@ -166,55 +171,57 @@ def predicted_qualification_valid_exams():
         "Romania-\rDiploma de\rBacalaureat",
         "India-Indian\rSchool\rCertificate\r(ISC)",
         "ISC",
+        "ILC",
         "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
-    )
+        ])
 
 
 def detail_string():
     return "Module Details/Unit Grades"
 
 
-def predicted_math():
-    return {"GCE Advanced Level": ["Mathematics", "Mathematics (MEI)", "Mathematics A"],
-            "SQA Scottish Highers": ["Mathematics C847", "Mathematics"],
-            "Pearson Edexcel International Advanced Level": ["Mathematics"],
-            "USA-Advanced Placement Test": ["AP Calculus BC",
+def math_mapping():
+    return {"GCE Advanced Level": set(["Mathematics", "Mathematics (MEI)", "Mathematics A"]),
+            "SQA Scottish Highers": set(["Mathematics C847", "Mathematics"]),
+            "Pearson Edexcel International Advanced Level": set(["Mathematics"]),
+            "ILC": set(["Mathematics"]),
+            "USA-Advanced Placement Test": set(["AP Calculus BC",
                                             "AP Calculus\rBC"
                                             "CALCULUS BC"
-                                            ],
-            "IB": ["Math Analysis & Appr"],
-            "Int. Baccalaureate": ["Math Analysis & Appr"],
-            "International Baccalaureate Diploma": ["Math Analysis & Appr"],
-            "Cambridge International A Level": ["Mathematics"],
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": ["Mathematics"],
-            "Cambridge Pre-U Certificate (Principal Subject)": ["Mathematics (principal subject)"],
+                                            ]),
+            # "IB": set(["Math Analysis & Appr"]),
+            "Int. Baccalaureate": set(["Math Analysis & Appr"]),
+            # "International Baccalaureate Diploma": set(["Math Analysis & Appr"]),
+            "Cambridge International A Level": set(["Mathematics"]),
+            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Mathematics"]),
+            "Cambridge Pre-U Certificate (Principal Subject)": set(["Mathematics (principal subject)"]),
             }
 
 
-def predicted_further_math():
-    return {"GCE Advanced Level": ["Further Mathematics (MEI)", "Further Mathematics"],
-            "Cambridge International A Level": ["Further Mathematics"],
-            "Pearson Edexcel International Advanced Level": ["Further Mathematics"],
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": ["Further Mathematics"],
-            "Cambridge Pre-U Certificate (Principal Subject)": ["Further Mathematics (principal subject)"],
-
+def fm_mapping():
+    return {"GCE Advanced Level": set(["Further Mathematics (MEI)", "Further Mathematics"]),
+            "Cambridge International A Level": set(["Further Mathematics"]),
+            "Pearson Edexcel International Advanced Level": set(["Further Mathematics"]),
+            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Further Mathematics"]),
+            "Cambridge Pre-U Certificate (Principal Subject)": set(["Further Mathematics (principal subject)"]),
             }
 
 
-def predicted_physics():
-    return {"GCE Advanced Level": ["Physics A", "Physics"],
-            "SQA Scottish Highers": ["Physics C857", "Physics"],
-            "Cambridge International A Level": ["Physics"],
-            "Cambridge Pre-U Certificate (Principal Subject)": ["Physics (principal subject)"],
-            "Pearson Edexcel International Advanced Level": ["Physics"],
-            "IB": ["Physics"],
-            "Int. Baccalaureate": ["Physics"],
-            "International Baccalaureate\rDiploma": ["Physics"],
-            "USA-Advanced Placement Test": ["AP Physics C: Electricity and Magnetism",
+def physics_mapping():
+    return {"GCE Advanced Level": set(["Physics A", "Physics"]),
+            "SQA Scottish Highers": set(["Physics C857", "Physics"]),
+            "Cambridge International A Level": set(["Physics"]),
+            "Cambridge Pre-U Certificate (Principal Subject)": set(["Physics (principal subject)"]),
+            "ILC": set(["Physics"]),
+            "Pearson Edexcel International Advanced Level": set(["Physics"]),
+            # "IB": set(["Physics"]),
+            "Int. Baccalaureate": set(["Physics"]),
+            # "International Baccalaureate\rDiploma": set(["Physics"]),
+            "USA-Advanced Placement Test": set(["AP Physics C: Electricity and Magnetism",
                                             "AP Physics C: Mechanics",
                                             "AP Physics 1",
                                             "AP Physics C ELECTRICITY AND MAGNETISM",
                                             "AP Physics C MECHANICS"
-                                            ],
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": ["Physics"],
+                                            ]),
+            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Physics"]),
             }
