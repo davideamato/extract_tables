@@ -138,6 +138,36 @@ def completed_qualification_valid_exams():
     #  "GCE Advanced\rSubsidiary",
     #  "USA - SAT\r(redesigned\rfrom 2016)", "USA-SAT\rSubject" )
 
+def qualifications_with_overall_score():
+    return set([
+        "France - Baccalaureat General (from 2021)",
+        "France -Baccalaureat",
+        "International Baccalaureate Diploma",
+        "IB",
+        "IB Standard Level",
+        "Int. Baccalaureate",
+        "IB Total points"
+        "Spain-Titulo de Bachiller",
+        "Romania- Diploma de Bacalaureat", 
+        "India-Indian School Certificate (ISC)",
+        "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip",
+        "All India Senior School Certificate (CBSE)",
+        "France- Option Internationale du Baccalaureat (OIB)",
+        "New Matura- Poland",
+        "Matura- Poland",
+        "Italy-Diploma di Esame di Stato",
+        "Diploma de Ensino Secundario- Portugal",
+    ])
+
+def ib_permutations():
+    return set([
+        "International Baccalaureate Diploma",
+        "IB",
+        "IB Standard Level",
+        "Int. Baccalaureate",
+        "IB Total points"
+    ])
+
 
 def exam_results_valid_exams():
     return set([
@@ -189,6 +219,10 @@ def math_mapping():
                                             "AP Calculus\rBC"
                                             "CALCULUS BC"
                                             ]),
+            "USA- Advanced Placement Test": set(["AP Calculus BC",
+                                            "AP Calculus\rBC"
+                                            "CALCULUS BC"
+                                            ]),
             # "IB": set(["Math Analysis & Appr"]),
             "Int. Baccalaureate": set(["Math Analysis & Appr"]),
             # "International Baccalaureate Diploma": set(["Math Analysis & Appr"]),
@@ -218,6 +252,12 @@ def physics_mapping():
             "Int. Baccalaureate": set(["Physics"]),
             # "International Baccalaureate\rDiploma": set(["Physics"]),
             "USA-Advanced Placement Test": set(["AP Physics C: Electricity and Magnetism",
+                                            "AP Physics C: Mechanics",
+                                            "AP Physics 1",
+                                            "AP Physics C ELECTRICITY AND MAGNETISM",
+                                            "AP Physics C MECHANICS"
+                                            ]),
+            "USA- Advanced Placement Test": set(["AP Physics C: Electricity and Magnetism",
                                             "AP Physics C: Mechanics",
                                             "AP Physics 1",
                                             "AP Physics C ELECTRICITY AND MAGNETISM",
