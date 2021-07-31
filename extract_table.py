@@ -13,13 +13,16 @@ from utils import desired_tables, get_all_files_in_dir, fix_broken_table, get_ap
 from student import ExtractedStudents
 from student import StudentGrades
 
+import pandas as pd
+pd.set_option('display.max_columns', None)
+
 path_to_files = os.path.abspath("pdfs/")
 
 # Generates full path to the files to extract data from
-all_files = get_all_files_in_dir(path_to_files)
+all_files = get_all_files_in_dir(path_to_files)[10:30]
 # Extracts UCAS IDs from file name
-applicant_ids = get_applicant_ids(path_to_files)
-# print(applicant_ids)
+applicant_ids = get_applicant_ids(path_to_files)[10:30]
+print(applicant_ids)
 
 # From the PDFs, these are the headers of the tables we want
 # They have been placed in a counter for easy comparison
@@ -36,7 +39,9 @@ print("Extracting tables for {} students".format(len(all_files)))
 # Iterate over all files and applicant IDs
 for file, app_id in zip(all_files, applicant_ids):
 
-    # Start on 2nd page as 1st doesn't contain impt info 
+    print("UCAS ID: {}".format(app_id))
+
+    # Start on 2nd page as 1st doesn't contain impt info
     page_number = 2
     exit_loop = False
 
@@ -73,8 +78,8 @@ for file, app_id in zip(all_files, applicant_ids):
                 grade_tables.append(table)
                 grade_counters.append(header_counter)
 
-                # print(table)
-                # print("")
+                print(table)
+                print("")
             elif EXIT_STRING in table_headers:
                 # Exit condition
                 exit_loop = True
