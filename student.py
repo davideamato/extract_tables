@@ -93,6 +93,29 @@ class ExtractedStudents:
 
         return ws
 
+    def compile_for_master(self, ws):
+
+        ws.cell(row=1, column=1, value="{}".format("UCAS ID"))
+        ws.cell(row=1, column=2, value="{}".format("Qualification"))
+        ws.cell(row=1, column=3, value="{}".format("Issues Importing?"))
+        ws.cell(row=1, column=4, value="{}".format("Math Grade"))
+        ws.cell(row=1, column=5, value="{}".format("Physics Grade"))
+        ws.cell(row=1, column=10, value="{}".format("FM?"))
+
+        for i in range(0, 4, 2):
+            ws.cell(row=1, column=6 + i, value="{}".format("Subject"))
+            ws.cell(row=1, column=7 + i, value="{}".format("Grade"))
+
+        lb = 2
+
+        for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
+
+            ws.cell(row=row_counter, column=1,
+                    value="{}".format(student.ucas_id))
+
+
+        return ws
+
     def write_to_excel(self, input_abs_path):
         is_abs_path(input_abs_path)
 
@@ -133,10 +156,19 @@ class StudentGrades:
 
         for header, tbl in zip(table_headers, extracted_tables):
             if header == target_tables[0]:
+                print("")
+                print("Completed Qualification")
+                print(tbl)
                 self.completed_qualifications = tbl
             elif header == target_tables[1]:
+                print("")
+                print("Predicted Grades")
+                print(tbl)
                 self.uncompleted_qualifications = tbl
             elif header == target_tables[2]:
+                print("")
+                print("Exam Results")
+                print(tbl)
                 self.exam_results = tbl
 
         self.predicted_entries = []
@@ -254,10 +286,10 @@ class StudentGrades:
                 else:
                     valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row]
 
-                if isna(self.uncompleted_qualifications['Body'][row]):
-                    qualification = self.uncompleted_qualifications['Exam'][row]
-                else:
+                if isna(self.uncompleted_qualifications['Exam'][row]):
                     qualification = self.uncompleted_qualifications['Body'][row]
+                else:
+                    qualification = self.uncompleted_qualifications['Exam'][row]
 
                 entry = GradeEntry(
                     qualification,
@@ -268,6 +300,30 @@ class StudentGrades:
                         "-")[-1],
                 )
                 self.predicted_entries.append(entry)
+
+            elif  (not is_pred_grade) & (not is_grade):
+
+                if "Unnamed" in self.uncompleted_qualifications['Grade'][row]:
+                    valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row]
+                else:
+                    valid_grade = self.uncompleted_qualifications['Grade'][row]
+
+                if isna(self.uncompleted_qualifications['Exam'][row]):
+                    qualification = self.uncompleted_qualifications['Body'][row]
+                else:
+                    qualification = self.uncompleted_qualifications['Exam'][row]
+
+                entry = GradeEntry(
+                    qualification,
+                    self.uncompleted_qualifications['Subject'][row],
+                    valid_grade,
+                    True,
+                    self.uncompleted_qualifications['Date'][row].split(
+                        "-")[-1],
+                )
+                self.predicted_entries.append(entry)
+
+
 
             elif type(self.uncompleted_qualifications['Date'][row]) is str:
                 if is_pred_grade & is_grade and self.uncompleted_qualifications['Date'][row] in detail_string():
