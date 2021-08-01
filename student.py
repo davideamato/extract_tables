@@ -141,20 +141,14 @@ class ExtractedStudents:
         lb = 2
 
         for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
+            # Fill in UCAS ID
             ws.cell(row=row_counter, column=1,
                     value="{}".format(student.ucas_id))
 
+            # Categorise each entry into subjects
             categorised_entries = self.sort_into_subjects(student)
 
-            ws.cell(row=row_counter, column=2, value="{}".format(
-                student.get_main_qualification()))
-
-            qualification = student.unique_qualifications()
-
-            # Intersection of qualification set and set of qualifications with overall score is not empty
-            if qualification & qualifications_with_overall_score():
-                print("FIND THE OVERALL SCORE ")
-
+            # Identify if FM is presetn
             if categorised_entries["fm"]:
                 is_fm = True
                 ws.cell(row=row_counter, column=10, value="Yes")
@@ -162,13 +156,53 @@ class ExtractedStudents:
                 is_fm = False
                 ws.cell(row=row_counter, column=10, value="No")
 
+            # Create log for issues
             any_issues = self.log_issues(categorised_entries)
 
+            # Identify and populate cell with the main qualification
+            ws.cell(row=row_counter, column=2, value="{}".format(
+                student.get_main_qualification()))
+
+            # Get all unique qualifications
+            qualification = student.unique_qualifications()
+
+            # Identify if the qualification has an overall score
+            # Intersection of qualification set and set of qualifications with overall score is not empty
+            intersection_qualification = qualification & qualifications_with_overall_score()
+            if intersection_qualification:
+                # If it does, find the overall score
+                intersection_qualification = list(intersection_qualification)
+                # Get all grades that aren't none
+                overall_grade = [item for qualification in intersection_qualification for item in student.get_grade_for_qualification(
+                    qualification) if item is not None]
+
+                # If an overall grade exists, populate cell
+                num_overall_grade = len(overall_grade)
+
+                # If an overall grade exists
+                if num_overall_grade > 1:
+                    # Log multiple grades as an issue
+                    if any_issues is not None:
+                        any_issues.append(
+                            "Multiple overall score. 1st selected.")
+                    else:
+                        # If any_issue is None => M&P grade not found. Skip rest of loop
+                        ws.cell(row=row_counter, column=3,
+                                value="M&P missing, need manual entry. Multiple overall score. 1st selected.")
+                        ws.cell(row=row_counter, column=11,
+                                value="{}".format(overall_grade[0]))
+                        continue
+
+                ws.cell(row=row_counter, column=11,
+                        value="{}".format(overall_grade[0]))
+
+            # If M&P missing, clearly there is an issue. Skip the rest of loop
             if any_issues is None:
                 ws.cell(row=row_counter, column=3,
                         value="M&P missing, need manual entry")
                 continue
 
+            # Populate subject and grades
             subjectCounter = 0
             map_subject_num_to_cols = {0: [4], 1: [5], 2: [6, 7], 3: [8, 9]}
             for subject_entries in categorised_entries.values():
@@ -196,17 +230,8 @@ class ExtractedStudents:
                     for col, val in zip(excel_col, subject_entries[0].grade_info):
                         ws.cell(row=row_counter, column=col, value=val)
 
+                # Doesn't fall into any of above cases => special case
                 else:
-                    # most_recent_entry = subject_entries[0]
-                    # for entry in subject_entries[1:]:
-                    #     if entry.year > most_recent_entry.year:
-                    #         most_recent_entry = entry
-
-                    # # If it is the most recent entry && predicted => most likely to be the one I want
-                    # if most_recent_entry.is_predicted:
-                    #     excel_col = map_subject_num_to_cols.get(subjectCounter)
-                    #     for col, val in zip(excel_col, subject_entries[0]):
-                    #         ws.cell(row=row_counter, column=col, value=val)
 
                     exam_result_entries = [
                         entry for entry in subject_entries if entry.is_exam_result]
@@ -244,7 +269,9 @@ class ExtractedStudents:
 
                 subjectCounter += 1
 
+            # Compress list of strings into a single string
             any_issues = self.compress_log(any_issues)
+            # Populate cell with string
             if any_issues is None:
                 ws.cell(row=row_counter, column=3, value="")
             else:
@@ -425,6 +452,13 @@ class StudentGrades:
         else:
             return Counter(qualifications).most_common(1)[0][0]
 
+    def get_grade_for_qualification(self, target_qualification):
+        for values in self.which_grades.values():
+            if values:
+                for item in values:
+                    if target_qualification in item.qualification:
+                        yield item.grade
+
     def is_detailed_entry(self, input_qualification, rowCounter):
         target = input_qualification['Date'][rowCounter]
         if type(target) is not str:
@@ -497,7 +531,8 @@ class StudentGrades:
 
             elif self.is_detailed_entry(self.completed_qualifications, row) and self.is_completed_qual_valid(row-1):
 
-                detailed_entries = self.handle_detailed_entry(self.completed_qualifications, row)
+                detailed_entries = self.handle_detailed_entry(
+                    self.completed_qualifications, row)
                 self.completed_entries += detailed_entries
 
         return self.completed_entries
@@ -532,7 +567,8 @@ class StudentGrades:
 
             elif self.is_detailed_entry(self.exam_results, row):
 
-                detailed_entries = self.handle_detailed_entry(self.exam_results, row)
+                detailed_entries = self.handle_detailed_entry(
+                    self.exam_results, row)
                 self.results_entries += detailed_entries
 
         return self.results_entries
