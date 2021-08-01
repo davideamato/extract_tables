@@ -17,7 +17,10 @@ class GradeEntry:
     '''
 
     def __init__(self, qualification, subject, grade, is_predicted, year, is_exam_result):
-        self.grade = grade
+        if type(grade) is str:
+            self.grade = escape_backslash_r(grade)
+        else:
+            self.grade = grade
         self.subject = escape_backslash_r(subject)
         self.qualification = escape_backslash_r(qualification)
         self.is_predicted = is_predicted
@@ -653,10 +656,19 @@ class StudentGrades:
                     # print(individual_modules)
                     for module in individual_modules:
                         module_info = module.split("Date:")[0]
+
+                        if "Grade:" in module_info:
+                            split = module_info.split("Grade:")
+                            subject = split[0]
+                            grade = split[1]
+                        else:
+                            subject = module_info
+                            grade = None
+                            
                         entry = GradeEntry(
                             qualification,
-                            module_info,
-                            None,
+                            subject,
+                            grade,
                             True,
                             None,
                             False,
