@@ -155,41 +155,6 @@ def completed_qualification_valid_exams():
                 ])
 
 
-def qualifications_with_overall_score():
-    return set([
-        "France - Baccalaureat General (from 2021)",
-        "France -Baccalaureat",
-        "International Baccalaureate Diploma",
-        "IB",
-        "IB Standard Level",
-        "Int. Baccalaureate",
-        "IB Total points"
-        "Spain-Titulo de Bachiller",
-        "Romania- Diploma de Bacalaureat",
-        "India-Indian School Certificate (ISC)",
-        "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip",
-        "All India Senior School Certificate (CBSE)",
-        "France- Option Internationale du Baccalaureat (OIB)",
-        "New Matura- Poland",
-        "Matura- Poland",
-        "Italy-Diploma di Esame di Stato",
-        "Diploma de Ensino Secundario- Portugal",
-        "Zeugnis der Allgemeine Hochschulreif e (Abitur)",
-        "Zeugnis der Allgemeine Hochschulreif e",
-        "Abitur"
-    ])
-
-
-def ib_permutations():
-    return set([
-        "International Baccalaureate Diploma",
-        "IB",
-        "IB Standard Level",
-        "Int. Baccalaureate",
-        "IB Total points"
-    ])
-
-
 def exam_results_valid_exams():
     return set([
         "Reformed A Level\rEngland",
@@ -225,6 +190,45 @@ def predicted_qualification_valid_exams():
         "ISC",
         "ILC",
         "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
+    ])
+
+
+def valid_exams():
+    return predicted_qualification_valid_exams() | exam_results_valid_exams() | completed_qualification_valid_exams()
+
+
+def qualifications_with_overall_score():
+    return set([
+        "France - Baccalaureat General (from 2021)",
+        "France -Baccalaureat",
+        "International Baccalaureate Diploma",
+        "IB",
+        "IB Standard Level",
+        "Int. Baccalaureate",
+        "IB Total points"
+        "Spain-Titulo de Bachiller",
+        "Romania- Diploma de Bacalaureat",
+        "India-Indian School Certificate (ISC)",
+        "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip",
+        "All India Senior School Certificate (CBSE)",
+        "France- Option Internationale du Baccalaureat (OIB)",
+        "New Matura- Poland",
+        "Matura- Poland",
+        "Italy-Diploma di Esame di Stato",
+        "Diploma de Ensino Secundario- Portugal",
+        "Zeugnis der Allgemeine Hochschulreif e (Abitur)",
+        "Zeugnis der Allgemeine Hochschulreif e",
+        "Abitur"
+    ])
+
+
+def ib_permutations():
+    return set([
+        "International Baccalaureate Diploma",
+        "IB",
+        "IB Standard Level",
+        "Int. Baccalaureate",
+        "IB Total points"
     ])
 
 
@@ -270,8 +274,8 @@ def math_mapping():
                                          "Expert Mathematics"]),
             "France - Baccalaureat General (from 2021)": set(["mathematics",
                                                               "Mathematics", ]),
-            "France- Option Internationale du Baccalaureat (OIB)": set(["Mathematics Major (Specialism)"],
-                                                                       "Mathematics Experts (Advanced)"),
+            "France- Option Internationale du Baccalaureat (OIB)": set(["Mathematics Major (Specialism)",
+                                                                        "Mathematics Experts (Advanced)"]),
             "France - Option Internationale du Baccalaureat (OIB) (from 2021)": set([
                 "Mathematics"
             ]),
