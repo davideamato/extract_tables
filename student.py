@@ -2,6 +2,7 @@
     Contains the objects for table extraction 
 '''
 
+from collections import Counter
 from utils import (InputError, completed_qualification_valid_exams, desired_tables, detail_string,
                    escape_backslash_r, exam_results_valid_exams, is_abs_path, math_mapping, physics_mapping,
                    fm_mapping, qualifications_with_overall_score)
@@ -25,10 +26,9 @@ class GradeEntry:
 
         # self.grade_info = [self.grade, self.subject, self.qualification, self.is_predicted, self.is_exam_result, self.year]
         self.grade_info = [self.grade, self.subject]
-        self.index = 0
 
     # def __iter__(self):
-    #     return self.grade_info
+    #     return self
 
     # def __next__(self):
     #     if self.index == 2:
@@ -59,7 +59,7 @@ class ExtractedStudents:
 
         self.all_students = [None]*self.num_students
 
-        self.index = 0
+        self.index = -1
 
     def __iter__(self):
         return self
@@ -81,12 +81,12 @@ class ExtractedStudents:
 
     @staticmethod
     def populate_normal_header(ws):
-        ws.cell(row=1, column=1, value="{}".format("UCAS ID"))
-        ws.cell(row=1, column=2, value="{}".format("Qualification Type"))
+        ws.cell(row=1, column=1, value="UCAS ID")
+        ws.cell(row=1, column=2, value="Qualification Type")
 
         for i in range(0, 8, 2):
-            ws.cell(row=1, column=3 + i, value="{}".format("Subject"))
-            ws.cell(row=1, column=4 + i, value="{}".format("Grade"))
+            ws.cell(row=1, column=3 + i, value="Subject")
+            ws.cell(row=1, column=4 + i, value="Grade")
 
         return ws
 
@@ -120,17 +120,17 @@ class ExtractedStudents:
     @staticmethod
     def populate_master_header(ws):
 
-        ws.cell(row=1, column=1, value="{}".format("UCAS ID"))
-        ws.cell(row=1, column=2, value="{}".format("Qualification"))
-        ws.cell(row=1, column=3, value="{}".format("Issues Importing?"))
-        ws.cell(row=1, column=4, value="{}".format("Math Grade"))
-        ws.cell(row=1, column=5, value="{}".format("Physics Grade"))
-        ws.cell(row=1, column=10, value="{}".format("FM?"))
-        ws.cell(row=1, column=11, value="{}".format("Overall Grade"))
+        ws.cell(row=1, column=1, value="UCAS ID")
+        ws.cell(row=1, column=2, value="Qualification")
+        ws.cell(row=1, column=3, value="Issues Importing?")
+        ws.cell(row=1, column=4, value="Math Grade")
+        ws.cell(row=1, column=5, value="Physics Grade")
+        ws.cell(row=1, column=10, value="FM?")
+        ws.cell(row=1, column=11, value="Overall Grade")
 
         for i in range(0, 4, 2):
-            ws.cell(row=1, column=6 + i, value="{}".format("Grade"))
-            ws.cell(row=1, column=7 + i, value="{}".format("Subject"))
+            ws.cell(row=1, column=6 + i, value="Grade")
+            ws.cell(row=1, column=7 + i, value="Subject")
 
         return ws
 
@@ -146,9 +146,12 @@ class ExtractedStudents:
 
             categorised_entries = self.sort_into_subjects(student)
 
+            ws.cell(row=row_counter, column=2, value="{}".format(
+                student.get_main_qualification()))
+
             qualification = student.unique_qualifications()
 
-            # Intersection of qualification set and set of qualifications with overall score
+            # Intersection of qualification set and set of qualifications with overall score is not empty
             if qualification & qualifications_with_overall_score():
                 print("FIND THE OVERALL SCORE ")
 
@@ -408,40 +411,46 @@ class StudentGrades:
                                        self.uncompleted_qualifications,
                                        self.exam_results)
 
-    def unique_qualifications(self):
-        unique_quals = set()
-        [unique_quals.add(item.qualification) for grade_entries in self.which_grades.values(
+    def get_all_qualifications(self):
+        return [item.qualification for grade_entries in self.which_grades.values(
         ) if grade_entries for item in grade_entries]
-        # [grade_entries for grade_entries in self.which_grades.values() if grade_entries]
-        # for entries in self.which_grades.values():
-        #     if entries:
-        #         for item in entries:
-        #             unique_quals.add(item)
 
-        return unique_quals
+    def unique_qualifications(self):
+        return set(self.get_all_qualifications())
+
+    def get_main_qualification(self):
+        qualifications = self.get_all_qualifications()
+        if len(set(qualifications)) == 1:
+            return qualifications[0]
+        else:
+            return Counter(qualifications.most_common(1)[0][0])
 
     # def handle_detailed_entry(self, input_qualification, rowCounter):
     #     target = input_qualification['Date'][rowCounter]
     #     if type(target) is str:
     #         if target in detail_string():
     #             output = []
-    #             all_module_details = qualification = self.uncompleted_qualifications['Body'][row]
+    #             all_module_details = self.uncompleted_qualifications['Body'][rowCounter]
 
-    #         elif type(self.uncompleted_qualifications['Date'][row]) is str:
-    #             if is_pred_grade & is_grade and self.uncompleted_qualifications['Date'][row] in detail_string():
-    #                 all_module_details = qualification = self.uncompleted_qualifications['Body'][row]
-    #                 individual_modules = all_module_details.split("Title:")
-    #                 print(individual_modules)
-    #                 for module in individual_modules:
-    #                     module_info = module.split("Date:")[0]
-    #                     entry = GradeEntry(
-    #                         None,
-    #                         module_info,
-    #                         None,
-    #                         True,
-    #                         None,
-    #                     )
-    #                     self.predicted_entries.append(entry)
+            # if isna(self.uncompleted_qualifications['Exam'][row-1]):
+            #     qualification = self.uncompleted_qualifications['Body'][row-1]
+            # else:
+            #     qualification = self.uncompleted_qualifications['Exam'][row-1]
+
+            # # Ignores the first entry which would just be the date
+            # individual_modules = all_module_details.split("Title:")[1:]
+            # # print(individual_modules)
+            # for module in individual_modules:
+            #     module_info = module.split("Date:")[0]
+            #     entry = GradeEntry(
+            #         qualification,
+            #         module_info,
+            #         None,
+            #         True,
+            #         None,
+            #         False,
+            #     )
+            #     self.predicted_entries.append(entry)
 
     def completed_grade_entries(self):
         if self.completed_qualifications is None:
@@ -561,15 +570,21 @@ class StudentGrades:
 
             elif type(self.uncompleted_qualifications['Date'][row]) is str:
                 if is_pred_grade & is_grade and self.uncompleted_qualifications['Date'][row] in detail_string():
-                    all_module_details = qualification = self.uncompleted_qualifications[
+                    all_module_details = self.uncompleted_qualifications[
                         'Body'][row]
+
+                    if isna(self.uncompleted_qualifications['Exam'][row-1]):
+                        qualification = self.uncompleted_qualifications['Body'][row-1]
+                    else:
+                        qualification = self.uncompleted_qualifications['Exam'][row-1]
+
                     # Ignores the first entry which would just be the date
                     individual_modules = all_module_details.split("Title:")[1:]
                     # print(individual_modules)
                     for module in individual_modules:
                         module_info = module.split("Date:")[0]
                         entry = GradeEntry(
-                            None,
+                            qualification,
                             module_info,
                             None,
                             True,
