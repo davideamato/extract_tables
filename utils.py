@@ -71,7 +71,7 @@ def check_broken_table(current_page_number, filename, current_table):
             del top_table[0]
             from pandas import DataFrame as pdDF
             # new_table = pdDF(top_table.values, columns = current_table.columns[:table_length])
-            return pdDF(top_table.values, columns = current_table.columns[:table_length])
+            return pdDF(top_table.values, columns=current_table.columns[:table_length])
         else:
             return None
 
@@ -83,7 +83,7 @@ def check_broken_table(current_page_number, filename, current_table):
         del top_table[0]
         # Rename header so it can append easily
         new_col_names = dict(zip(top_table_header, current_table.columns))
-        top_table = top_table.rename(columns = new_col_names, inplace=True)
+        top_table = top_table.rename(columns=new_col_names, inplace=True)
         # top_table_header = current_table.columns
         # print(top_table)
         return top_table
@@ -100,7 +100,7 @@ def fix_broken_table(current_page_number, current_table, filename):
         # add new row to end of DataFrame
         # current_table.loc[len(current_table.index)] = continued_values
         updated_table = current_table.append(
-            continued_values, ignore_index=True)
+            continued_values, ignore_index=True, sort=False)
 
         # print(updated_table)
         return updated_table
@@ -136,24 +136,23 @@ def desired_tables():
 
 def completed_qualification_valid_exams():
     return set(["GCE Advanced\rLevel",
-            "Cambridge Pre-\rU Certificate\r(Principal\rSub",
-            "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
-            "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
-            "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel"
-            "SQA Advanced\rHighers",
-            "SQA\rAdvanced\rHighers",
-            "Spain-Titulo\rde Bachiller",
-            "USA-Advanced\rPlacement Test",
-            "International\rBaccalaureate\rDiploma",
-            "Matura-\rPoland"
-            "France-\rBaccalaureat",
-            "France-\rOption\rInternationale\rdu\rBaccalaureat",
-            "France -\rBaccalaureat\rGeneral (from\r2021)",
-            "France\r-Baccalaureat",
-            "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
-    ])
-    #  "GCE Advanced\rSubsidiary",
-    #  "USA - SAT\r(redesigned\rfrom 2016)", "USA-SAT\rSubject" )
+                "Cambridge Pre-\rU Certificate\r(Principal\rSub",
+                "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
+                "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
+                "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel"
+                "SQA Advanced\rHighers",
+                "SQA\rAdvanced\rHighers",
+                "Spain-Titulo\rde Bachiller",
+                "USA-Advanced\rPlacement Test",
+                "International\rBaccalaureate\rDiploma",
+                "Matura-\rPoland"
+                "France-\rBaccalaureat",
+                "France-\rOption\rInternationale\rdu\rBaccalaureat",
+                "France -\rBaccalaureat\rGeneral (from\r2021)",
+                "France\r-Baccalaureat",
+                "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
+                ])
+
 
 def qualifications_with_overall_score():
     return set([
@@ -165,7 +164,7 @@ def qualifications_with_overall_score():
         "Int. Baccalaureate",
         "IB Total points"
         "Spain-Titulo de Bachiller",
-        "Romania- Diploma de Bacalaureat", 
+        "Romania- Diploma de Bacalaureat",
         "India-Indian School Certificate (ISC)",
         "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip",
         "All India Senior School Certificate (CBSE)",
@@ -175,6 +174,7 @@ def qualifications_with_overall_score():
         "Italy-Diploma di Esame di Stato",
         "Diploma de Ensino Secundario- Portugal",
     ])
+
 
 def ib_permutations():
     return set([
@@ -198,7 +198,7 @@ def exam_results_valid_exams():
         "IB Standard Level",
         "Int. Baccalaureate",
         "IB Total points"
-        ])
+    ])
 
 
 def predicted_qualification_valid_exams():
@@ -220,7 +220,7 @@ def predicted_qualification_valid_exams():
         "ISC",
         "ILC",
         "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
-        ])
+    ])
 
 
 def detail_string():
@@ -233,13 +233,13 @@ def math_mapping():
             "Pearson Edexcel International Advanced Level": set(["Mathematics"]),
             "ILC": set(["Mathematics"]),
             "USA-Advanced Placement Test": set(["AP Calculus BC",
-                                            "AP Calculus\rBC"
-                                            "CALCULUS BC"
-                                            ]),
+                                                "AP Calculus\rBC"
+                                                "CALCULUS BC"
+                                                ]),
             "USA- Advanced Placement Test": set(["AP Calculus BC",
-                                            "AP Calculus\rBC"
-                                            "CALCULUS BC"
-                                            ]),
+                                                 "AP Calculus\rBC"
+                                                 "CALCULUS BC"
+                                                 ]),
             # "IB": set(["Math Analysis & Appr"]),
             "Int. Baccalaureate": set(["Math Analysis & Appr"]),
             # "International Baccalaureate Diploma": set(["Math Analysis & Appr"]),
@@ -269,16 +269,16 @@ def physics_mapping():
             "Int. Baccalaureate": set(["Physics"]),
             # "International Baccalaureate\rDiploma": set(["Physics"]),
             "USA-Advanced Placement Test": set(["AP Physics C: Electricity and Magnetism",
-                                            "AP Physics C: Mechanics",
-                                            "AP Physics 1",
-                                            "AP Physics C ELECTRICITY AND MAGNETISM",
-                                            "AP Physics C MECHANICS"
-                                            ]),
+                                                "AP Physics C: Mechanics",
+                                                "AP Physics 1",
+                                                "AP Physics C ELECTRICITY AND MAGNETISM",
+                                                "AP Physics C MECHANICS"
+                                                ]),
             "USA- Advanced Placement Test": set(["AP Physics C: Electricity and Magnetism",
-                                            "AP Physics C: Mechanics",
-                                            "AP Physics 1",
-                                            "AP Physics C ELECTRICITY AND MAGNETISM",
-                                            "AP Physics C MECHANICS"
-                                            ]),
+                                                 "AP Physics C: Mechanics",
+                                                 "AP Physics 1",
+                                                 "AP Physics C ELECTRICITY AND MAGNETISM",
+                                                 "AP Physics C MECHANICS"
+                                                 ]),
             "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Physics"]),
             }
