@@ -353,8 +353,8 @@ def physics_mapping():
                                                               "Physics", ]),
             "France- Baccalaureat": set(["Physics-Chemistry Specialism",
                                          "Expert Mathematics"]),
-            "France- Option Internationale du Baccalaureat (OIB)": set(["Physics Chemistry Major (Specialism)"],
-                                                                       "Physics & Chemistry"),
+            "France- Option Internationale du Baccalaureat (OIB)": set(["Physics Chemistry Major (Specialism)",
+                                                                        "Physics & Chemistry"]),
             "France - Option Internationale du Baccalaureat (OIB) (from 2021)": set([
                 "Physics & Chemistry"
             ]),
