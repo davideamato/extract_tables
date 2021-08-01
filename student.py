@@ -3,9 +3,9 @@
 '''
 
 from collections import Counter
-from utils import (InputError, completed_qualification_valid_exams, desired_tables, detail_string,
-                   escape_backslash_r, exam_results_valid_exams, is_abs_path, math_mapping, physics_mapping,
-                   fm_mapping, qualifications_with_overall_score)
+from utils import (InputError, desired_tables, detail_string,
+                   escape_backslash_r, is_abs_path, math_mapping, physics_mapping,
+                   fm_mapping, qualifications_with_overall_score, valid_exams)
 
 from pandas import isna
 import os
@@ -196,8 +196,10 @@ class ExtractedStudents:
                                 value="{}".format(overall_grade[0]))
                         continue
 
-                ws.cell(row=row_counter, column=11,
-                        value="{}".format(overall_grade[0]))
+                # Populate if list is not empty
+                if num_overall_grade != 0:
+                    ws.cell(row=row_counter, column=11,
+                            value="{}".format(overall_grade[0]))
 
             # If M&P missing, clearly there is an issue. Skip the rest of loop
             if any_issues is None:
@@ -544,7 +546,7 @@ class StudentGrades:
         if isna(self.completed_qualifications['Exam'][row]):
             return False
 
-        if self.completed_qualifications['Exam'][row] in completed_qualification_valid_exams():
+        if self.completed_qualifications['Exam'][row] in valid_exams():
             return True
         else:
             return False
@@ -580,7 +582,7 @@ class StudentGrades:
         if isna(self.exam_results['Exam Level'][row]):
             return False
 
-        if self.exam_results['Exam Level'][row] in exam_results_valid_exams():
+        if self.exam_results['Exam Level'][row] in valid_exams():
             return True
         else:
             return False
@@ -664,7 +666,7 @@ class StudentGrades:
                         else:
                             subject = module_info
                             grade = None
-                            
+
                         entry = GradeEntry(
                             qualification,
                             subject,
