@@ -56,12 +56,13 @@ def check_broken_table(current_page_number, filename, current_table):
     tables = tabula.read_pdf(filename, pages=str(
         current_page_number + 1), lattice=True, guess=True, pandas_options={"header": 0},)
 
+    if not tables:
+        return None
+
     top_table = tables[0]
     top_table_header = top_table.columns
 
-    if not tables:
-        return None
-    elif top_table.empty:
+    if top_table.empty:
         table_length = len(top_table_header)
         if table_length == len(current_table.columns):
             return top_table_header.to_series()
@@ -72,7 +73,7 @@ def check_broken_table(current_page_number, filename, current_table):
             # new_table = pdDF(top_table.values, columns = current_table.columns[:table_length])
             return pdDF(top_table.values, columns = current_table.columns[:table_length])
         else:
-            raise NotImplementedError
+            return None
 
     elif len(top_table_header) == len(current_table.columns):
         # print(top_table)
