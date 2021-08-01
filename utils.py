@@ -56,20 +56,36 @@ def check_broken_table(current_page_number, filename, current_table):
     tables = tabula.read_pdf(filename, pages=str(
         current_page_number + 1), lattice=True, guess=True, pandas_options={"header": 0},)
 
+    top_table = tables[0]
+    top_table_header = top_table.columns
+
     if not tables:
         return None
-    elif tables[0].empty:
-        return tables[0].columns.to_series()
-    elif len(tables[0].columns) == len(current_table.columns):
-        # print(tables[0])
+    elif top_table.empty:
+        table_length = len(top_table_header)
+        if table_length == len(current_table.columns):
+            return top_table_header.to_series()
+        elif detail_string() in top_table_header:
+            top_table = top_table.reset_index().T.reset_index().T
+            del top_table[0]
+            from pandas import DataFrame as pdDF
+            # new_table = pdDF(top_table.values, columns = current_table.columns[:table_length])
+            return pdDF(top_table.values, columns = current_table.columns[:table_length])
+        else:
+            raise NotImplementedError
+
+    elif len(top_table_header) == len(current_table.columns):
+        # print(top_table)
         # Moves header into next row
-        tables[0] = tables[0].reset_index().T.reset_index().T
+        top_table = top_table.reset_index().T.reset_index().T
         # But, I have a new cloumn, so delete
-        del tables[0][0]
+        del top_table[0]
         # Rename header so it can append easily
-        tables[0].columns = current_table.columns
-        # print(tables[0])
-        return tables[0]
+        new_col_names = dict(zip(top_table_header, current_table.columns))
+        top_table = top_table.rename(columns = new_col_names, inplace=True)
+        # top_table_header = current_table.columns
+        # print(top_table)
+        return top_table
     else:
         return None
 
