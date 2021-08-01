@@ -423,34 +423,58 @@ class StudentGrades:
         if len(set(qualifications)) == 1:
             return qualifications[0]
         else:
-            return Counter(qualifications.most_common(1)[0][0])
+            return Counter(qualifications).most_common(1)[0][0]
 
-    # def handle_detailed_entry(self, input_qualification, rowCounter):
-    #     target = input_qualification['Date'][rowCounter]
-    #     if type(target) is str:
-    #         if target in detail_string():
-    #             output = []
-    #             all_module_details = self.uncompleted_qualifications['Body'][rowCounter]
+    def is_detailed_entry(self, input_qualification, rowCounter):
+        target = input_qualification['Date'][rowCounter]
+        if type(target) is not str:
+            return False
 
-            # if isna(self.uncompleted_qualifications['Exam'][row-1]):
-            #     qualification = self.uncompleted_qualifications['Body'][row-1]
-            # else:
-            #     qualification = self.uncompleted_qualifications['Exam'][row-1]
+        if target not in detail_string():
+            return False
 
-            # # Ignores the first entry which would just be the date
-            # individual_modules = all_module_details.split("Title:")[1:]
-            # # print(individual_modules)
-            # for module in individual_modules:
-            #     module_info = module.split("Date:")[0]
-            #     entry = GradeEntry(
-            #         qualification,
-            #         module_info,
-            #         None,
-            #         True,
-            #         None,
-            #         False,
-            #     )
-            #     self.predicted_entries.append(entry)
+        return True
+
+    def handle_detailed_entry(self, input_qualification, rowCounter):
+
+        if "Exam" in set(input_qualification.columns):
+            qualification_identifier = "Exam"
+        elif "Exam Level" in set(input_qualification.columns):
+            qualification_identifier = "Exam Level"
+        else:
+            raise NotImplementedError
+
+        if not isna(input_qualification[qualification_identifier][rowCounter-1]):
+            qualification = input_qualification[qualification_identifier][rowCounter-1]
+        else:
+            qualification = None
+
+        output = []
+        all_module_details = input_qualification['Body'][rowCounter]
+
+        # Ignores the first entry which would just be the date
+        individual_modules = all_module_details.split("Title:")[1:]
+        # print(individual_modules)
+        for module in individual_modules:
+
+            module_info = module.split("Date:")[0]
+
+            if "Grade:" in module_info:
+                grade = module_info.split("Grade:")[0]
+            else:
+                grade = None
+
+            entry = GradeEntry(
+                qualification,
+                module_info,
+                grade,
+                True,
+                None,
+                False,
+            )
+            output.append(entry)
+
+        return output
 
     def completed_grade_entries(self):
         if self.completed_qualifications is None:
@@ -470,6 +494,11 @@ class StudentGrades:
                 )
 
                 self.completed_entries.append(entry)
+
+            elif self.is_detailed_entry(self.completed_qualifications, row) and self.is_completed_qual_valid(row-1):
+
+                detailed_entries = self.handle_detailed_entry(self.completed_qualifications, row)
+                self.completed_entries += detailed_entries
 
         return self.completed_entries
 
@@ -500,6 +529,11 @@ class StudentGrades:
                 )
 
                 self.results_entries.append(entry)
+
+            elif self.is_detailed_entry(self.exam_results, row):
+
+                detailed_entries = self.handle_detailed_entry(self.exam_results, row)
+                self.results_entries += detailed_entries
 
         return self.results_entries
 
