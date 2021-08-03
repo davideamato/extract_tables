@@ -18,12 +18,15 @@ from student import StudentGrades
 # import pandas as pd
 # pd.set_option('display.max_columns', None)
 
-path_to_files = os.path.abspath("pdfs/")
+PATH_TO_FILES = os.path.abspath("pdfs/")
+INTERNAL_MAPPING = get_internal_mapping(
+    PATH_TO_FILES, "mapping.xlsx", 'Mapping')
+# print(INTERNAL_MAPPING)
 
 # Generates full path to the files to extract data from
-ALL_FILES = get_all_files_in_dir(path_to_files)
+ALL_FILES = get_all_files_in_dir(PATH_TO_FILES)
 # Extracts UCAS IDs from file name
-APPLICANT_IDS = get_applicant_ids(path_to_files)
+APPLICANT_IDS = get_applicant_ids(PATH_TO_FILES)
 # print(APPLICANT_IDS)
 
 # From the PDFs, these are the headers of the tables we want
@@ -31,8 +34,6 @@ APPLICANT_IDS = get_applicant_ids(path_to_files)
 TARGET_TABLES = desired_tables()
 # First table after the desired ones that always occur
 EXIT_STRING = 'Type of school, college or training centre:'
-INTERNAL_MAPPING = get_internal_mapping(path_to_files, "mapping.xlsx")
-# print(INTERNAL_MAPPING)
 
 # Initialise object to store extracted information
 all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
@@ -106,7 +107,7 @@ pbar.close()
 
 
 for student in all_students:
-    print("UCAS ID: {}".format(student.ucas_id))
+    print("ID: {}".format(student.unique_id))
     # print(student.uncompleted_qualifications)
     # print("")
     # print("{}".format(student.predicted_entries))
@@ -130,4 +131,4 @@ for student in all_students:
     print("")
     print("")
 
-all_students.write_to_excel(path_to_files)
+all_students.write_to_excel(PATH_TO_FILES)
