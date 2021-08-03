@@ -79,7 +79,7 @@ class ExtractedStudents:
         return self.all_students[self.index]
 
     def add_student_sequentially(self, new_student, counter):
-        if new_student.ucas_id == self.student_ids[counter]:
+        if new_student.unique_id == self.student_ids[counter]:
             self.all_students[counter] = new_student
         else:
             raise RuntimeError("The order of adding students is incorrect \n"
@@ -107,7 +107,7 @@ class ExtractedStudents:
         for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
 
             ws.cell(row=row_counter, column=1,
-                    value="{}".format(student.ucas_id))
+                    value="{}".format(student.unique_id))
 
             if student.which_grades[desired_data]:
                 ws.cell(row=row_counter, column=2, value="{}".format(
@@ -167,7 +167,7 @@ class ExtractedStudents:
         for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
             # Fill in UCAS ID
             ws.cell(row=row_counter, column=1,
-                    value="{}".format(student.ucas_id))
+                    value="{}".format(student.unique_id))
 
             # Categorise each entry into subjects
             categorised_entries = self.sort_into_subjects(student)
@@ -469,7 +469,7 @@ class StudentGrades:
     '''
 
     def __init__(self, id, extracted_tables, table_headers):
-        self.ucas_id = id
+        self.unique_id = id
 
         self.completed_qualifications = None
         self.uncompleted_qualifications = None
