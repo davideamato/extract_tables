@@ -11,7 +11,7 @@ from tqdm import tqdm
 import os
 import tabula
 
-from utils import desired_tables, get_all_files_in_dir, fix_broken_table, get_applicant_ids
+from utils import desired_tables, get_all_files_in_dir, fix_broken_table, get_applicant_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import StudentGrades
 
@@ -21,27 +21,29 @@ from student import StudentGrades
 path_to_files = os.path.abspath("pdfs/")
 
 # Generates full path to the files to extract data from
-all_files = get_all_files_in_dir(path_to_files)
+ALL_FILES = get_all_files_in_dir(path_to_files)
 # Extracts UCAS IDs from file name
-applicant_ids = get_applicant_ids(path_to_files)
-# print(applicant_ids)
+APPLICANT_IDS = get_applicant_ids(path_to_files)
+# print(APPLICANT_IDS)
 
 # From the PDFs, these are the headers of the tables we want
 # They have been placed in a counter for easy comparison
 TARGET_TABLES = desired_tables()
 # First table after the desired ones that always occur
 EXIT_STRING = 'Type of school, college or training centre:'
+INTERNAL_MAPPING = get_internal_mapping(path_to_files, "mapping.xlsx")
+# print(INTERNAL_MAPPING)
 
 # Initialise object to store extracted information
-all_students = ExtractedStudents(applicant_ids)
+all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
 counter = 0
 
-total_num_files = len(all_files)
+total_num_files = len(ALL_FILES)
 print("Extracting tables for {} students".format(total_num_files))
 
 pbar = tqdm(total=total_num_files, desc="Table Processing: ")
 # Iterate over all files and applicant IDs
-for file, app_id in zip(all_files, applicant_ids):
+for file, app_id in zip(ALL_FILES, APPLICANT_IDS):
 
     # Start on 2nd page as 1st doesn't contain impt info
     page_number = 2
