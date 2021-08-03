@@ -198,7 +198,7 @@ class ExtractedStudents:
                     value="{}".format(sanitised_string))
 
             # Create log for issues
-            any_issues = self.log_issues(categorised_entries, uk_based, ws)
+            any_issues = self.log_issues(categorised_entries, uk_based, ws, row_counter)
 
             # Get all unique qualifications
             qualification = student.unique_qualifications()
@@ -305,23 +305,23 @@ class ExtractedStudents:
 
                     # # REFACTOR
                     if len(exam_result_entries) == 1:
-                        selected = exam_result_entries[0]
                         any_issues[-1] += "exam result"
+                        selected = exam_result_entries[0]
                     elif len(exam_result_entries) > 1:
+                        any_issues[-1] += "exam result"
                         selected = self.select_an_entry(
                             exam_result_entries, any_issues)
-                        any_issues[-1] += "exam result"
                     elif len(predicted_entries) == 1:
-                        selected = predicted_entries[0]
                         any_issues[-1] += "predicted grade"
+                        selected = predicted_entries[0]
                     elif len(predicted_entries) > 1:
+                        any_issues[-1] += "predicted grade"
                         selected = self.select_an_entry(
                             predicted_entries, any_issues)
-                        any_issues[-1] += "predicted grade"
                     else:
+                        any_issues[-1] += "from all"
                         selected = self.select_an_entry(
                             subject_entries, any_issues)
-                        any_issues[-1] += "from all"
 
                     for col, val in zip(excel_col, selected.grade_info):
                         ws.cell(row=row_counter, column=col, value=val)
@@ -385,7 +385,7 @@ class ExtractedStudents:
             return None
 
     @staticmethod
-    def log_issues(categorised_entries, uk_based, ws):
+    def log_issues(categorised_entries, uk_based, ws, rowCounter):
         convert_lst_to_bool = [not bool(cat_entry)
                                for cat_entry in categorised_entries.values()]
         # All lists in categorised entries are empty
@@ -404,10 +404,10 @@ class ExtractedStudents:
             elif entries_length > 2 and subject == "additional_subjects":
                 if not uk_based:
                     # log.append("Multiple Subjects.")
-                    ws.cell(row=1, column=4, value="Multiple")
+                    ws.cell(row=rowCounter, column=4, value="Multiple")
                 else:
                     # log.append(">4 Subjects.")
-                    ws.cell(row=1, column=4, value=">4")
+                    ws.cell(row=rowCounter, column=4, value=">4")
             elif entries_length == 0 and subject != "fm" and subject != "additional_subjects":
                 log.append("{} missing.".format(subject))
 
