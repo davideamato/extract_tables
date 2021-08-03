@@ -1,4 +1,4 @@
-name: export_pdf
+name: extract_pdf
 channels:
   - defaults
 dependencies:
