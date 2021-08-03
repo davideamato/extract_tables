@@ -40,7 +40,7 @@ class InputError(Error):
 
 
 
-def get_internal_mapping(abs_path, file_name):
+def get_internal_mapping(abs_path, file_name, sheet_name):
     if not file_name.endswith(".xlsx"):
         raise InputError(not file_name.endswith(".xlsx"),
                          "Input file must be in xlsx format")
@@ -50,7 +50,7 @@ def get_internal_mapping(abs_path, file_name):
     from openpyxl import load_workbook
 
     wb = load_workbook(filename=input_file, read_only=True)
-    ws = wb['Mapping']
+    ws = wb[sheet_name]
 
     # Maps values in columns after 2nd to value in 1st column
     output_dict = dict()
