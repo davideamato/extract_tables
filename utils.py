@@ -52,19 +52,18 @@ def get_internal_mapping(abs_path, file_name):
     wb = load_workbook(filename=input_file, read_only=True)
     ws = wb['Mapping']
 
+    # Maps values in columns after 2nd to value in 1st column
     output_dict = dict()
 
     for row in ws.rows:
-        key = None
-        cell_counter = 0
+        val = None
         for cell in row:
-            if key is None:
-                key = cell
-                cell_counter += 1
-            elif cell_counter == 1:
-                output_dict[key] = [cell]
+            if val is None:
+                # Value in first column is the desired string
+                val = cell
             else:
-                output_dict[key].append(cell)
+                # Other values is what we have 
+                output_dict[cell] = val
 
     return output_dict
 
