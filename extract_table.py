@@ -21,9 +21,9 @@ from student import StudentGrades
 path_to_files = os.path.abspath("pdfs/")
 
 # Generates full path to the files to extract data from
-all_files = get_all_files_in_dir(path_to_files)[:2]
+all_files = get_all_files_in_dir(path_to_files)
 # Extracts UCAS IDs from file name
-applicant_ids = get_applicant_ids(path_to_files)[:2]
+applicant_ids = get_applicant_ids(path_to_files)
 # print(applicant_ids)
 
 # From the PDFs, these are the headers of the tables we want
@@ -41,9 +41,7 @@ print("Extracting tables for {} students".format(total_num_files))
 
 pbar = tqdm(total=total_num_files, desc="Table Processing: ")
 # Iterate over all files and applicant IDs
-for file, app_id in zip(all_files , applicant_ids):
-
-    # print("UCAS ID: {}".format(app_id))
+for file, app_id in zip(all_files, applicant_ids):
 
     # Start on 2nd page as 1st doesn't contain impt info
     page_number = 2
@@ -58,7 +56,7 @@ for file, app_id in zip(all_files , applicant_ids):
         try:
             # Extract table from pdf
             tables = tabula.read_pdf(file, pages=str(page_number), lattice=True,
-                                    guess=True, pandas_options={"header": 0},)
+                                     guess=True, pandas_options={"header": 0},)
         except subprocess.CalledProcessError:
             all_students.add_student_sequentially(
                 StudentGrades(app_id, grade_tables, grade_counters), counter)
