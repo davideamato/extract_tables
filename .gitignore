@@ -5,3 +5,5 @@
 !*.py
 !.gitignore
 !requirements.txt
+!README.md
+!environment.yml
