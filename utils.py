@@ -82,11 +82,13 @@ def check_broken_table(current_page_number, filename, current_table):
         # But, I have a new cloumn, so delete
         del top_table[0]
         # Rename header so it can append easily
-        new_col_names = dict(zip(top_table_header, current_table.columns))
-        top_table = top_table.rename(columns=new_col_names, inplace=True)
-        # top_table_header = current_table.columns
-        # print(top_table)
-        return top_table
+        # new_col_names = dict(zip(top_table_header, current_table.columns))
+        # top_table = top_table.rename(columns=new_col_names, inplace=True)
+        # # top_table_header = current_table.columns
+        # # print(top_table)
+        # return top_table
+        from pandas import DataFrame as pdDF
+        return pdDF(top_table.values, columns=current_table.columns)
     else:
         return None
 
@@ -121,7 +123,7 @@ def raw_table_headers():
 
 def escape_backslash_r(input_string):
     if input_string is not None:
-        return input_string.encode('unicode-escape').decode().replace("\\r", " ")
+        return input_string.encode('unicode-escape').decode().replace("\\r", " ").strip()
 
 
 def desired_tables():
@@ -137,21 +139,23 @@ def desired_tables():
 def completed_qualification_valid_exams():
     return set(["GCE Advanced\rLevel",
                 "Cambridge Pre-\rU Certificate\r(Principal\rSub",
+                "IB Total points",
                 "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
                 "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
-                "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel"
+                "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel",
                 "SQA Advanced\rHighers",
                 "SQA\rAdvanced\rHighers",
                 "Spain-Titulo\rde Bachiller",
                 "USA-Advanced\rPlacement Test",
                 "International\rBaccalaureate\rDiploma",
-                "Matura-\rPoland"
+                "Matura-\rPoland",
+                "France-\rBaccalaureat",
                 "France-\rBaccalaureat",
                 "France-\rOption\rInternationale\rdu\rBaccalaureat",
                 "France -\rBaccalaureat\rGeneral (from\r2021)",
                 "France\r-Baccalaureat",
-                "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
-                "All India Senior School Certificate (CBSE)"
+                "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
+                "All India Senior School Certificate (CBSE)",
                 ])
 
 
@@ -166,8 +170,8 @@ def exam_results_valid_exams():
         "IB",
         "IB Standard Level",
         "Int. Baccalaureate",
-        "IB Total points"
-        "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
+        "IB Total points",
+        "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
     ])
 
 
@@ -177,7 +181,7 @@ def predicted_qualification_valid_exams():
         "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
         "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
         "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
-        "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel"
+        "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel",
         "SQA Advanced\rHighers",
         "SQA\rAdvanced\rHighers",
         "France -\rBaccalaureat\rGeneral (from\r2021)",
@@ -189,12 +193,16 @@ def predicted_qualification_valid_exams():
         "India-Indian\rSchool\rCertificate\r(ISC)",
         "ISC",
         "ILC",
-        "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)"
+        "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
     ])
 
 
 def valid_exams():
-    return predicted_qualification_valid_exams() | exam_results_valid_exams() | completed_qualification_valid_exams()
+    output_set = set()
+    output_set = output_set.union(predicted_qualification_valid_exams())
+    output_set = output_set.union(exam_results_valid_exams())
+    output_set = output_set.union(completed_qualification_valid_exams())
+    return output_set
 
 
 def qualifications_with_overall_score():
@@ -205,7 +213,7 @@ def qualifications_with_overall_score():
         "IB",
         "IB Standard Level",
         "Int. Baccalaureate",
-        "IB Total points"
+        "IB Total points",
         "Spain-Titulo de Bachiller",
         "Romania- Diploma de Bacalaureat",
         "India-Indian School Certificate (ISC)",
@@ -218,7 +226,7 @@ def qualifications_with_overall_score():
         "Diploma de Ensino Secundario- Portugal",
         "Zeugnis der Allgemeine Hochschulreif e (Abitur)",
         "Zeugnis der Allgemeine Hochschulreif e",
-        "Abitur"
+        "Abitur",
     ])
 
 
@@ -228,7 +236,7 @@ def ib_permutations():
         "IB",
         "IB Standard Level",
         "Int. Baccalaureate",
-        "IB Total points"
+        "IB Total points",
     ])
 
 
@@ -243,16 +251,16 @@ def math_mapping():
             "Cambridge International A Level": set(["Mathematics"]),
             "Cambridge Pre-U Certificate (Principal Subject)": set(["Mathematics (principal subject)"]),
             "Pre-U Certificate": set(["Mathematics"]),
-            "SQA Scottish Highers": set(["Mathematics C847", "Mathematics"]),
+            "SQA Advanced Highers": set(["Mathematics C847", "Mathematics"]),
             "Pearson Edexcel International Advanced Level": set(["Mathematics"]),
             "ILC": set(["Mathematics"]),
             "USA-Advanced Placement Test": set(["AP Calculus BC",
-                                                "AP Calculus\rBC"
-                                                "CALCULUS BC"
+                                                "AP Calculus\rBC",
+                                                "CALCULUS BC",
                                                 ]),
             "USA- Advanced Placement Test": set(["AP Calculus BC",
-                                                 "AP Calculus\rBC"
-                                                 "CALCULUS BC"
+                                                 "AP Calculus\rBC",
+                                                 "CALCULUS BC",
                                                  ]),
             "IB": set(["Math Analysis & Appr",
                        "Mathematics Analysis"]),
@@ -264,7 +272,7 @@ def math_mapping():
                                                         ]),
             "Matura- Poland": set(["Mathematics - basic level",
                                    "Mathematics - bilingual",
-                                   "Mathematics - extended level"]),
+                                   "Mathematics - extended level",]),
             "New Matura- Poland": set([
                 "Mathematics Level: Basic",
                 "Mathematics Level: Advanced",
@@ -275,13 +283,13 @@ def math_mapping():
             "France - Baccalaureat General (from 2021)": set(["mathematics",
                                                               "Mathematics", ]),
             "France- Option Internationale du Baccalaureat (OIB)": set(["Mathematics Major (Specialism)",
-                                                                        "Mathematics Experts (Advanced)"]),
+                                                                        "Mathematics Experts (Advanced)",]),
             "France - Option Internationale du Baccalaureat (OIB) (from 2021)": set([
                 "Mathematics"
             ]),
             "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Mathematics"]),
             "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": set([
-                "Mathematics"
+                "Mathematics",
             ]),
             "India-Indian School Certificate (ISC)": set(["Mathematics"]),
             "All India Senior School Certificate (CBSE)": set(["Mathematics",
@@ -305,7 +313,7 @@ def fm_mapping():
             "Pearson Edexcel International Advanced Level": set(["Further Mathematics"]),
             "Cambridge Pre-U Certificate (Principal Subject)": set(["Further Mathematics (principal subject)"]),
             "Pre-U Certificate": set(["Further Mathematics"]),
-            "SQA Scottish Highers": set([
+            "SQA Advanced Highers": set([
                 "Mathematics of Mechanics C802",
                 "Mathematics of Mechanics"
             ]),
@@ -324,7 +332,7 @@ def physics_mapping():
             "Cambridge International A Level": set(["Physics"]),
             "Cambridge Pre-U Certificate (Principal Subject)": set(["Physics (principal subject)"]),
             "Pre-U Certificate": set(["Physics"]),
-            "SQA Scottish Highers": set(["Physics C857", "Physics"]),
+            "SQA Advanced Highers": set(["Physics C857", "Physics"]),
             "ILC": set(["Physics"]),
             "Pearson Edexcel International Advanced Level": set(["Physics"]),
             "IB": set(["Physics"]),
@@ -354,9 +362,13 @@ def physics_mapping():
             "France- Baccalaureat": set(["Physics-Chemistry Specialism",
                                          "Expert Mathematics"]),
             "France- Option Internationale du Baccalaureat (OIB)": set(["Physics Chemistry Major (Specialism)",
+                                                                        "Physics and chemistry"
+                                                                        "Physics & chemistry",
                                                                         "Physics & Chemistry"]),
             "France - Option Internationale du Baccalaureat (OIB) (from 2021)": set([
-                "Physics & Chemistry"
+                "Physics & Chemistry",
+                "Physics & chemistry",
+                "Physics and chemistry"
             ]),
             "India-Indian School Certificate (ISC)": set(["Physics"]),
             "All India Senior School Certificate (CBSE)": set(["Physics",
