@@ -5,7 +5,8 @@
 from collections import Counter
 from utils import (InputError, desired_tables, detail_string,
                    escape_backslash_r, is_abs_path, math_mapping, physics_mapping,
-                   fm_mapping, qualifications_with_overall_score, valid_exams)
+                   fm_mapping, qualifications_with_overall_score, valid_exams,
+                   ib_permutations)
 
 from pandas import isna
 import os
@@ -172,12 +173,19 @@ class ExtractedStudents:
             # Identify if the qualification has an overall score
             # Intersection of qualification set and set of qualifications with overall score is not empty
             intersection_qualification = qualification & qualifications_with_overall_score()
+            # If it does, find the overall score
             if intersection_qualification:
-                # If it does, find the overall score
-                intersection_qualification = list(intersection_qualification)
-                # Get all grades that aren't none
-                overall_grade = [item for qualification in intersection_qualification for item in student.get_grade_for_qualification(
-                    qualification) if item is not None]
+
+                # Is it IB?
+                if intersection_qualification & ib_permutations() and student.results_entries:
+                    overall_grade = [
+                        item.grade for item in student.results_entries if "IB Total points" in item.qualification]
+                else:
+                    intersection_qualification = list(
+                        intersection_qualification)
+                    # Get all grades that aren't none
+                    overall_grade = [item for qualification in intersection_qualification for item in student.get_grade_for_qualification(
+                        qualification)]
 
                 # If an overall grade exists, populate cell
                 num_overall_grade = len(overall_grade)
@@ -214,7 +222,11 @@ class ExtractedStudents:
 
                 # If no entries, then go to next value
                 if not subject_entries:
-                    continue
+                    if subjectCounter > 1:
+                        continue
+                    else:
+                        subjectCounter += 1
+                        continue
 
                 excel_col = map_subject_num_to_cols.get(subjectCounter)
                 # If there is only one subject entry, then just populate
@@ -290,7 +302,20 @@ class ExtractedStudents:
 
         years = [entry.year for entry in lst_of_entries if entry.year is not None]
 
-        if len(years) == len(set(years)):
+        # If the list is empty then look for highest grade
+        if not years:
+            grades = [str(entry.grade)
+                      for entry in lst_of_entries if entry.grade is not None]
+            # If this list is not empty, no issues. Take the highest
+            if grades:
+                any_issues[-1] += "highest "
+                return lst_of_entries[grades.index(max(grades))]
+            else:
+                any_issues[-1] += "None grade"
+                return GradeEntry(None, None, "None", False, None, False)
+
+        # Determine if all are unique and whether the lsit is empty
+        if len(years) == len(set(years)) and years:
             # All unique years
             any_issues[-1] += "most recent "
 
@@ -452,6 +477,9 @@ class StudentGrades:
 
     def get_main_qualification(self):
         qualifications = self.get_all_qualifications()
+        if not qualifications:
+            return ""
+
         if len(set(qualifications)) == 1:
             return qualifications[0]
         else:
@@ -461,7 +489,9 @@ class StudentGrades:
         for values in self.which_grades.values():
             if values:
                 for item in values:
-                    if target_qualification in item.qualification:
+                    # It is the qualification we are looking for.
+                    # The grade is not None AND year is not None (implies it is a module/detail entry)
+                    if target_qualification in item.qualification and item.grade is not None and item.year is not None:
                         yield item.grade
 
     def is_detailed_entry(self, input_qualification, rowCounter):
