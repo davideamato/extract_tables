@@ -60,10 +60,10 @@ def get_internal_mapping(abs_path, file_name):
         for cell in row:
             if val is None:
                 # Value in first column is the desired string
-                val = cell
+                val = cell.value
             else:
                 # Other values is what we have 
-                output_dict[cell] = val
+                output_dict[cell.value] = val
 
     return output_dict
 
