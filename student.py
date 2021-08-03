@@ -177,9 +177,18 @@ class ExtractedStudents:
             if intersection_qualification:
 
                 # Is it IB?
-                if intersection_qualification & ib_permutations() and student.results_entries:
-                    overall_grade = [
-                        item.grade for item in student.results_entries if "IB Total points" in item.qualification]
+                if intersection_qualification & ib_permutations():
+                    if student.results_entries:
+                        overall_grade = [
+                            item.grade for item in student.results_entries if "IB Total points" in item.qualification]
+                    elif student.completed_entries:
+                        overall_grade = [
+                            item.grade for item in student.completed_entries if "International Baccalaureate Diploma" in item.qualification]
+                    elif student.predicted_entries:
+                        overall_grade = [
+                            item.grade for item in student.predicted_entries if "International Baccalaureate Diploma" in item.qualification]
+                    else:
+                        overall_grade = []
                 else:
                     intersection_qualification = list(
                         intersection_qualification)
@@ -361,7 +370,7 @@ class ExtractedStudents:
                 log.append("Multiple {} qual.".format(subject))
             elif entries_length > 2:
                 log.append("More than 4 subjects.")
-            elif entries_length == 0 and subject != "fm":
+            elif entries_length == 0 and subject != "fm" and subject != "additional_subjects":
                 log.append("{} missing.".format(subject))
 
         return log
@@ -528,8 +537,12 @@ class StudentGrades:
 
             module_info = module.split("Date:")[0]
 
-            if "Grade:" in module_info:
+            if "Predicted Grade:" in module_info:
+                grade = module_info.split("Predicted Grade:")[0]
+            elif "Grade:" in module_info:
                 grade = module_info.split("Grade:")[0]
+            elif "Value:" in module_info:
+                grade = module_info.split("Value:")[0]
             else:
                 grade = None
 
@@ -689,8 +702,16 @@ class StudentGrades:
                     for module in individual_modules:
                         module_info = module.split("Date:")[0]
 
-                        if "Grade:" in module_info:
+                        if "Predicted Grade:" in module_info:
+                            split = module_info.split("Predicted Grade:")
+                            subject = split[0]
+                            grade = split[1]
+                        elif "Grade:" in module_info:
                             split = module_info.split("Grade:")
+                            subject = split[0]
+                            grade = split[1]
+                        elif "Value:" in module_info:
+                            split = module_info.split("Value:")
                             subject = split[0]
                             grade = split[1]
                         else:
