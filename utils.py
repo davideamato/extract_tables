@@ -22,6 +22,53 @@ class InputError(Error):
         self.message = message
 
 
+# class SanitiseOutput:
+#     '''
+#         Sanitises output to be consistent with rest of ecosystem
+#     '''
+
+#     def __init__(self, abs_path, file_name):
+#         self.mapping = get_internal_mapping(abs_path, file_name)
+
+#     def __iter__(self):
+#         return self
+
+#     def __next__(self):
+#         return self.next()
+
+#     def next(self):
+
+
+
+def get_internal_mapping(abs_path, file_name):
+    if not file_name.endswith(".xlsx"):
+        raise InputError(not file_name.endswith(".xlsx"),
+                         "Input file must be in xlsx format")
+
+    input_file = os.path.join(abs_path, file_name)
+
+    from openpyxl import load_workbook
+
+    wb = load_workbook(filename=input_file, read_only=True)
+    ws = wb['Mapping']
+
+    output_dict = dict()
+
+    for row in ws.rows:
+        key = None
+        cell_counter = 0
+        for cell in row:
+            if key is None:
+                key = cell
+                cell_counter += 1
+            elif cell_counter == 1:
+                output_dict[key] = [cell]
+            else:
+                output_dict[key].append(cell)
+
+    return output_dict
+
+
 def is_file_valid(file):
     return file.endswith(".pdf") and "unicode" in file
 
@@ -37,13 +84,15 @@ def is_abs_path(input_path):
 def get_all_files_in_dir(abs_path):
 
     if is_abs_path(abs_path):
-        return [os.path.join(abs_path, file) for file in os.listdir(abs_path) if is_file_valid(file)]
+        # list(set()) to remove duplicates
+        return list(set([os.path.join(abs_path, file) for file in os.listdir(abs_path) if is_file_valid(file)]))
 
 
 def get_applicant_ids(abs_path):
 
     if is_abs_path(abs_path):
-        return [file.split("_")[2] for file in os.listdir(abs_path) if is_file_valid(file)]
+        # list(set()) to remove duplicates
+        return list(set([file.split("_")[2] for file in os.listdir(abs_path) if is_file_valid(file)]))
 
 
 def check_broken_table(current_page_number, filename, current_table):
@@ -274,7 +323,7 @@ def math_mapping():
                                                         ]),
             "Matura- Poland": set(["Mathematics - basic level",
                                    "Mathematics - bilingual",
-                                   "Mathematics - extended level",]),
+                                   "Mathematics - extended level", ]),
             "New Matura- Poland": set([
                 "Mathematics Level: Basic",
                 "Mathematics Level: Advanced",
@@ -285,7 +334,7 @@ def math_mapping():
             "France - Baccalaureat General (from 2021)": set(["mathematics",
                                                               "Mathematics", ]),
             "France- Option Internationale du Baccalaureat (OIB)": set(["Mathematics Major (Specialism)",
-                                                                        "Mathematics Experts (Advanced)",]),
+                                                                        "Mathematics Experts (Advanced)", ]),
             "France - Option Internationale du Baccalaureat (OIB) (from 2021)": set([
                 "Mathematics"
             ]),
