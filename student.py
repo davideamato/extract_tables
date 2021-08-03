@@ -56,12 +56,14 @@ class ExtractedStudents:
         Class that stores all the students and co-ordinates the output
     '''
 
-    def __init__(self, applicant_ids):
+    def __init__(self, applicant_ids, internal_mapping):
         self.student_ids = applicant_ids
 
         self.num_students = len(applicant_ids)
 
         self.all_students = [None]*self.num_students
+
+        self.internal_mapping = internal_mapping
 
         self.index = -1
 
@@ -127,16 +129,34 @@ class ExtractedStudents:
         ws.cell(row=1, column=1, value="UCAS ID")
         ws.cell(row=1, column=2, value="Qualification")
         ws.cell(row=1, column=3, value="Issues Importing?")
-        ws.cell(row=1, column=4, value="Math Grade")
-        ws.cell(row=1, column=5, value="Physics Grade")
-        ws.cell(row=1, column=10, value="FM?")
-        ws.cell(row=1, column=11, value="Overall Grade")
+        ws.cell(row=1, column=4, value="No. Subjects")
+        ws.cell(row=1, column=5, value="Math Grade")
+        ws.cell(row=1, column=6, value="Physics Grade")
+        ws.cell(row=1, column=11, value="FM?")
+        ws.cell(row=1, column=12, value="Overall Grade")
 
         for i in range(0, 4, 2):
-            ws.cell(row=1, column=6 + i, value="Grade")
-            ws.cell(row=1, column=7 + i, value="Subject")
+            ws.cell(row=1, column=7 + i, value="Grade")
+            ws.cell(row=1, column=8 + i, value="Subject")
 
         return ws
+
+    @staticmethod
+    def update_al_string(categorised_entries, input_string, is_fm):
+        if is_fm:
+            # If fm => min 3 subjects
+            if categorised_entries['additional_subjects']:
+                # If the list is not empty => 4 or more subjects
+                return input_string + " (A*AAA)"
+            else:
+                # If the list is empty => 3 subjects
+                return input_string + " (A*A*A)"
+        else:
+            if len(categorised_entries['additional_subjects']) > 1:
+                return input_string + " (A*AAA)"
+            else:
+                # If the list is empty => 3 subjects
+                return input_string + " (A*A*A)"
 
     def compile_for_master(self, ws):
 
@@ -155,17 +175,30 @@ class ExtractedStudents:
             # Identify if FM is presetn
             if categorised_entries["fm"]:
                 is_fm = True
-                ws.cell(row=row_counter, column=10, value="Yes")
+                ws.cell(row=row_counter, column=11, value="Yes")
             else:
                 is_fm = False
-                ws.cell(row=row_counter, column=10, value="No")
-
-            # Create log for issues
-            any_issues = self.log_issues(categorised_entries)
+                ws.cell(row=row_counter, column=11, value="No")
 
             # Identify and populate cell with the main qualification
-            ws.cell(row=row_counter, column=2, value="{}".format(
-                student.get_main_qualification()))
+            main_qualification = student.get_main_qualification()
+            sanitised_string = self.internal_mapping[main_qualification]
+
+            if "United Kingdom" in sanitised_string:
+                uk_based = True
+            else:
+                uk_based = False
+
+            if "A Levels" in sanitised_string:
+                sanitised_string = self.update_al_string(
+                    categorised_entries, sanitised_string, is_fm)
+
+            # Fill in the qualification to the worksheet
+            ws.cell(row=row_counter, column=2,
+                    value="{}".format(sanitised_string))
+
+            # Create log for issues
+            any_issues = self.log_issues(categorised_entries, uk_based, ws)
 
             # Get all unique qualifications
             qualification = student.unique_qualifications()
@@ -209,13 +242,13 @@ class ExtractedStudents:
                         # If any_issue is None => M&P grade not found. Skip rest of loop
                         ws.cell(row=row_counter, column=3,
                                 value="M&P missing, need manual entry. Multiple overall score. 1st selected.")
-                        ws.cell(row=row_counter, column=11,
+                        ws.cell(row=row_counter, column=12,
                                 value="{}".format(overall_grade[0]))
                         continue
 
                 # Populate if list is not empty
                 if num_overall_grade != 0:
-                    ws.cell(row=row_counter, column=11,
+                    ws.cell(row=row_counter, column=12,
                             value="{}".format(overall_grade[0]))
 
             # If M&P missing, clearly there is an issue. Skip the rest of loop
@@ -226,7 +259,7 @@ class ExtractedStudents:
 
             # Populate subject and grades
             subjectCounter = 0
-            map_subject_num_to_cols = {0: [4], 1: [5], 2: [6, 7], 3: [8, 9]}
+            map_subject_num_to_cols = {0: [5], 1: [6], 2: [7, 8], 3: [9, 10]}
             for subject_entries in categorised_entries.values():
 
                 # If no entries, then go to next value
@@ -320,7 +353,7 @@ class ExtractedStudents:
                 any_issues[-1] += "highest "
                 return lst_of_entries[grades.index(max(grades))]
             else:
-                any_issues[-1] += "None grade"
+                any_issues[-1] = "No grade"
                 return GradeEntry(None, None, "None", False, None, False)
 
         # Determine if all are unique and whether the lsit is empty
@@ -352,7 +385,7 @@ class ExtractedStudents:
             return None
 
     @staticmethod
-    def log_issues(categorised_entries):
+    def log_issues(categorised_entries, uk_based, ws):
         convert_lst_to_bool = [not bool(cat_entry)
                                for cat_entry in categorised_entries.values()]
         # All lists in categorised entries are empty
@@ -368,8 +401,13 @@ class ExtractedStudents:
             entries_length = len(entries)
             if entries_length > 1 and subject != "additional_subjects":
                 log.append("Multiple {} qual.".format(subject))
-            elif entries_length > 2:
-                log.append("More than 4 subjects.")
+            elif entries_length > 2 and subject == "additional_subjects":
+                if not uk_based:
+                    # log.append("Multiple Subjects.")
+                    ws.cell(row=1, column=4, value="Multiple")
+                else:
+                    # log.append(">4 Subjects.")
+                    ws.cell(row=1, column=4, value=">4")
             elif entries_length == 0 and subject != "fm" and subject != "additional_subjects":
                 log.append("{} missing.".format(subject))
 
@@ -423,8 +461,6 @@ class ExtractedStudents:
         compiled_single = self.compile_for_master(compiled_single)
 
         wb.save(os.path.join(input_abs_path, "output.xlsx"))
-
-        return 0
 
 
 class StudentGrades:
