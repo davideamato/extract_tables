@@ -24,6 +24,7 @@ Installation can be broken down into three main steps:
   3. Downloading the code base
 After that, you're good to go!
 
+*N.B. on Operating System:* This was developed in Linux (Ubuntu 18.04) and has not been tested in any other operating system.
 
 <h3> Setting up Python environment </h3>
 
@@ -77,3 +78,4 @@ This will execute the script and a progress bar will print on a single line.
 <h2> To Do </h2>
 
 Refactor!
+Create the foolproof but unmaintanable beast of an exe file 
