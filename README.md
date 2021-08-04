@@ -14,7 +14,7 @@ most commonly occuring cases to reduce the overall workload.
 This utilises the python package [tabula](https://tabula-py.readthedocs.io/en/latest/tabula.html) to read tables within
 a pdf. As this package is a python wrapper of [tabula-java](https://github.com/tabulapdf/tabula-java), has [java as a dependency](https://pypi.org/project/tabula-py/).
 
-Why Tabula and not [Camelot](https://camelot-py.readthedocs.io/en/master/index.html)? The pdfs to be analysed resulted in Camelot throwing an error while Tabula did not. 
+Why [Tabula](https://tabula.technology/) and not [Camelot](https://camelot-py.readthedocs.io/en/master/index.html)? The pdfs to be analysed resulted in Camelot throwing an error while Tabula did not. 
 
 <h2> Installation </h2>
 
@@ -23,7 +23,7 @@ Why Tabula and not [Camelot](https://camelot-py.readthedocs.io/en/master/index.h
 There are two ways to set up the Python environment - using [pip](https://pypi.org/project/pip/) or [Conda](https://github.com/conda/conda) to download the required Python packages. 
 
 
-For Conda, [environment.yml](environment.yml) contains the requirements needed to (hopefully) recreate the environment this was developed in.
+For Conda installation, [environment.yml](environment.yml) contains the requirements needed to (hopefully) recreate the environment this was developed in.
   1. Use the terminal or anaconda prompt to run 
        ```
        conda env create -f environment.yml
@@ -33,11 +33,16 @@ For Conda, [environment.yml](environment.yml) contains the requirements needed t
        ```
        conda activate extract_pdf
        ```
-  3. The `environment.yml` should capture the packages in the pip distribution.
+  3. The `environment.yml` should capture the packages only in the pip distribution. The method used to achieve this is from [here](https://stackoverflow.com/questions/35245401/combining-conda-environment-yml-with-pip-requirements-txt). 
+  4. If in doubt, ask Google. 
 
-[requirements.txt](requirements.txt)
+For pip installation, [requirements.txt](requirements.txt) is the `environment.yml` equivalent. For further dtails on pip, refer to their [documentation](https://pip.pypa.io/en/stable/getting-started/).
+  1. In the terminal, run 
+       ```
+       pip install -r requirements.txt
+       ```
+  2. This should have all the requirement packages installed. If in doubt, this [post](https://stackoverflow.com/questions/29980798/where-does-pip-install-its-packages) is quite helpful to understand where pip has installed it to.
 
-[download tabula at](https://tabula.technology/)
 
 <h3> Downloading the Code Base </h3>
 
