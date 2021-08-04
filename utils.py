@@ -23,23 +23,6 @@ class InputError(Error):
         self.message = message
 
 
-# class SanitiseOutput:
-#     '''
-#         Sanitises output to be consistent with rest of ecosystem
-#     '''
-
-#     def __init__(self, abs_path, file_name):
-#         self.mapping = get_internal_mapping(abs_path, file_name)
-
-#     def __iter__(self):
-#         return self
-
-#     def __next__(self):
-#         return self.next()
-
-#     def next(self):
-
-
 def get_internal_mapping(abs_path, file_name, sheet_name):
     if not file_name.endswith(".xlsx"):
         raise InputError(not file_name.endswith(".xlsx"),
@@ -122,38 +105,53 @@ def check_broken_table(current_page_number, filename, current_table):
     if not tables:
         return None
 
+    # Table at the top of the page
     top_table = tables[0]
     top_table_header = top_table.columns
 
+    current_table_header = current_table.columns
+    current_table_length = len(current_table_header)
+
     if top_table.empty:
         table_length = len(top_table_header)
-        if table_length == len(current_table.columns):
+        if table_length == current_table_length:
             return top_table_header.to_series()
         elif detail_string() in top_table_header:
-            top_table = top_table.reset_index().T.reset_index().T
-            del top_table[0]
-            from pandas import DataFrame as pdDF
-            # new_table = pdDF(top_table.values, columns = current_table.columns[:table_length])
-            return pdDF(top_table.values, columns=current_table.columns[:table_length])
+            # top_table = top_table.reset_index().T.reset_index().T
+            # del top_table[0]
+            # from pandas import DataFrame as pdDF
+            # # Create a new data frame instead of renaming columns as that creates issues
+            # return pdDF(top_table.values, columns=current_table_header[:table_length])
+            return move_data_out_of_header(top_table, current_table_header, table_length)
         else:
             return None
 
-    elif len(top_table_header) == len(current_table.columns):
-        # print(top_table)
-        # Moves header into next row
-        top_table = top_table.reset_index().T.reset_index().T
-        # But, I have a new cloumn, so delete
-        del top_table[0]
-        # Rename header so it can append easily
-        # new_col_names = dict(zip(top_table_header, current_table.columns))
-        # top_table = top_table.rename(columns=new_col_names, inplace=True)
-        # # top_table_header = current_table.columns
+    elif len(top_table_header) == current_table_length:
         # # print(top_table)
-        # return top_table
-        from pandas import DataFrame as pdDF
-        return pdDF(top_table.values, columns=current_table.columns)
+        # # Moves header into next row
+        # top_table = top_table.reset_index().T.reset_index().T
+        # # But, I have a new cloumn, so delete
+        # del top_table[0]
+        # # Create a new data frame instead of renaming columns as that creates issues
+        # from pandas import DataFrame as pdDF
+        # return pdDF(top_table.values, columns=current_table_header)
+        return move_data_out_of_header(top_table, current_table_header, current_table_length)
     else:
         return None
+
+def move_data_out_of_header(top_table, cur_table_header, table_length):
+
+    from pandas import DataFrame as pdDF
+
+    # Moves header into next row
+    top_table = top_table.reset_index().T.reset_index().T
+
+    # But, I have a new cloumn, so delete
+    del top_table[0]
+
+    # Create a new data frame instead of renaming columns as that creates issues
+    # Only select table headers that are relevant for table at top of the page
+    return pdDF(top_table.values, columns=cur_table_header[:table_length])
 
 
 def fix_broken_table(current_page_number, current_table, filename):
