@@ -55,13 +55,13 @@ Once these have been installed, ensure that the dependencies for Tabula have bee
 <h3> Downloading the Code Base </h3>
 
 With all the hard bits done, this should be relatively painless. There are a couple of ways to do this,
-  1. Git clone
+  - Git clone
       Go to the folder you want to download into, then run this command 
       ```
       git clone https://github.com/wong-hl/admins_urop.git
       ```
-  2. Download the zip file
-  3. Click the Green download code button 
+  - Download the zip file
+  - Click the Green download code button 
 
 <h2> How to use? </h2>
 
