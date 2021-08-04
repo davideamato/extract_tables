@@ -11,7 +11,7 @@ from tqdm import tqdm
 import os
 import tabula
 
-from utils import desired_tables, get_all_files_in_dir, fix_broken_table, get_applicant_ids, get_files_and_ids, get_internal_mapping
+from utils import desired_tables,  fix_broken_table,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import StudentGrades
 
@@ -26,8 +26,8 @@ INTERNAL_MAPPING = get_internal_mapping(
 # Generates full path to the files to extract data from
 # Extracts unique IDs from file name
 ALL_FILES, APPLICANT_IDS = get_files_and_ids(PATH_TO_FILES)
-print(ALL_FILES)
-print(APPLICANT_IDS)
+# print(ALL_FILES)
+# print(APPLICANT_IDS)
 
 # From the PDFs, these are the headers of the tables we want
 # They have been placed in a counter for easy comparison
