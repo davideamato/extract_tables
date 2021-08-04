@@ -1,7 +1,8 @@
 import os
+import re
 import tabula
 
-from collections import Counter
+from collections import Counter, OrderedDict
 
 
 class Error(Exception):
@@ -39,7 +40,6 @@ class InputError(Error):
 #     def next(self):
 
 
-
 def get_internal_mapping(abs_path, file_name, sheet_name):
     if not file_name.endswith(".xlsx"):
         raise InputError(not file_name.endswith(".xlsx"),
@@ -62,7 +62,7 @@ def get_internal_mapping(abs_path, file_name, sheet_name):
                 # Value in first column is the desired string
                 val = cell.value
             else:
-                # Other values is what we have 
+                # Other values is what we have
                 output_dict[cell.value] = val
 
     return output_dict
@@ -80,18 +80,33 @@ def is_abs_path(input_path):
     return True
 
 
-def get_all_files_in_dir(abs_path):
+def get_files_and_ids(abs_path):
 
-    if is_abs_path(abs_path):
-        # list(set()) to remove duplicates
-        return list(set([os.path.join(abs_path, file) for file in os.listdir(abs_path) if is_file_valid(file)]))
+    # Test if path is absolute
+    is_abs_path(abs_path)
 
+    # Remove duplicates in files
+    # BUT doesn't address repeated IDs
+    lst_of_paths = list(set([os.path.join(abs_path, file) for file in os.listdir(
+        abs_path) if is_file_valid(file)]))
 
-def get_applicant_ids(abs_path):
+    # Extract IDs from file names
+    lst_of_ids = [file.split("_")[3] for file in lst_of_paths]
 
-    if is_abs_path(abs_path):
-        # list(set()) to remove duplicates
-        return list(set([file.split("_")[2] for file in os.listdir(abs_path) if is_file_valid(file)]))
+    # If all are unique, then no issues
+    if len(lst_of_ids) == len(set(lst_of_ids)):
+        return lst_of_paths, lst_of_ids
+
+    # If there are repetitions, remove it from the lsit of IDs and paths
+    counter = 1
+    for unique_id in lst_of_ids[1:]:
+        if unique_id in lst_of_ids[:counter]:
+            lst_of_ids.pop(counter)
+            lst_of_paths.pop(counter)
+        else:
+            counter += 1
+
+    return lst_of_paths, lst_of_ids
 
 
 def check_broken_table(current_page_number, filename, current_table):
