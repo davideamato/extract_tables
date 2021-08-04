@@ -18,10 +18,15 @@ Why Tabula and not [Camelot](https://camelot-py.readthedocs.io/en/master/index.h
 
 <h2> Installation </h2>
 
+<h3> Setting up Python environment </h3>
+There are two ways to set up the Python environment - using pip or conda. 
 
-There are two ways to set up the Python environment - using [
-
+[requirements.txt](requirements.txt)
+[environment.yml](environment.yml)
 [download tabula at](https://tabula.technology/)
+
+<h3> Downloading the Code Base </h3>
+
 
 <h2> How to use? </h2>
 
