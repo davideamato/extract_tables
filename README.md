@@ -19,10 +19,24 @@ Why Tabula and not [Camelot](https://camelot-py.readthedocs.io/en/master/index.h
 <h2> Installation </h2>
 
 <h3> Setting up Python environment </h3>
-There are two ways to set up the Python environment - using pip or conda. 
+
+There are two ways to set up the Python environment - using [pip](https://pypi.org/project/pip/) or [Conda](https://github.com/conda/conda) to download the required Python packages. 
+
+
+For Conda, [environment.yml](environment.yml) contains the requirements needed to (hopefully) recreate the environment this was developed in.
+  1. Use the terminal or anaconda prompt to run 
+       ```
+       conda env create -f environment.yml
+       ```
+     This should automatically create the Conda environment. For further details/help, please refer to the Conda guide on [creating an environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file)
+  2. To activate the envronment, 
+       ```
+       conda activate extract_pdf
+       ```
+  3. The `environment.yml` should capture the packages in the pip distribution.
 
 [requirements.txt](requirements.txt)
-[environment.yml](environment.yml)
+
 [download tabula at](https://tabula.technology/)
 
 <h3> Downloading the Code Base </h3>
