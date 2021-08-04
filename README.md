@@ -1,6 +1,6 @@
 <h1> Extract Tables from PDF </h1>
-According to internal specifications, this script:
 
+According to internal specifications, this script:
 1. Extracts key information from tables in a pdf
 2. Structures information for an excel workbook
 3. Produces an excel workbook as output
