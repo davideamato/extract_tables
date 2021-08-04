@@ -18,10 +18,16 @@ Why [Tabula](https://tabula.technology/) and not [Camelot](https://camelot-py.re
 
 <h2> Installation </h2>
 
+Installation can be broken down into three main steps:
+  1. Installing the Python packages this repo is dependent on
+  2. Installing the dependencies of Tabula
+  3. Downloading the code base
+After that, you're good to go!
+
+
 <h3> Setting up Python environment </h3>
 
 There are two ways to set up the Python environment - using [pip](https://pypi.org/project/pip/) or [Conda](https://github.com/conda/conda) to download the required Python packages. 
-
 
 For Conda installation, [environment.yml](environment.yml) contains the requirements needed to (hopefully) recreate the environment this was developed in.
   1. Use the terminal or anaconda prompt to run 
@@ -43,9 +49,18 @@ For pip installation, [requirements.txt](requirements.txt) is the `environment.y
        ```
   2. This should have all the requirement packages installed. If in doubt, this [post](https://stackoverflow.com/questions/29980798/where-does-pip-install-its-packages) is quite helpful to understand where pip has installed it to.
 
+Once these have been installed, ensure that the dependencies for Tabula have been installed as well. 
 
 <h3> Downloading the Code Base </h3>
 
+With all the hard bits done, this should be relatively painless. There are a couple of ways to do this,
+  1. Git clone
+      Go to the folder you want to download into, then run this command 
+      ```
+      git clone https://github.com/wong-hl/admins_urop.git
+      ```
+  2. Download the zip file
+  3. Click the Green download code button 
 
 <h2> How to use? </h2>
 
