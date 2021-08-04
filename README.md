@@ -64,6 +64,16 @@ With all the hard bits done, this should be relatively painless. There are a cou
 
 <h2> How to use? </h2>
 
+The main script is [`extract_table.py`](extract_table.py). User input is only required for the:
+  1. _Absolute_ path to the folder containing all the pdf files to be analysed
+  2. Filename and sheetname of the mapping excel sheet. This sheet maps the qualification names in the pdfs to the convention used internally.
+
+Once that has been provided, run in the terminal, 
+  ```
+  python extract_table.py
+  ```
+This will execute the script and a progress bar will print on a single line. 
 
 <h2> To Do </h2>
+
 Refactor!
