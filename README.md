@@ -31,8 +31,7 @@ After that, you're good to go!
 <h3> Download the Code Base </h3>
 
 This should be relatively painless. There are a couple of ways to do this,
-  - Git clone
-      Go to the folder you want to download into, then run this command 
+  - Using git clone. Go to the folder you want to download into, then run this command
       ```
       git clone https://github.com/wong-hl/admins_urop.git
       ```
