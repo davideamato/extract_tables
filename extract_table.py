@@ -11,7 +11,7 @@ from tqdm import tqdm
 import os
 import tabula
 
-from utils import desired_tables,  fix_broken_table,  get_files_and_ids, get_internal_mapping
+from utils import desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import Student
 
@@ -33,7 +33,7 @@ ALL_FILES, APPLICANT_IDS = get_files_and_ids(PATH_TO_FILES)
 # They have been placed in a counter for easy comparison
 TARGET_TABLES = desired_tables()
 # First table after the desired ones that always occur
-EXIT_STRING = 'Type of school, college or training centre:'
+EXIT_STRING = get_exit_string()
 
 if __name__ == "__main__":
 

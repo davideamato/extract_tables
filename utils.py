@@ -126,6 +126,7 @@ def check_broken_table(current_page_number, filename, current_table):
     else:
         return None
 
+
 def move_data_out_of_header(top_table, cur_table_header, table_length):
 
     from pandas import DataFrame as pdDF
@@ -158,6 +159,15 @@ def fix_broken_table(current_page_number, current_table, filename):
         return current_table
 
 
+def escape_backslash_r(input_string):
+    if input_string is not None:
+        return input_string.encode('unicode-escape').decode().replace("\\r", " ").strip()
+
+
+def get_exit_string():
+    return 'Type of school, college or training centre:'
+
+
 def raw_table_headers():
     acheived_headers = ['Date', 'Body', 'Exam',
                         'Subject', 'Grade', 'Result', 'Centre Number']
@@ -167,11 +177,6 @@ def raw_table_headers():
                            'Exam Level', 'Sitting', 'Subject', 'Grade']
 
     return (acheived_headers, predicted_headers, examresults_headers)
-
-
-def escape_backslash_r(input_string):
-    if input_string is not None:
-        return input_string.encode('unicode-escape').decode().replace("\\r", " ").strip()
 
 
 def desired_tables():
