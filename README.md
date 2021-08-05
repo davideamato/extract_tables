@@ -84,7 +84,7 @@ This will execute the script and a progress bar will print on a single line.
     - If it is a target table, then it is checked for being split over two pages and a fix is applied accordingly.
     - If it is the last table, the exit condition is triggered
   - Once the exit condition is triggered, 
-    - An instance of `Student()` is created
+    - An instance of `Student()` is created with extracted tables
     - Instance is added to `ExtractedStudents()` object
   - If the exit condition is not triggered, but instead the end of file (eof) is encountered. Then, this is handled by the exception. In the handling, the extracted information is stored in the same manner as if the exit condition was triggered. 
 - Once all files have been processed, the `ExtractedStudents()` object is called to write the information to an excel file.  
