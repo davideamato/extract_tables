@@ -31,17 +31,6 @@ class GradeEntry:
         # self.grade_info = [self.grade, self.subject, self.qualification, self.is_predicted, self.is_exam_result, self.year]
         self.grade_info = [self.grade, self.subject]
 
-    # def __iter__(self):
-    #     return self
-
-    # def __next__(self):
-    #     if self.index == 2:
-    #         raise StopIteration
-
-    #     self.index += 1
-
-    #     return self.grade_info[self.index]
-
     def __repr__(self):
         return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted: {} Exam Result: {}".format(
             self.qualification, self.subject, self.grade, self.year, self.is_predicted, self.is_exam_result)

@@ -117,24 +117,11 @@ def check_broken_table(current_page_number, filename, current_table):
         if table_length == current_table_length:
             return top_table_header.to_series()
         elif detail_string() in top_table_header:
-            # top_table = top_table.reset_index().T.reset_index().T
-            # del top_table[0]
-            # from pandas import DataFrame as pdDF
-            # # Create a new data frame instead of renaming columns as that creates issues
-            # return pdDF(top_table.values, columns=current_table_header[:table_length])
             return move_data_out_of_header(top_table, current_table_header, table_length)
         else:
             return None
 
     elif len(top_table_header) == current_table_length:
-        # # print(top_table)
-        # # Moves header into next row
-        # top_table = top_table.reset_index().T.reset_index().T
-        # # But, I have a new cloumn, so delete
-        # del top_table[0]
-        # # Create a new data frame instead of renaming columns as that creates issues
-        # from pandas import DataFrame as pdDF
-        # return pdDF(top_table.values, columns=current_table_header)
         return move_data_out_of_header(top_table, current_table_header, current_table_length)
     else:
         return None
