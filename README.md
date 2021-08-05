@@ -112,6 +112,8 @@ Upon sucessful execution, the generated excel file is named `output.xlsx` and ca
 
 `utils.py` contains the useful functions (utilities) and functions that store strings needed to extracting information.
 
+<h2> How to maintain? </h2>
+
 <h2> To Do </h2>
 
 Refactor!
