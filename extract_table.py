@@ -35,100 +35,102 @@ TARGET_TABLES = desired_tables()
 # First table after the desired ones that always occur
 EXIT_STRING = 'Type of school, college or training centre:'
 
-# Initialise object to store extracted information
-all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
-counter = 0
+if __name__ == "__main__":
 
-total_num_files = len(ALL_FILES)
-print("Extracting tables for {} students".format(total_num_files))
+    # Initialise object to store extracted information
+    all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
+    counter = 0
 
-pbar = tqdm(total=total_num_files, desc="Table Processing: ")
-# Iterate over all files and applicant IDs
-for file, app_id in zip(ALL_FILES, APPLICANT_IDS):
+    total_num_files = len(ALL_FILES)
+    print("Extracting tables for {} students".format(total_num_files))
 
-    # Start on 2nd page as 1st doesn't contain impt info
-    page_number = 2
-    exit_loop = False
+    pbar = tqdm(total=total_num_files, desc="Table Processing: ")
+    # Iterate over all files and applicant IDs
+    for file, app_id in zip(ALL_FILES, APPLICANT_IDS):
 
-    # Initialise list to store the pandas dataframes from tabula
-    grade_tables = []
-    grade_counters = []
+        # Start on 2nd page as 1st doesn't contain impt info
+        page_number = 2
+        exit_loop = False
 
-    # Total number of pages not known before hand
-    while True:
-        try:
-            # Extract table from pdf
-            tables = tabula.read_pdf(file, pages=str(page_number), lattice=True,
-                                     guess=True, pandas_options={"header": 0},)
-        except subprocess.CalledProcessError:
-            all_students.add_student_sequentially(
-                StudentGrades(app_id, grade_tables, grade_counters), counter)
-            # If EOF reached before exit table
-            # This shouldn't happen
-            break
+        # Initialise list to store the pandas dataframes from tabula
+        grade_tables = []
+        grade_counters = []
 
-        # Iterate over all tables on the page
-        for table in tables:
+        # Total number of pages not known before hand
+        while True:
+            try:
+                # Extract table from pdf
+                tables = tabula.read_pdf(file, pages=str(page_number), lattice=True,
+                                        guess=True, pandas_options={"header": 0},)
+            except subprocess.CalledProcessError:
+                all_students.add_student_sequentially(
+                    StudentGrades(app_id, grade_tables, grade_counters), counter)
+                # If EOF reached before exit table
+                # This shouldn't happen
+                break
 
-            # Get the table header
-            table_headers = table.columns
-            header_counter = Counter(list(table_headers.values))
+            # Iterate over all tables on the page
+            for table in tables:
 
-            # Determine if it is a targe table
-            if header_counter in TARGET_TABLES:
-                # Fix table if it is across two pages
-                table = fix_broken_table(page_number, table, file)
+                # Get the table header
+                table_headers = table.columns
+                header_counter = Counter(list(table_headers.values))
 
-                # Add to list that stores the tables
-                grade_tables.append(table)
-                grade_counters.append(header_counter)
+                # Determine if it is a targe table
+                if header_counter in TARGET_TABLES:
+                    # Fix table if it is across two pages
+                    table = fix_broken_table(page_number, table, file)
 
-                # print(table)
+                    # Add to list that stores the tables
+                    grade_tables.append(table)
+                    grade_counters.append(header_counter)
+
+                    # print(table)
+                    # print("")
+                elif EXIT_STRING in table_headers:
+                    # Exit condition
+                    exit_loop = True
+
+            if exit_loop:
+                # Add completed form to all students
+                all_students.add_student_sequentially(
+                    StudentGrades(app_id, grade_tables, grade_counters), counter)
                 # print("")
-            elif EXIT_STRING in table_headers:
-                # Exit condition
-                exit_loop = True
+                break
 
-        if exit_loop:
-            # Add completed form to all students
-            all_students.add_student_sequentially(
-                StudentGrades(app_id, grade_tables, grade_counters), counter)
-            # print("")
-            break
+            # Go to next page in document
+            page_number += 1
 
-        # Go to next page in document
-        page_number += 1
+        # Go to next student
+        counter += 1
+        pbar.update()
 
-    # Go to next student
-    counter += 1
-    pbar.update()
-
-pbar.close()
+    pbar.close()
 
 
-for student in all_students:
-    print("ID: {}".format(student.unique_id))
-    # print(student.uncompleted_qualifications)
-    # print("")
-    # print("{}".format(student.predicted_entries))
-    if student.completed_entries:
-        print("Completed Qualifications")
-        # print(student.completed_qualifications)
-        for entry in student.completed_entries:
-            print(entry)
-    print("")
-    if student.predicted_entries:
-        print("Predicted Grades")
+    for student in all_students:
+        print("ID: {}".format(student.unique_id))
         # print(student.uncompleted_qualifications)
-        for entry in student.predicted_entries:
-            print(entry)
-    print("")
-    if student.results_entries:
-        print("Examination Results")
-        # print(student.exam_results)
-        for entry in student.results_entries:
-            print(entry)
-    print("")
-    print("")
+        # print("")
+        # print("{}".format(student.predicted_entries))
+        if student.completed_entries:
+            print("Completed Qualifications")
+            # print(student.completed_qualifications)
+            for entry in student.completed_entries:
+                print(entry)
+        print("")
+        if student.predicted_entries:
+            print("Predicted Grades")
+            # print(student.uncompleted_qualifications)
+            for entry in student.predicted_entries:
+                print(entry)
+        print("")
+        if student.results_entries:
+            print("Examination Results")
+            # print(student.exam_results)
+            for entry in student.results_entries:
+                print(entry)
+        print("")
+        print("")
 
-all_students.write_to_excel(PATH_TO_FILES)
+    all_students.write_to_excel(PATH_TO_FILES)
