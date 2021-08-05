@@ -112,6 +112,23 @@ Upon sucessful execution, the generated excel file is named `output.xlsx` and ca
 
 `utils.py` contains the useful functions (utilities) and functions that store strings needed to extracting information.
 
+<h2> How to maintain? </h2>
+
+<h3> I can't get Tabula to work, but Camelot does! </h3>
+
+Feel free to use Camelot instead. 
+Just ensure that at the two call of Tablua (one in `extract_table.py`, another in `check_broke_table()` function in `utils.py`) are replaced with Camelot.
+Camelot does not natively return a pandas dataframe (like Tabula) so you'll need to add a `.df` at the end and it should be compatible!
+
+<h3> The pdf tables have changed, what do I do? </h3>
+
+The code works by testing the strings in the table against the a set of "desired strings". 
+Therefore, all that needs to be changed are the desired strings. 
+These lie within the functions in `utils.py`. 
+
+The strings within those functions is the only places that need to updated in accordance to how the pdfs have changed. 
+
+
 <h2> To Do </h2>
 
 Refactor!
