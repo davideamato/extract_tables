@@ -75,7 +75,36 @@ Once that has been provided, run in the terminal,
   ```
 This will execute the script and a progress bar will print on a single line. 
 
+<h2> How has this been structured? </h2>
+
+`extract_table.py` coordinates the whole table extraction. It iterates over all files in the folder provided. 
+- The extracted information for each pdf is stored in an instance of the object `ExtractedStudents()`
+- For each file, starting from the 2nd page, the tables are extracted by `tablula.read_pdf()` into a `Pandas Dataframe`. 
+  - For a given page, the tables in the page are checked to identify it is a target table or if it is the last table in the pdf 
+    - If it is a target table, then it is checked for being split over two pages and a fix is applied accordingly.
+    - If it is the last table, the exit condition is triggered
+  - Once the exit condition is triggered, 
+    - An instance of `Student()` is created
+    - Instance is added to `ExtractedStudents()` object
+  - If the exit condition is not triggered, but instead the end of file (eof) is encountered. Then, this is handled by the exception. In the handling, the extracted information is stored in the same manner as if the exit condition was triggered. 
+- Once all files have been processed, the `ExtractedStudents()` object is called to write the information to an excel file.  
+
+`student.py` is where all the logic and actual processing occurs. There are three classes within this. 
+  1. `ExtractedStudents()`
+      - It can be viewed as being the highest level. An analogy of this would be this manages the entire cohort of students studying a given course.
+      - This class coordinates the overall management of every instance of `Student()` that belongs to it 
+  2. `Student()`
+      - An analogy for this would be an individual student studying a given course. This student will have grades in different subjects and each of these need to be stored, sorted and verified.
+      - This class handles all the complexity involved in storing and extracting relevant information for a given pdf. 
+  3. `GradeEntry()`
+      - It can be viewed as being the lowest level. 
+      - It only contains key information related to a given data entry (row in a table). 
+      - This information could have simply be stored in a dictionary or a list instead. However, this method was adopted with the aim of improving the readability of the code.
+
+`utils.py` contains the useful functions (utilities) and functions that store strings needed to extracting information.
+
 <h2> To Do </h2>
 
 Refactor!
+
 Create the foolproof but unmaintanable beast of an exe file 
