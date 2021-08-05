@@ -11,6 +11,8 @@ most commonly occuring cases to reduce the overall workload.
 
 <h2> Core Dependency </h2>
 
+This requires Python 3. It was developed in Python 3.7 and 3.8 so the known minimum is Python 3.7+
+
 This utilises the python package [tabula](https://tabula-py.readthedocs.io/en/latest/tabula.html) to read tables within
 a pdf. As this package is a python wrapper of [tabula-java](https://github.com/tabulapdf/tabula-java), has [java as a dependency](https://pypi.org/project/tabula-py/).
 
@@ -19,12 +21,23 @@ Why [Tabula](https://tabula.technology/) and not [Camelot](https://camelot-py.re
 <h2> Installation </h2>
 
 Installation can be broken down into three main steps:
-  1. Installing the Python packages this repo is dependent on
-  2. Installing the dependencies of Tabula
-  3. Downloading the code base
+  1. Download the code base
+  2. Installing the Python packages this repo is dependent on
+  3. Installing the dependencies of Tabula
 After that, you're good to go!
 
 *N.B. on Operating System:* This was developed in Linux (Ubuntu 18.04) and has not been tested in any other operating system.
+
+<h3> Download the Code Base </h3>
+
+This should be relatively painless. There are a couple of ways to do this,
+  - Git clone
+      Go to the folder you want to download into, then run this command 
+      ```
+      git clone https://github.com/wong-hl/admins_urop.git
+      ```
+  - Download the zip file
+  - Click the Green download code button 
 
 <h3> Setting up Python environment </h3>
 
@@ -50,18 +63,13 @@ For pip installation, [requirements.txt](requirements.txt) is the `environment.y
        ```
   2. This should have all the requirement packages installed. If in doubt, this [post](https://stackoverflow.com/questions/29980798/where-does-pip-install-its-packages) is quite helpful to understand where pip has installed it to.
 
-Once these have been installed, ensure that the dependencies for Tabula have been installed as well. 
+<h3> Install Tabula Dependencies </h3>
+ 
+Tabula requires Java 8+. I think [this](https://www.oracle.com/java/technologies/javase-jre8-downloads.html) is the link to download it. 
 
-<h3> Downloading the Code Base </h3>
+If using Tabula on Windows 10, their documentation contains a useful [page](https://tabula-py.readthedocs.io/en/latest/getting_started.html#get-tabula-py-working-windows-10) 
+on how to get it to work.
 
-With all the hard bits done, this should be relatively painless. There are a couple of ways to do this,
-  - Git clone
-      Go to the folder you want to download into, then run this command 
-      ```
-      git clone https://github.com/wong-hl/admins_urop.git
-      ```
-  - Download the zip file
-  - Click the Green download code button 
 
 <h2> How to use? </h2>
 
