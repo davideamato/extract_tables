@@ -452,7 +452,7 @@ class ExtractedStudents:
         wb.save(os.path.join(input_abs_path, "output.xlsx"))
 
 
-class StudentGrades:
+class Student:
     '''
         Class for a single pdf/student
     '''

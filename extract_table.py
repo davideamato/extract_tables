@@ -13,7 +13,7 @@ import tabula
 
 from utils import desired_tables,  fix_broken_table,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
-from student import StudentGrades
+from student import Student
 
 # import pandas as pd
 # pd.set_option('display.max_columns', None)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                                         guess=True, pandas_options={"header": 0},)
             except subprocess.CalledProcessError:
                 all_students.add_student_sequentially(
-                    StudentGrades(app_id, grade_tables, grade_counters), counter)
+                    Student(app_id, grade_tables, grade_counters), counter)
                 # If EOF reached before exit table
                 # This shouldn't happen
                 break
@@ -94,7 +94,7 @@ if __name__ == "__main__":
             if exit_loop:
                 # Add completed form to all students
                 all_students.add_student_sequentially(
-                    StudentGrades(app_id, grade_tables, grade_counters), counter)
+                    Student(app_id, grade_tables, grade_counters), counter)
                 # print("")
                 break
 
