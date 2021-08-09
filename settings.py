@@ -36,7 +36,7 @@ path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_fil
 
 # Order it Cycle, Marker, Batch in Excel
 batch_number = 1
-cycle = 0
+cycle = "Nov"
 allocation_details = {
     "AP": 1,
     "TM": 1, 
