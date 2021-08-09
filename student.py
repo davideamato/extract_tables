@@ -226,7 +226,11 @@ class ExtractedStudents:
 
             # Fill with admin details
             ws.cell(row=row_counter, column=13, value=settings.cycle)
-            ws.cell(row=row_counter, column=14, value=self.student_to_marker_mapping[student.unique_id][0])
+            # What are the brackets in self.student_to_marker_mapping
+            # [student.unique_id] => get value using that key
+            # [0] => first value in list (value of key is a list)
+            # [:2] => slice first two letters in string (initials of maker)
+            ws.cell(row=row_counter, column=14, value=self.student_to_marker_mapping[student.unique_id][0][:2])
             ws.cell(row=row_counter, column=15, value=settings.batch_number)
 
             # Categorise each entry into subjects
