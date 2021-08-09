@@ -11,7 +11,7 @@ from tqdm import tqdm
 import logging
 import tabula
 
-from utils import initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
+from utils import check_output_dirs_exist, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import Student
 import settings
@@ -39,6 +39,8 @@ TARGET_TABLES = desired_tables()
 EXIT_STRING = get_exit_string()
 
 if __name__ == "__main__":
+
+    check_output_dirs_exist()
 
     # Initialise object to store extracted information
     all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)

@@ -77,6 +77,17 @@ def is_abs_path(input_path):
     return True
 
 
+def check_output_dirs_exist():
+    if not os.path.exists(settings.output_path):
+        raise NotADirectoryError("Output folder does not exists")
+
+    marker_names = [key for key in settings.allocation_details.keys()]
+
+    for name in marker_names:
+        marker_path = os.path.join(settings.output_path, name)
+        if not os.path.exists(marker_path):
+            raise NotADirectoryError(f"Output folder for {name} does not exists")
+
 
 
 def get_files_and_ids(abs_path):
