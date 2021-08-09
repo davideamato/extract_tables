@@ -58,11 +58,11 @@ class ExtractedStudents:
         self.internal_mapping = internal_mapping
 
         self.marker_allocation = self.assign_students_to_marker()
-        print(self.marker_allocation)
+        # print(self.marker_allocation)
 
         self.student_to_marker_mapping = dict() 
         self.map_student_to_marker()
-        print(self.student_to_marker_mapping)
+        # print(self.student_to_marker_mapping)
 
         self.index = -1
 
@@ -186,6 +186,9 @@ class ExtractedStudents:
         ws.cell(row=1, column=6, value="Physics Grade")
         ws.cell(row=1, column=11, value="FM?")
         ws.cell(row=1, column=12, value="Overall Grade")
+        ws.cell(row=1, column=13, value="Cycle")
+        ws.cell(row=1, column=14, value="Marker")
+        ws.cell(row=1, column=15, value="Batch")
 
         for i in range(0, 4, 2):
             ws.cell(row=1, column=7 + i, value="Grade")
@@ -220,6 +223,11 @@ class ExtractedStudents:
             # Fill in UCAS ID
             ws.cell(row=row_counter, column=1,
                     value="{}".format(student.unique_id))
+
+            # Fill with admin details
+            ws.cell(row=row_counter, column=13, value=settings.cycle)
+            ws.cell(row=row_counter, column=14, value=self.student_to_marker_mapping[student.unique_id])
+            ws.cell(row=row_counter, column=15, value=settings.batch_number)
 
             # Categorise each entry into subjects
             categorised_entries = self.sort_into_subjects(student)
