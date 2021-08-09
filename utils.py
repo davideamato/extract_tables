@@ -192,7 +192,7 @@ def get_files_and_ids(abs_path):
             counter += 1
 
     logging.info(f"Total of {num_repetitions} repeated files removed")
-    print(f"Total of {num_repetitions} repeated files removed")
+    print(f"Total of {num_repetitions} repeated files excluded")
     print("Check log for details")
 
     return lst_of_paths, lst_of_ids
