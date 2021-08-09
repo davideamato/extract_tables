@@ -19,6 +19,8 @@ import settings
 # import pandas as pd
 # pd.set_option('display.max_columns', None)
 
+initialise_logger()
+
 PATH_TO_FILES = settings.path_to_pdfs_to_extract
 INTERNAL_MAPPING = get_internal_mapping(
     settings.path_to_mapping_file, settings.qualification_mapping_sheet_name)
@@ -37,8 +39,6 @@ TARGET_TABLES = desired_tables()
 EXIT_STRING = get_exit_string()
 
 if __name__ == "__main__":
-
-    initialise_logger()
 
     # Initialise object to store extracted information
     all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
@@ -66,6 +66,8 @@ if __name__ == "__main__":
                 tables = tabula.read_pdf(file, pages=str(page_number), lattice=True,
                                          guess=True, pandas_options={"header": 0},)
             except subprocess.CalledProcessError:
+                logging.warning("EOF reached before exit condition")
+                logging.warning(f"Check file with ID: {app_id}")
                 all_students.add_student_sequentially(
                     Student(app_id, grade_tables, grade_counters), counter)
                 # If EOF reached before exit table
