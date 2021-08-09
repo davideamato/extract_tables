@@ -1,9 +1,9 @@
 import os
-import re
+import logging
 import tabula
 
 from collections import Counter
-
+import settings
 
 
 class InputError(Exception):
@@ -17,6 +17,12 @@ class InputError(Exception):
     def __init__(self, expression, message):
         self.expression = expression
         self.message = message
+
+
+def initialise_logger():
+    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
+                        filename=settings.path_to_log, datefmt='%m/%d/%Y %I:%M:%S %p')
+    logging.info("Start")
 
 
 def get_internal_mapping(path_to_file, sheet_name):
@@ -47,6 +53,11 @@ def get_internal_mapping(path_to_file, sheet_name):
     return output_dict
 
 
+def does_dir_exist(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+
 def is_file_valid(file):
     return file.endswith(".pdf") and "unicode" in file
 
@@ -58,18 +69,21 @@ def is_abs_path(input_path):
 
     return True
 
+
 def get_full_file_path(path, filename):
     """Combines path and filename to return full abs path as raw string"""
     return (
-        os.path.abspath(os.path.join(path, filename)).encode("unicode-escape").decode()
+        os.path.abspath(os.path.join(path, filename)).encode(
+            "unicode-escape").decode()
     )
+
 
 def get_full_path(path):
     """Combines path and filename to return full abs path as raw string"""
     return (
         os.path.abspath(path).encode("unicode-escape").decode()
     )
-    
+
 
 def get_files_and_ids(abs_path):
 

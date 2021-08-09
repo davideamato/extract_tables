@@ -8,10 +8,10 @@ from collections import Counter
 from tqdm import tqdm
 
 
-import os
+import logging
 import tabula
 
-from utils import desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
+from utils import initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import Student
 import settings
@@ -21,9 +21,7 @@ import settings
 
 PATH_TO_FILES = settings.path_to_pdfs_to_extract
 INTERNAL_MAPPING = get_internal_mapping(
-    settings.path_to_mapping_file, settings.qualification_mapping_filename,
-    settings.qualification_mapping_sheet_name
-)
+    settings.path_to_mapping_file, settings.qualification_mapping_sheet_name)
 # print(INTERNAL_MAPPING)
 
 # Generates full path to the files to extract data from
@@ -39,6 +37,8 @@ TARGET_TABLES = desired_tables()
 EXIT_STRING = get_exit_string()
 
 if __name__ == "__main__":
+
+    initialise_logger()
 
     # Initialise object to store extracted information
     all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
@@ -110,29 +110,29 @@ if __name__ == "__main__":
 
     pbar.close()
 
-    for student in all_students:
-        print("ID: {}".format(student.unique_id))
-        # print(student.uncompleted_qualifications)
-        # print("")
-        # print("{}".format(student.predicted_entries))
-        if student.completed_entries:
-            print("Completed Qualifications")
-            # print(student.completed_qualifications)
-            for entry in student.completed_entries:
-                print(entry)
-        print("")
-        if student.predicted_entries:
-            print("Predicted Grades")
-            # print(student.uncompleted_qualifications)
-            for entry in student.predicted_entries:
-                print(entry)
-        print("")
-        if student.results_entries:
-            print("Examination Results")
-            # print(student.exam_results)
-            for entry in student.results_entries:
-                print(entry)
-        print("")
-        print("")
+    # for student in all_students:
+    #     print("ID: {}".format(student.unique_id))
+    #     # print(student.uncompleted_qualifications)
+    #     # print("")
+    #     # print("{}".format(student.predicted_entries))
+    #     if student.completed_entries:
+    #         print("Completed Qualifications")
+    #         # print(student.completed_qualifications)
+    #         for entry in student.completed_entries:
+    #             print(entry)
+    #     print("")
+    #     if student.predicted_entries:
+    #         print("Predicted Grades")
+    #         # print(student.uncompleted_qualifications)
+    #         for entry in student.predicted_entries:
+    #             print(entry)
+    #     print("")
+    #     if student.results_entries:
+    #         print("Examination Results")
+    #         # print(student.exam_results)
+    #         for entry in student.results_entries:
+    #             print(entry)
+    #     print("")
+    #     print("")
 
     all_students.write_to_excel(PATH_TO_FILES)
