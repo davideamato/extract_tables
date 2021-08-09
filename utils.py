@@ -26,6 +26,9 @@ def initialise_logger():
     if not os.path.exists(settings.output_path):
         raise NotADirectoryError("Output Directory NOT Found")
 
+    if os.path.exists(settings.path_to_log):
+        os.remove(settings.path_to_log)
+
     logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                         filename=settings.path_to_log, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
     logging.info("Start")
