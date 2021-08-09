@@ -144,5 +144,5 @@ if __name__ == "__main__":
     #     print("")
     #     print("")
 
-    all_students.write_to_excel(PATH_TO_FILES)
+    all_students.write_to_excel(settings.output_path)
     copy_pdfs_to_pool(ALL_FILES)
