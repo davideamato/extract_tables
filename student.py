@@ -226,7 +226,7 @@ class ExtractedStudents:
 
             # Fill with admin details
             ws.cell(row=row_counter, column=13, value=settings.cycle)
-            ws.cell(row=row_counter, column=14, value=self.student_to_marker_mapping[student.unique_id])
+            ws.cell(row=row_counter, column=14, value=self.student_to_marker_mapping[student.unique_id][0])
             ws.cell(row=row_counter, column=15, value=settings.batch_number)
 
             # Categorise each entry into subjects
