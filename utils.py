@@ -24,7 +24,7 @@ def initialise_logger():
         raise NotADirectoryError("Output Directory NOT Found")
 
     logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
-                        filename=settings.path_to_log, datefmt='%m/%d/%Y %I:%M:%S %p')
+                        filename=settings.path_to_log, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
     logging.info("Start")
 
 
@@ -96,10 +96,12 @@ def get_files_and_ids(abs_path):
 
     num_files = len(lst_of_paths) 
     logging.info(f"Total of {num_files} files")
+    print(f"Total of {num_files} files in {settings.path_to_pdfs_to_extract}")
 
     # If all are unique, then no issues
     if len(lst_of_ids) == len(set(lst_of_ids)):
         logging.info("No duplicate files")
+        print("No duplicate files")
         return lst_of_paths, lst_of_ids
 
     # If there are repetitions, remove it from the lsit of IDs and paths
@@ -115,6 +117,8 @@ def get_files_and_ids(abs_path):
             counter += 1
 
     logging.info(f"Total of {num_repetitions} repeated files removed")
+    print(f"Total of {num_repetitions} repeated files removed")
+    print("Check log for details")
 
     return lst_of_paths, lst_of_ids
 
