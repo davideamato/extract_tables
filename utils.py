@@ -2,15 +2,11 @@ import os
 import re
 import tabula
 
-from collections import Counter, OrderedDict
+from collections import Counter
 
 
-class Error(Exception):
-    """Base class for exceptions in this module."""
-    pass
 
-
-class InputError(Error):
+class InputError(Exception):
     """Exception raised for errors in the input.
 
     Attributes:
@@ -62,6 +58,18 @@ def is_abs_path(input_path):
 
     return True
 
+def get_full_file_path(path, filename):
+    """Combines path and filename to return full abs path as raw string"""
+    return (
+        os.path.abspath(os.path.join(path, filename)).encode("unicode-escape").decode()
+    )
+
+def get_full_path(path):
+    """Combines path and filename to return full abs path as raw string"""
+    return (
+        os.path.abspath(path).encode("unicode-escape").decode()
+    )
+    
 
 def get_files_and_ids(abs_path):
 
