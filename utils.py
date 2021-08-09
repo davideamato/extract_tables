@@ -59,7 +59,6 @@ def get_internal_mapping(path_to_file, sheet_name):
     return output_dict
 
 
-
 def is_file_valid(file):
     if file.endswith(".pdf") and "unicode" in file:
         return True
@@ -87,10 +86,10 @@ def check_output_dirs_exist():
     marker_names = [key for key in settings.allocation_details.keys()]
 
     for name in marker_names:
-        marker_path = os.path.join(settings.output_path, name)
+        folder_name = name + str(settings.batch_number)
+        marker_path = os.path.join(settings.output_path, folder_name)
         if not os.path.exists(marker_path):
-            raise NotADirectoryError(f"Output folder for {name} does not exists")
-
+            raise NotADirectoryError(f"{folder_name} Folder does not exists")
 
 
 def get_files_and_ids(abs_path):
@@ -108,7 +107,7 @@ def get_files_and_ids(abs_path):
     # Extract IDs from file names
     lst_of_ids = [file.split("_")[3] for file in lst_of_paths]
 
-    num_files = len(lst_of_paths) 
+    num_files = len(lst_of_paths)
     logging.info(f"Total of {num_files} files")
     print(f"Total of {num_files} files in {settings.path_to_pdfs_to_extract}")
 
@@ -123,7 +122,8 @@ def get_files_and_ids(abs_path):
     num_repetitions = 0
     for unique_id in lst_of_ids[1:]:
         if unique_id in lst_of_ids[:counter]:
-            logging.info(f"Duplicate file present for {unique_id}, file {lst_of_paths[counter]} removed")
+            logging.info(
+                f"Duplicate file present for {unique_id}, file {lst_of_paths[counter]} removed")
             lst_of_ids.pop(counter)
             lst_of_paths.pop(counter)
             num_repetitions += 1
