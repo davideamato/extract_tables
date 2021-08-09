@@ -81,6 +81,9 @@ def check_output_dirs_exist():
     if not os.path.exists(settings.output_path):
         raise NotADirectoryError("Output folder does not exists")
 
+    if not os.path.exists(settings.path_to_pdf_pool):
+        raise NotADirectoryError("PDF pool does not exists")
+
     marker_names = [key for key in settings.allocation_details.keys()]
 
     for name in marker_names:
