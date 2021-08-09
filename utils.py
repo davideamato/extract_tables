@@ -19,12 +19,12 @@ class InputError(Exception):
         self.message = message
 
 
-def get_internal_mapping(abs_path, file_name, sheet_name):
-    if not file_name.endswith(".xlsx"):
-        raise InputError(not file_name.endswith(".xlsx"),
+def get_internal_mapping(path_to_file, sheet_name):
+    if not path_to_file.endswith(".xlsx"):
+        raise InputError(not path_to_file.endswith(".xlsx"),
                          "Input file must be in xlsx format")
 
-    input_file = os.path.join(abs_path, file_name)
+    input_file = path_to_file
 
     from openpyxl import load_workbook
 

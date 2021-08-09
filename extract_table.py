@@ -14,13 +14,16 @@ import tabula
 from utils import desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import Student
+import settings
 
 # import pandas as pd
 # pd.set_option('display.max_columns', None)
 
-PATH_TO_FILES = os.path.abspath("pdfs/")
+PATH_TO_FILES = settings.path_to_pdfs_to_extract
 INTERNAL_MAPPING = get_internal_mapping(
-    PATH_TO_FILES, "mapping.xlsx", 'Mapping')
+    settings.path_to_mapping_file, settings.qualification_mapping_filename,
+    settings.qualification_mapping_sheet_name
+)
 # print(INTERNAL_MAPPING)
 
 # Generates full path to the files to extract data from
@@ -61,7 +64,7 @@ if __name__ == "__main__":
             try:
                 # Extract table from pdf
                 tables = tabula.read_pdf(file, pages=str(page_number), lattice=True,
-                                        guess=True, pandas_options={"header": 0},)
+                                         guess=True, pandas_options={"header": 0},)
             except subprocess.CalledProcessError:
                 all_students.add_student_sequentially(
                     Student(app_id, grade_tables, grade_counters), counter)
@@ -106,7 +109,6 @@ if __name__ == "__main__":
         pbar.update()
 
     pbar.close()
-
 
     for student in all_students:
         print("ID: {}".format(student.unique_id))

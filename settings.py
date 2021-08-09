@@ -11,6 +11,11 @@ from utils import get_full_file_path, get_full_path
 path_to_pdfs_to_extract = "/pdfs" 
 path_to_pdfs_to_extract = get_full_path(path_to_pdfs_to_extract)
 
+qualification_mapping_filename = "mapping.xlsx"
+qualification_mapping_sheet_name = 'Mapping'
+path_to_mapping_file = "/pdfs"
+path_to_mapping_file = get_full_file_path(path_to_mapping_file, qualification_mapping_filename)
+
 target_ucas_id_file = "target_ids.xlsx"
 path_to_target_file = "/pdfs"
 path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
