@@ -147,6 +147,11 @@ def copy_file(path_to_file, extracted_students_instance, id):
 
     shutil.copy(path_to_file, path_to_new_dir)
 
+def copy_pdfs_to_pool(all_pdf_paths):
+    output_path = settings.path_to_pdf_pool
+    for file in all_pdf_paths:
+        shutil.copy(file, output_path)
+
 
 def get_files_and_ids(abs_path):
 

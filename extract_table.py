@@ -11,7 +11,7 @@ from tqdm import tqdm
 import logging
 import tabula
 
-from utils import check_ids_correspond, check_output_dirs_exist, copy_file, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
+from utils import check_ids_correspond, check_output_dirs_exist, copy_file, copy_pdfs_to_pool, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import Student
 import settings
@@ -145,3 +145,4 @@ if __name__ == "__main__":
     #     print("")
 
     all_students.write_to_excel(PATH_TO_FILES)
+    copy_pdfs_to_pool(ALL_FILES)
