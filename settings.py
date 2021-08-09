@@ -40,4 +40,6 @@ output_path = get_full_path(output_path)
 output_filename = "grades.xlsx"
 
 log_filename = "execution_log.log"
+path_to_log = get_full_file_path(output_path, log_filename)
 ids_in_folder_file = "id_log.yaml"
+path_to_folder_ids = get_full_file_path(output_path, ids_in_folder_file)
