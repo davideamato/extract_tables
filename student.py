@@ -3,6 +3,7 @@
 '''
 
 from collections import Counter
+from shutil import copyfile
 from utils import (InputError, desired_tables, detail_string,
                    escape_backslash_r, is_abs_path, math_mapping, physics_mapping,
                    fm_mapping, qualifications_with_overall_score, valid_exams,
@@ -59,7 +60,8 @@ class ExtractedStudents:
         self.marker_allocation = self.assign_students_to_marker()
         print(self.marker_allocation)
 
-        self.student_to_marker_mapping = dict()
+        self.student_to_marker_mapping = dict() 
+        self.map_student_to_marker()
         print(self.student_to_marker_mapping)
 
         self.index = -1
@@ -127,8 +129,13 @@ class ExtractedStudents:
         return allocation
 
     def map_student_to_marker(self):
-        for marker, student_id in self.marker_allocation.items():
-            self.student_to_marker_mapping[student_id] = marker
+        for marker, assigned_ids in self.marker_allocation.items():
+            counter = 0
+            for student in assigned_ids:
+                self.student_to_marker_mapping[student] = [marker, counter]
+                counter += 1
+
+        # return self.student_to_marker_mapping
 
     @staticmethod
     def populate_normal_header(ws):
