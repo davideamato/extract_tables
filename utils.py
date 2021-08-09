@@ -20,6 +20,9 @@ class InputError(Exception):
 
 
 def initialise_logger():
+    if not os.path.exists(settings.output_path):
+        raise NotADirectoryError("Output Directory NOT Found")
+
     logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                         filename=settings.path_to_log, datefmt='%m/%d/%Y %I:%M:%S %p')
     logging.info("Start")
@@ -27,6 +30,7 @@ def initialise_logger():
 
 def get_internal_mapping(path_to_file, sheet_name):
     if not path_to_file.endswith(".xlsx"):
+        logging.error("Mapping file not in xlsx format")
         raise InputError(not path_to_file.endswith(".xlsx"),
                          "Input file must be in xlsx format")
 
@@ -50,45 +54,37 @@ def get_internal_mapping(path_to_file, sheet_name):
                 # Other values is what we have
                 output_dict[cell.value] = val
 
+    logging.info("Mapping file loaded")
+
     return output_dict
 
 
-def does_dir_exist(path):
-    if not os.path.exists(path):
-        os.mkdir(path)
-
 
 def is_file_valid(file):
-    return file.endswith(".pdf") and "unicode" in file
+    if file.endswith(".pdf") and "unicode" in file:
+        return True
+    else:
+        logging.info(f"{file} is not valid. Unicode or .pdf not in file name")
+        return False
 
 
 def is_abs_path(input_path):
     if not os.path.isabs(input_path):
+        logging.error("Absolut path to file not provided")
         raise InputError(os.path.isabs(input_path),
                          "Path provided is not absolute")
 
     return True
 
 
-def get_full_file_path(path, filename):
-    """Combines path and filename to return full abs path as raw string"""
-    return (
-        os.path.abspath(os.path.join(path, filename)).encode(
-            "unicode-escape").decode()
-    )
-
-
-def get_full_path(path):
-    """Combines path and filename to return full abs path as raw string"""
-    return (
-        os.path.abspath(path).encode("unicode-escape").decode()
-    )
 
 
 def get_files_and_ids(abs_path):
 
     # Test if path is absolute
     is_abs_path(abs_path)
+
+    logging.info("Assembling list of files to analyse...")
 
     # Remove duplicates in files
     # BUT doesn't address repeated IDs
@@ -98,18 +94,27 @@ def get_files_and_ids(abs_path):
     # Extract IDs from file names
     lst_of_ids = [file.split("_")[3] for file in lst_of_paths]
 
+    num_files = len(lst_of_paths) 
+    logging.info(f"Total of {num_files} files")
+
     # If all are unique, then no issues
     if len(lst_of_ids) == len(set(lst_of_ids)):
+        logging.info("No duplicate files")
         return lst_of_paths, lst_of_ids
 
     # If there are repetitions, remove it from the lsit of IDs and paths
     counter = 1
+    num_repetitions = 0
     for unique_id in lst_of_ids[1:]:
         if unique_id in lst_of_ids[:counter]:
+            logging.info(f"Duplicate file present for {unique_id}, file {lst_of_paths[counter]} removed")
             lst_of_ids.pop(counter)
             lst_of_paths.pop(counter)
+            num_repetitions += 1
         else:
             counter += 1
+
+    logging.info(f"Total of {num_repetitions} repeated files removed")
 
     return lst_of_paths, lst_of_ids
 
