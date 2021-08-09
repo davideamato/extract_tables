@@ -10,6 +10,8 @@ from utils import (InputError, desired_tables, detail_string,
 
 from pandas import isna
 import os
+import settings
+from random import randint
 
 
 class GradeEntry:
@@ -54,6 +56,12 @@ class ExtractedStudents:
 
         self.internal_mapping = internal_mapping
 
+        self.marker_allocation = self.assign_students_to_marker()
+        print(self.marker_allocation)
+
+        self.student_to_marker_mapping = dict()
+        print(self.student_to_marker_mapping)
+
         self.index = -1
 
     def __iter__(self):
@@ -73,6 +81,54 @@ class ExtractedStudents:
         else:
             raise RuntimeError("The order of adding students is incorrect \n"
                                "This should be done sequentially IDs in list should correspond")
+
+    def assign_students_to_marker(self):
+        # Get details from settings
+        allocation_details = settings.allocation_details
+
+        # Get ratios from details
+        ratio = [val for val in allocation_details.values()]
+
+        # Total number of parts
+        num_parts = sum(ratio)
+        num_markers = len(allocation_details)
+
+        # Num students per part
+        # Integer division
+        students_per_part = self.num_students // num_parts
+
+        # Leftover
+        remainder = self.num_students % num_parts
+
+        # Allocate based of num parts per marker
+        num_allocated = [parts*students_per_part for parts in ratio]
+
+        # Randomly add remainder to markers
+        for _ in range(remainder):
+            index = randint(0, num_markers - 1)
+            num_allocated[index] = num_allocated[index] + 1
+
+        allocation = dict()
+        start_index = 0
+        for initials, num_students in zip(allocation_details.keys(), num_allocated):
+            # Create the name of folder
+            name = initials + str(settings.batch_number)
+
+            # Allocate by slicing list 
+            allocation[name] = self.student_ids[start_index:start_index + num_students] 
+
+            # Write text file containing IDs to folder
+            path_to_marker_pdfs = os.path.join(settings.output_path, name, settings.ids_in_folder_file)
+            with open(path_to_marker_pdfs, "w") as file:
+                file.write(" ,".join(allocation[name]))
+
+            start_index += num_students
+
+        return allocation
+
+    def map_student_to_marker(self):
+        for marker, student_id in self.marker_allocation.items():
+            self.student_to_marker_mapping[student_id] = marker
 
     @staticmethod
     def populate_normal_header(ws):
@@ -187,7 +243,8 @@ class ExtractedStudents:
                     value="{}".format(sanitised_string))
 
             # Create log for issues
-            any_issues = self.log_issues(categorised_entries, uk_based, ws, row_counter)
+            any_issues = self.log_issues(
+                categorised_entries, uk_based, ws, row_counter)
 
             # Get all unique qualifications
             qualification = student.unique_qualifications()
@@ -429,8 +486,10 @@ class ExtractedStudents:
 
         return categorised_entries
 
-    def write_to_excel(self, input_abs_path):
-        is_abs_path(input_abs_path)
+    def write_to_excel(self, output_abs_path):
+
+        is_abs_path(output_abs_path)
+
 
         from openpyxl import Workbook
 
@@ -449,7 +508,7 @@ class ExtractedStudents:
         compiled_single = wb.create_sheet("Compiled", 0)
         compiled_single = self.compile_for_master(compiled_single)
 
-        wb.save(os.path.join(input_abs_path, "output.xlsx"))
+        wb.save(os.path.join(output_abs_path, settings.output_filename))
 
 
 class Student:
