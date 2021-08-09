@@ -60,7 +60,7 @@ class ExtractedStudents:
         self.marker_allocation = self.assign_students_to_marker()
         # print(self.marker_allocation)
 
-        self.student_to_marker_mapping = dict() 
+        self.student_to_marker_mapping = dict()
         self.map_student_to_marker()
         # print(self.student_to_marker_mapping)
 
@@ -116,11 +116,12 @@ class ExtractedStudents:
             # Create the name of folder
             name = initials + str(settings.batch_number)
 
-            # Allocate by slicing list 
-            allocation[name] = self.student_ids[start_index:start_index + num_students] 
+            # Allocate by slicing list
+            allocation[name] = self.student_ids[start_index:start_index + num_students]
 
             # Write text file containing IDs to folder
-            path_to_marker_pdfs = os.path.join(settings.output_path, name, settings.ids_in_folder_file)
+            path_to_marker_pdfs = os.path.join(
+                settings.output_path, name, settings.ids_in_folder_file)
             with open(path_to_marker_pdfs, "w") as file:
                 file.write(" ,".join(allocation[name]))
 
@@ -230,7 +231,8 @@ class ExtractedStudents:
             # [student.unique_id] => get value using that key
             # [0] => first value in list (value of key is a list)
             # [:2] => slice first two letters in string (initials of maker)
-            ws.cell(row=row_counter, column=14, value=self.student_to_marker_mapping[student.unique_id][0][:2])
+            ws.cell(row=row_counter, column=14,
+                    value=self.student_to_marker_mapping[student.unique_id][0][:2])
             ws.cell(row=row_counter, column=15, value=settings.batch_number)
 
             # Categorise each entry into subjects
@@ -274,25 +276,8 @@ class ExtractedStudents:
             # If it does, find the overall score
             if intersection_qualification:
 
-                # Is it IB?
-                if intersection_qualification & ib_permutations():
-                    if student.results_entries:
-                        overall_grade = [
-                            item.grade for item in student.results_entries if "IB Total points" in item.qualification]
-                    elif student.completed_entries:
-                        overall_grade = [
-                            item.grade for item in student.completed_entries if "International Baccalaureate Diploma" in item.qualification]
-                    elif student.predicted_entries:
-                        overall_grade = [
-                            item.grade for item in student.predicted_entries if "International Baccalaureate Diploma" in item.qualification]
-                    else:
-                        overall_grade = []
-                else:
-                    intersection_qualification = list(
-                        intersection_qualification)
-                    # Get all grades that aren't none
-                    overall_grade = [item for qualification in intersection_qualification for item in student.get_grade_for_qualification(
-                        qualification)]
+                overall_grade = self.determine_overall_grade(
+                    intersection_qualification, student)
 
                 # If an overall grade exists, populate cell
                 num_overall_grade = len(overall_grade)
@@ -322,76 +307,7 @@ class ExtractedStudents:
                         value="M&P missing, need manual entry")
                 continue
 
-            # Populate subject and grades
-            subjectCounter = 0
-            map_subject_num_to_cols = {0: [5], 1: [6], 2: [7, 8], 3: [9, 10]}
-            for subject_entries in categorised_entries.values():
-
-                # If no entries, then go to next value
-                if not subject_entries:
-                    if subjectCounter > 1:
-                        continue
-                    else:
-                        subjectCounter += 1
-                        continue
-
-                excel_col = map_subject_num_to_cols.get(subjectCounter)
-                # If there is only one subject entry, then just populate
-                if len(subject_entries) == 1:
-                    for col, val in zip(excel_col, subject_entries[0].grade_info):
-                        ws.cell(row=row_counter, column=col, value=val)
-
-                # if it is at the 3rd subject, and not FM then iterate over all
-                elif subjectCounter == 2 and not is_fm:
-                    for entry in subject_entries[:2]:
-                        excel_col = map_subject_num_to_cols.get(subjectCounter)
-                        for col, val in zip(excel_col, entry.grade_info):
-                            ws.cell(row=row_counter, column=col, value=val)
-                        subjectCounter += 1
-
-                # If there is FM and there are more than 4 subjects, populate with 1st
-                elif subjectCounter == 3 and len(subject_entries) > 1:
-                    for col, val in zip(excel_col, subject_entries[0].grade_info):
-                        ws.cell(row=row_counter, column=col, value=val)
-
-                # Doesn't fall into any of above cases => special case
-                else:
-
-                    exam_result_entries = [
-                        entry for entry in subject_entries if entry.is_exam_result]
-                    predicted_entries = [
-                        entry for entry in subject_entries if entry.is_predicted]
-                    excel_col = excel_col
-
-                    map_counter_to_subject = {
-                        0: "math", 1: "physics", 2: "3rd", 3: "4th"}
-                    any_issues.append("For {}, selected ".format(
-                        map_counter_to_subject[subjectCounter]))
-
-                    # # REFACTOR
-                    if len(exam_result_entries) == 1:
-                        any_issues[-1] += "exam result"
-                        selected = exam_result_entries[0]
-                    elif len(exam_result_entries) > 1:
-                        any_issues[-1] += "exam result"
-                        selected = self.select_an_entry(
-                            exam_result_entries, any_issues)
-                    elif len(predicted_entries) == 1:
-                        any_issues[-1] += "predicted grade"
-                        selected = predicted_entries[0]
-                    elif len(predicted_entries) > 1:
-                        any_issues[-1] += "predicted grade"
-                        selected = self.select_an_entry(
-                            predicted_entries, any_issues)
-                    else:
-                        any_issues[-1] += "from all"
-                        selected = self.select_an_entry(
-                            subject_entries, any_issues)
-
-                    for col, val in zip(excel_col, selected.grade_info):
-                        ws.cell(row=row_counter, column=col, value=val)
-
-                subjectCounter += 1
+            self.populate_grades(categorised_entries, ws, is_fm, row_counter, any_issues)
 
             # Compress list of strings into a single string
             any_issues = self.compress_log(any_issues)
@@ -402,6 +318,102 @@ class ExtractedStudents:
                 ws.cell(row=row_counter, column=3, value=any_issues)
 
         return ws
+
+    def populate_grades(self, categorised_entries, ws, is_fm, row_counter, any_issues):
+        # Populate subject and grades
+        subjectCounter = 0
+        map_subject_num_to_cols = {0: [5], 1: [6], 2: [7, 8], 3: [9, 10]}
+        for subject_entries in categorised_entries.values():
+
+            # If no entries, then go to next value
+            if not subject_entries:
+                if subjectCounter > 1:
+                    continue
+                else:
+                    subjectCounter += 1
+                    continue
+
+            excel_col = map_subject_num_to_cols.get(subjectCounter)
+            # If there is only one subject entry, then just populate
+            if len(subject_entries) == 1:
+                for col, val in zip(excel_col, subject_entries[0].grade_info):
+                    ws.cell(row=row_counter, column=col, value=val)
+
+            # if it is at the 3rd subject, and not FM then iterate over all
+            elif subjectCounter == 2 and not is_fm:
+                for entry in subject_entries[:2]:
+                    excel_col = map_subject_num_to_cols.get(subjectCounter)
+                    for col, val in zip(excel_col, entry.grade_info):
+                        ws.cell(row=row_counter, column=col, value=val)
+                    subjectCounter += 1
+
+            # If there is FM and there are more than 4 subjects, populate with 1st
+            elif subjectCounter == 3 and len(subject_entries) > 1:
+                for col, val in zip(excel_col, subject_entries[0].grade_info):
+                    ws.cell(row=row_counter, column=col, value=val)
+
+            # Doesn't fall into any of above cases => special case
+            else:
+
+                exam_result_entries = [
+                    entry for entry in subject_entries if entry.is_exam_result]
+                predicted_entries = [
+                    entry for entry in subject_entries if entry.is_predicted]
+                excel_col = excel_col
+
+                map_counter_to_subject = {
+                    0: "math", 1: "physics", 2: "3rd", 3: "4th"}
+                any_issues.append("For {}, selected ".format(
+                    map_counter_to_subject[subjectCounter]))
+
+                # # REFACTOR
+                if len(exam_result_entries) == 1:
+                    any_issues[-1] += "exam result"
+                    selected = exam_result_entries[0]
+                elif len(exam_result_entries) > 1:
+                    any_issues[-1] += "exam result"
+                    selected = self.select_an_entry(
+                        exam_result_entries, any_issues)
+                elif len(predicted_entries) == 1:
+                    any_issues[-1] += "predicted grade"
+                    selected = predicted_entries[0]
+                elif len(predicted_entries) > 1:
+                    any_issues[-1] += "predicted grade"
+                    selected = self.select_an_entry(
+                        predicted_entries, any_issues)
+                else:
+                    any_issues[-1] += "from all"
+                    selected = self.select_an_entry(
+                        subject_entries, any_issues)
+
+                for col, val in zip(excel_col, selected.grade_info):
+                    ws.cell(row=row_counter, column=col, value=val)
+
+            subjectCounter += 1
+
+    @staticmethod
+    def determine_overall_grade(intersection_qualification, student):
+        # Is it IB?
+        if intersection_qualification & ib_permutations():
+            if student.results_entries:
+                overall_grade = [
+                    item.grade for item in student.results_entries if "IB Total points" in item.qualification]
+            elif student.completed_entries:
+                overall_grade = [
+                    item.grade for item in student.completed_entries if "International Baccalaureate Diploma" in item.qualification]
+            elif student.predicted_entries:
+                overall_grade = [
+                    item.grade for item in student.predicted_entries if "International Baccalaureate Diploma" in item.qualification]
+            else:
+                overall_grade = []
+        else:
+            intersection_qualification = list(
+                intersection_qualification)
+            # Get all grades that aren't none
+            overall_grade = [item for qualification in intersection_qualification for item in student.get_grade_for_qualification(
+                qualification)]
+
+        return overall_grade
 
     @staticmethod
     def select_an_entry(lst_of_entries, any_issues):
@@ -508,7 +520,6 @@ class ExtractedStudents:
     def write_to_excel(self, output_abs_path):
 
         is_abs_path(output_abs_path)
-
 
         from openpyxl import Workbook
 
