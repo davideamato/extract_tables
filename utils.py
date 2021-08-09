@@ -1,8 +1,11 @@
 import os
 import logging
-import tabula
+import shutil
 
 from collections import Counter
+from pandas import read_excel
+
+import tabula
 import settings
 
 
@@ -90,6 +93,59 @@ def check_output_dirs_exist():
         marker_path = os.path.join(settings.output_path, folder_name)
         if not os.path.exists(marker_path):
             raise NotADirectoryError(f"{folder_name} Folder does not exists")
+
+
+def check_ids_correspond(ids_from_pdf_folder):
+    data_from_sheet = read_excel(
+        settings.path_to_target_file, engine="openpyxl", header = None)
+    ids_from_excel = data_from_sheet.values.flatten().tolist()
+
+    ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
+
+    ids_from_pdf_folder = set(ids_from_pdf_folder)
+    ids_from_excel = set(ids_from_excel)
+
+    intersection = ids_from_excel & ids_from_pdf_folder
+
+    # Intersection lap is empty => No overlap
+    if not intersection:
+        logging.error(
+            f"Mismatch in IDs."
+            f"IDs in {settings.path_to_pdfs_to_extract} folder don't "
+            f"match IDs in {settings.target_ucas_id_file} file")
+        raise InputError(not intersection,
+            "IDs from PDF folder does not match IDs to extract in Excel file")
+
+    # Difference between set and intersection
+    not_in_excel = (ids_from_pdf_folder - intersection)
+    not_in_folder = (ids_from_excel - intersection)
+    # A set is not empty => something is missing
+    # Both empty => no issues
+    if not_in_excel or not_in_folder:
+        logging.error(
+            f"Overlap in IDs between Excel file and folder of PDFs not 100% match")
+
+        # Convert to list to iterate over
+        not_in_folder = list(not_in_folder)
+        not_in_excel = list(not_in_excel)
+        for item in not_in_folder:
+            logging.error(f"{item} ID not in folder but in Excel file")
+        for item in not_in_excel:
+            logging.error(f"{item} ID not in Excel file but in folder")
+
+        raise InputError(not not_in_excel or not not_in_folder,
+            f"Overlap in IDs between Excel file and folder of PDFs not 100% match")
+
+
+def copy_file(path_to_file, extracted_students_instance, id):
+    marker_name, numbering = extracted_students_instance.student_to_marker_mapping[id]
+    original_filename = os.path.basename(path_to_file)
+
+    new_filename = str(numbering) + "_" + original_filename
+    path_to_new_dir = os.path.join(
+        settings.output_path, marker_name, new_filename)
+
+    shutil.copy(path_to_file, path_to_new_dir)
 
 
 def get_files_and_ids(abs_path):

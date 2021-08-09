@@ -11,7 +11,7 @@ from tqdm import tqdm
 import logging
 import tabula
 
-from utils import check_output_dirs_exist, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
+from utils import check_ids_correspond, check_output_dirs_exist, copy_file, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
 from student import ExtractedStudents
 from student import Student
 import settings
@@ -29,6 +29,8 @@ INTERNAL_MAPPING = get_internal_mapping(
 # Generates full path to the files to extract data from
 # Extracts unique IDs from file name
 ALL_FILES, APPLICANT_IDS = get_files_and_ids(PATH_TO_FILES)
+# ALL_FILES = ALL_FILES[:6]
+# APPLICANT_IDS = APPLICANT_IDS[:6]
 # print(ALL_FILES)
 # print(APPLICANT_IDS)
 
@@ -41,6 +43,7 @@ EXIT_STRING = get_exit_string()
 if __name__ == "__main__":
 
     check_output_dirs_exist()
+    check_ids_correspond(APPLICANT_IDS)
 
     # Initialise object to store extracted information
     all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
@@ -72,6 +75,7 @@ if __name__ == "__main__":
                 logging.warning(f"Check file with ID: {app_id}")
                 all_students.add_student_sequentially(
                     Student(app_id, grade_tables, grade_counters), counter)
+                copy_file(file, all_students, app_id) 
                 # If EOF reached before exit table
                 # This shouldn't happen
                 break
@@ -102,6 +106,7 @@ if __name__ == "__main__":
                 # Add completed form to all students
                 all_students.add_student_sequentially(
                     Student(app_id, grade_tables, grade_counters), counter)
+                copy_file(file, all_students, app_id) 
                 # print("")
                 break
 
