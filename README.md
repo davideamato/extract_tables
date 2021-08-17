@@ -72,9 +72,17 @@ on how to get it to work.
 
 <h2> How to use? </h2>
 
+### User Inputs
+
+UPDATE TO CONCUR WITH NEW REQUIREMENTS AND SPECIFICATION
+
 The main script is [`extract_table.py`](extract_table.py). User input is only required for the:
   1. _Absolute_ path to the _folder_ containing all the pdf files to be analysed
   2. Filename and sheetname of the mapping excel sheet. This sheet maps the qualification names in the pdfs to the convention used internally
+
+### Script Output
+
+
 
 Once that has been provided in the script, run in the terminal, 
   ```
