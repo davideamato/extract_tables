@@ -190,10 +190,11 @@ The strings within those functions is the only places that need to updated in ac
 
 <h2> To Do </h2>
 
-Refactor!
+- [ ] Refactor!
+- [ ] Implement testing. This really should've been done during development
+- [ ] Create path if it does not exist
+- [ ] Create the foolproof but unmaintanable beast of an exe file 
 
-Implement testing. This really should've been done during development 
 
-Create path if it does not exist
 
-Create the foolproof but unmaintanable beast of an exe file 
+
