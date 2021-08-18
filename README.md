@@ -72,7 +72,7 @@ on how to get it to work.
 
 <h2> How to use? </h2>
 
-### Inputs and Outputs
+### Overview
 
 The diagram below provides an overview of the inputs required for the script as well as the outputs produced.
 The main output of this script is the excel file containing the grades extracted from the PDFs. 
@@ -88,23 +88,57 @@ However, due to time constraints on the project and the unexpected difficulties 
 This feature was not implemented. 
 Moreover, this could be a sanity check for the user to ensure that the output location has been correctly specified in `settings.py`.
 
-
-UPDATE TO CONCUR WITH NEW REQUIREMENTS AND SPECIFICATION
-
-The main script is [`extract_table.py`](extract_table.py). User input required at the following places:
-  1. Within [`settings.py`](settings.py)
-  2.  
+What are the inputs and what are the used for?
+1. PDFs to extract data from
+   - These are the PDFs in which the data to be extracted reside in. It is assumed that this data are all in tables.
+   - All these files must sit within a single folder
+   - The path to this folder must be provided in the `settings.py` file
+   - Certain assumptions have been made about the structure and layout of these files. Further details on this can be found in [section below on maintaining this script](#The-pdf-tables-have-changed,-what-do-I-do?).
+   - The structure of the filename has been assumed to be as follows: `<text>_<text>_IDNumber_unicode.pdf`. The ID number for each PDF is extracted from here.
+   - If duplicates exist, they will be ignored.
+2. Internal mapping excel file
+   - This file contains what the strings (qualification names) in the PDFs maps to the string used within the master excel.
+   - The structure is as follows:
+     - First column - String that is used within the master excel.
+     - Subsequent columns - Strings found in the PDFs. There can be multiple, more columns just need to be populated.
+     - No headers
+3. Target ID Excel file
+   - This contains all the IDs which the data will be extracted for.
+   - The values here _must_ correspond to the the ID numbers extracted from the PDF filenames. If this is not the case, the script will raise an error and terminate execution.
+   - The assumed structure is that: 1) No headers, 2) IDs are all placed within a single column.
+   - This almost equivalent to a csv file. However, to remain consistent with the other inputs being an excel file. 
+4. `settings.py`
+   - Besides updating the path to the input files, name of the output files, and path to the output location; administrative allocation information _must_ be provided here.
+   - The allocation information _necessary_ for the master excel.
+   - What is the allocation information?
+     - Batch number: (Integer) Which batch this corresponds to. This must be incremented after each batch.
+     - Cycle: (String) Which application cycle these IDs fall into. This will be either Nov or Jan and only needs to be updated after a cycle is complete.
+     - Allocation Details: (Dictionary) Contains the initials of each marker (N.B. assumed to be 2 characters long) in the key and the ratio in the value. E.g.1, if the IDs are to be evenly distributed, then AP:TM:EN will be $1:1:1$, 
+     `allocation_details = {
+          "AP": 1,
+          "TM": 1, 
+          "EN": 1,
+      }`. 
+      E.g.2, if IDs are to be unevenly distributed due to a lack of availability, then the ratio (AP:TM:EN) could be $2:0:1$, 
+      `allocation_details = {
+          "AP": 2,
+          "TM": 0, 
+          "EN": 1,
+      }`.
+      Here, TM will not be allocated any IDs and AP will have double that of EN.
 
 ### Script Output
 
 
 
-Once that has been provided in the script, run in the terminal, 
+### Executing the Script
+
+Once these have been sorted, the script can be run in the terminal, 
   ```
   python extract_table.py
   ```
 This will execute the script and a progress bar will print on a single line.
-Upon sucessful execution, the generated excel file is named `output.xlsx` and can be found in the folder containing the pdfs.
+Upon sucessful execution, the outputs will be generated in the locations specified in `settings.py`.
 
 
 <h2> How has this been structured? </h2>
@@ -143,7 +177,7 @@ Feel free to use Camelot instead.
 Just ensure that at the two call of Tablua (one in `extract_table.py`, another in `check_broke_table()` function in `utils.py`) are replaced with Camelot.
 Camelot does not natively return a pandas dataframe (like Tabula) so you'll need to add a `.df` at the end and it should be compatible!
 
-<h3> The pdf tables have changed, what do I do? </h3>
+### The pdf tables have changed, what do I do? 
 
 The code works by testing the strings in the table against the a set of "desired strings". 
 Therefore, all that needs to be changed are the desired strings. 
