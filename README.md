@@ -131,6 +131,20 @@ What are the inputs and what are the used for?
 
 The main output is the excel file containing the grades. 
 It has been structured for use in the `Grades Source sheet` of the Master Excel. 
+Hence, this should be relatively straightforward as it is designed to be copy and pasted in there.
+
+What's in?
+1. Log file
+    - Contaings logging information with respect to loading the PDFs. Nothing beyond that. Further information could've been provided but internal requirements indicated a preference for it to only contain that. 
+    - It has been set up such that a new log file is created each time the script is executed (instead of appending to the existing log file).
+    - It will contain information on why a given file was rejected (not included in PDFs to extract data from) and if any (and how many) duplicates are present.
+    - If a duplicate is present, the following information is provided: 1) ID number, 2) Absolute path to file.
+2. PDF file copying
+    - Upon consulting end users, it was desired that once the script has successfully executed, the PDFs should be moved into a general pool containing PDFs from earlier batches. However, as moving cannot be undone, a safer solution of copying was implemented.
+    - For ease of the end user, it was desired that the PDFs for a given applicant be placed in a folder for the corresponding marker. 
+      - provide further deatils
+      - talk about txt file
+      - Potential to change it to include the batch number (but that'll need to be changed in the source code manually. I might be able to put it into settings)
 
 
 ### Executing the Script
