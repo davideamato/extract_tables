@@ -8,3 +8,4 @@
 !requirements_not_in_conda.txt
 !README.md
 !environment.yml
+!extract_tables.png

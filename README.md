@@ -72,13 +72,28 @@ on how to get it to work.
 
 <h2> How to use? </h2>
 
+### Inputs and Outputs
+
+The diagram below provides an overview of the inputs required for the script as well as the outputs produced.
+The main output of this script is the excel file containing the grades extracted from the PDFs. 
+Further details on each of the components will be provided in the following sections.
+
+![Input Output Relationships](extract_tables.png)
+
 ### User Inputs
+
+As an output of this script involves copying the PDF files from one location to another, it is important that the ouput paths exists. 
+It had been intended that the script would automatically create the output path if it did not exist. 
+However, due to time constraints on the project and the unexpected difficulties in achieving this. 
+This feature was not implemented. 
+Moreover, this could be a sanity check for the user to ensure that the output location has been correctly specified in `settings.py`.
+
 
 UPDATE TO CONCUR WITH NEW REQUIREMENTS AND SPECIFICATION
 
-The main script is [`extract_table.py`](extract_table.py). User input is only required for the:
-  1. _Absolute_ path to the _folder_ containing all the pdf files to be analysed
-  2. Filename and sheetname of the mapping excel sheet. This sheet maps the qualification names in the pdfs to the convention used internally
+The main script is [`extract_table.py`](extract_table.py). User input required at the following places:
+  1. Within [`settings.py`](settings.py)
+  2.  
 
 ### Script Output
 
@@ -140,5 +155,9 @@ The strings within those functions is the only places that need to updated in ac
 <h2> To Do </h2>
 
 Refactor!
+
+Implement testing. This really should've been done during development 
+
+Create path if it does not exist
 
 Create the foolproof but unmaintanable beast of an exe file 
