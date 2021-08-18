@@ -86,14 +86,14 @@ As an output of this script involves copying the PDF files from one location to 
 It had been intended that the script would automatically create the output path if it did not exist. 
 However, due to time constraints on the project and the unexpected difficulties in achieving this. 
 This feature was not implemented. 
-Moreover, this could be a sanity check for the user to ensure that the output location has been correctly specified in `settings.py`.
+Moreover, this could be a sanity check for the user to ensure that the output location has been correctly specified in [settings.py](settings.py).
 
 What are the inputs and what are the used for?
 1. PDFs to extract data from
    - These are the PDFs in which the data to be extracted reside in. It is assumed that this data are all in tables.
    - All these files must sit within a single folder
-   - The path to this folder must be provided in the `settings.py` file
-   - Certain assumptions have been made about the structure and layout of these files. Further details on this can be found in [section below on maintaining this script](#The-pdf-tables-have-changed,-what-do-I-do?).
+   - The path to this folder must be provided in the [settings.py](settings.py) file
+   - Certain assumptions have been made about the structure and layout of these files. Further details on this can be found in section below on maintaining this script.
    - The structure of the filename has been assumed to be as follows: `<text>_<text>_IDNumber_unicode.pdf`. The ID number for each PDF is extracted from here.
    - If duplicates exist, they will be ignored.
 2. Internal mapping excel file
@@ -107,19 +107,19 @@ What are the inputs and what are the used for?
    - The values here _must_ correspond to the the ID numbers extracted from the PDF filenames. If this is not the case, the script will raise an error and terminate execution.
    - The assumed structure is that: 1) No headers, 2) IDs are all placed within a single column.
    - This almost equivalent to a csv file. However, to remain consistent with the other inputs being an excel file. 
-4. `settings.py`
+4. [settings.py](settings.py)
    - Besides updating the path to the input files, name of the output files, and path to the output location; administrative allocation information _must_ be provided here.
    - The allocation information _necessary_ for the master excel.
    - What is the allocation information?
      - Batch number: (Integer) Which batch this corresponds to. This must be incremented after each batch.
      - Cycle: (String) Which application cycle these IDs fall into. This will be either Nov or Jan and only needs to be updated after a cycle is complete.
-     - Allocation Details: (Dictionary) Contains the initials of each marker (N.B. assumed to be 2 characters long) in the key and the ratio in the value. E.g.1, if the IDs are to be evenly distributed, then AP:TM:EN will be $1:1:1$, 
+     - Allocation Details: (Dictionary) Contains the initials of each marker (N.B. assumed to be 2 characters long) in the key and the ratio in the value. E.g.1, if the IDs are to be evenly distributed, then AP:TM:EN will be 1:1:1, 
      `allocation_details = {
           "AP": 1,
           "TM": 1, 
           "EN": 1,
       }`. 
-      E.g.2, if IDs are to be unevenly distributed due to a lack of availability, then the ratio (AP:TM:EN) could be $2:0:1$, 
+      E.g.2, if IDs are to be unevenly distributed due to a lack of availability, then the ratio (AP:TM:EN) could be 2:0:1, 
       `allocation_details = {
           "AP": 2,
           "TM": 0, 
@@ -129,6 +129,8 @@ What are the inputs and what are the used for?
 
 ### Script Output
 
+The main output is the excel file containing the grades. 
+It has been structured for use in the `Grades Source sheet` of the Master Excel. 
 
 
 ### Executing the Script
@@ -138,7 +140,7 @@ Once these have been sorted, the script can be run in the terminal,
   python extract_table.py
   ```
 This will execute the script and a progress bar will print on a single line.
-Upon sucessful execution, the outputs will be generated in the locations specified in `settings.py`.
+Upon sucessful execution, the outputs will be generated in the locations specified in [settings.py](settings.py).
 
 
 <h2> How has this been structured? </h2>
