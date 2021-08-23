@@ -299,7 +299,7 @@ def desired_tables():
 
 
 def completed_qualification_valid_exams():
-    return set(["GCE Advanced\rLevel",
+    return {"GCE Advanced\rLevel",
                 "Cambridge Pre-\rU Certificate\r(Principal\rSub",
                 "IB Total points",
                 "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
@@ -320,11 +320,11 @@ def completed_qualification_valid_exams():
                 "France\r-Baccalaureat",
                 "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
                 "All India Senior School Certificate (CBSE)",
-                ])
+                }
 
 
 def exam_results_valid_exams():
-    return set([
+    return {
         "Reformed A Level\rEngland",
         "SQA Advanced\rHighers",
         "Pre-U Certificate",
@@ -336,11 +336,11 @@ def exam_results_valid_exams():
         "Int. Baccalaureate",
         "IB Total points",
         "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
-    ])
+    }
 
 
 def predicted_qualification_valid_exams():
-    return set([
+    return {
         "GCE\rAdvanced\rLevel",
         "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
         "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
@@ -358,7 +358,7 @@ def predicted_qualification_valid_exams():
         "ISC",
         "ILC",
         "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
-    ])
+    }
 
 
 def valid_exams():
@@ -370,7 +370,7 @@ def valid_exams():
 
 
 def qualifications_with_overall_score():
-    return set([
+    return {
         "France - Baccalaureat General (from 2021)",
         "France -Baccalaureat",
         "International Baccalaureate Diploma",
@@ -391,17 +391,17 @@ def qualifications_with_overall_score():
         "Zeugnis der Allgemeine Hochschulreif e (Abitur)",
         "Zeugnis der Allgemeine Hochschulreif e",
         "Abitur",
-    ])
+    }
 
 
 def ib_permutations():
-    return set([
+    return {
         "International Baccalaureate Diploma",
         "IB",
         "IB Standard Level",
         "Int. Baccalaureate",
         "IB Total points",
-    ])
+    }
 
 
 def detail_string():
@@ -409,144 +409,144 @@ def detail_string():
 
 
 def math_mapping():
-    return {"GCE Advanced Level": set(["Mathematics", "Mathematics (MEI)", "Mathematics A"]),
-            "Reformed A Level": set(["Mathematics"]),
-            "Reformed A Level England": set(["Mathematics"]),
-            "Cambridge International A Level": set(["Mathematics"]),
-            "Cambridge Pre-U Certificate (Principal Subject)": set(["Mathematics (principal subject)"]),
-            "Pre-U Certificate": set(["Mathematics"]),
-            "SQA Advanced Highers": set(["Mathematics C847", "Mathematics"]),
-            "Pearson Edexcel International Advanced Level": set(["Mathematics"]),
-            "ILC": set(["Mathematics"]),
-            "USA-Advanced Placement Test": set(["AP Calculus BC",
+    return {"GCE Advanced Level": {"Mathematics", "Mathematics (MEI)", "Mathematics A"},
+            "Reformed A Level": {"Mathematics"},
+            "Reformed A Level England": {"Mathematics"},
+            "Cambridge International A Level": {"Mathematics"},
+            "Cambridge Pre-U Certificate (Principal Subject)": {"Mathematics (principal subject)"},
+            "Pre-U Certificate": {"Mathematics"},
+            "SQA Advanced Highers": {"Mathematics C847", "Mathematics"},
+            "Pearson Edexcel International Advanced Level": {"Mathematics"},
+            "ILC": {"Mathematics"},
+            "USA-Advanced Placement Test": {"AP Calculus BC",
                                                 "AP Calculus\rBC",
                                                 "CALCULUS BC",
-                                                ]),
-            "USA- Advanced Placement Test": set(["AP Calculus BC",
+                                                },
+            "USA- Advanced Placement Test": {"AP Calculus BC",
                                                  "AP Calculus\rBC",
                                                  "CALCULUS BC",
-                                                 ]),
-            "IB": set(["Math Analysis & Appr",
-                       "Mathematics Analysis"]),
-            "Int. Baccalaureate": set(["Math Analysis & Appr",
-                                       "Mathematics Analysis"]),
-            "International Baccalaureate Diploma": set(["Math Analysis & Appr",
+                                                 },
+            "IB": {"Math Analysis & Appr",
+                       "Mathematics Analysis"},
+            "Int. Baccalaureate": {"Math Analysis & Appr",
+                                       "Mathematics Analysis"},
+            "International Baccalaureate Diploma": {"Math Analysis & Appr",
                                                         "Mathematics Analysis",
                                                         "Mathematics",
-                                                        ]),
-            "Matura- Poland": set(["Mathematics - basic level",
+                                                        },
+            "Matura- Poland": {"Mathematics - basic level",
                                    "Mathematics - bilingual",
-                                   "Mathematics - extended level", ]),
-            "New Matura- Poland": set([
+                                   "Mathematics - extended level", },
+            "New Matura- Poland": {
                 "Mathematics Level: Basic",
                 "Mathematics Level: Advanced",
-            ]),
-            "Romania- Diploma de Bacalaureat": set(["Mathematics"]),
-            "France- Baccalaureat": set(["Mathematics Specialism",
-                                         "Expert Mathematics"]),
-            "France - Baccalaureat General (from 2021)": set(["mathematics",
-                                                              "Mathematics", ]),
-            "France- Option Internationale du Baccalaureat (OIB)": set(["Mathematics Major (Specialism)",
-                                                                        "Mathematics Experts (Advanced)", ]),
-            "France - Option Internationale du Baccalaureat (OIB) (from 2021)": set([
+            },
+            "Romania- Diploma de Bacalaureat": {"Mathematics"},
+            "France- Baccalaureat": {"Mathematics Specialism",
+                                         "Expert Mathematics"},
+            "France - Baccalaureat General (from 2021)": {"mathematics",
+                                                              "Mathematics", },
+            "France- Option Internationale du Baccalaureat (OIB)": {"Mathematics Major (Specialism)",
+                                                                        "Mathematics Experts (Advanced)", },
+            "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
                 "Mathematics"
-            ]),
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Mathematics"]),
-            "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": set([
+            },
+            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Mathematics"},
+            "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
                 "Mathematics",
-            ]),
-            "India-Indian School Certificate (ISC)": set(["Mathematics"]),
-            "All India Senior School Certificate (CBSE)": set(["Mathematics",
-                                                               "MATHEMATICS", ]),
-            "GCE A Level (H2)": set(["Mathematics"]),
-            "Hong Kong Diploma of Secondary Education": set(["Mathematics (compulsory component)",
-                                                             "Mathematics"]),
-            "Spain-Titulo de Bachiller": set(["Mathematics"]),
-            "Zeugnis der Allgemeine Hochschulreif e (Abitur)": set(["Mathematics advanced", "Mathematics advanced course", "Mathematics"]),
-            "Abitur": set(["Mathematics advanced", "Mathematics advanced course", "Mathematics"]),
-            "Italy-Diploma di Esame di Stato": set(["Mathematics"]),
+            },
+            "India-Indian School Certificate (ISC)": {"Mathematics"},
+            "All India Senior School Certificate (CBSE)": {"Mathematics",
+                                                               "MATHEMATICS", },
+            "GCE A Level (H2)": {"Mathematics"},
+            "Hong Kong Diploma of Secondary Education": {"Mathematics (compulsory component)",
+                                                             "Mathematics"},
+            "Spain-Titulo de Bachiller": {"Mathematics"},
+            "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
+            "Abitur": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
+            "Italy-Diploma di Esame di Stato": {"Mathematics"},
             }
 
 
 def fm_mapping():
-    return {"GCE Advanced Level": set(["Further Mathematics (MEI)",
-                                       "Further Mathematics"]),
-            "Reformed A Level": set(["Further Mathematics"]),
-            "Reformed A Level England": set(["Further Mathematics"]),
-            "Cambridge International A Level": set(["Further Mathematics"]),
-            "Pearson Edexcel International Advanced Level": set(["Further Mathematics"]),
-            "Cambridge Pre-U Certificate (Principal Subject)": set(["Further Mathematics (principal subject)"]),
-            "Pre-U Certificate": set(["Further Mathematics"]),
-            "SQA Advanced Highers": set([
+    return {"GCE Advanced Level": {"Further Mathematics (MEI)",
+                                       "Further Mathematics"},
+            "Reformed A Level": {"Further Mathematics"},
+            "Reformed A Level England": {"Further Mathematics"},
+            "Cambridge International A Level": {"Further Mathematics"},
+            "Pearson Edexcel International Advanced Level": {"Further Mathematics"},
+            "Cambridge Pre-U Certificate (Principal Subject)": {"Further Mathematics (principal subject)"},
+            "Pre-U Certificate": {"Further Mathematics"},
+            "SQA Advanced Highers": {
                 "Mathematics of Mechanics C802",
                 "Mathematics of Mechanics"
-            ]),
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Further Mathematics"]),
-            "GCE A Level (H2)": set(["Further Mathematics"]),
-            "Hong Kong Diploma of Secondary Education": set(["Calculus & Statistics",
-                                                             "Calculus & Algebra"]),
+            },
+            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Further Mathematics"},
+            "GCE A Level (H2)": {"Further Mathematics"},
+            "Hong Kong Diploma of Secondary Education": {"Calculus & Statistics",
+                                                             "Calculus & Algebra"},
             }
 
 
 def physics_mapping():
-    return {"GCE Advanced Level": set(["Physics A", "Physics"]),
-            "Reformed A Level": set(["Physics"]),
-            "Reformed A Level England": set(["Physics"]),
-            "Pearson Edexcel International Advanced Level": set(["Physics"]),
-            "Cambridge International A Level": set(["Physics"]),
-            "Cambridge Pre-U Certificate (Principal Subject)": set(["Physics (principal subject)"]),
-            "Pre-U Certificate": set(["Physics"]),
-            "SQA Advanced Highers": set(["Physics C857", "Physics"]),
-            "ILC": set(["Physics"]),
-            "Pearson Edexcel International Advanced Level": set(["Physics"]),
-            "IB": set(["Physics"]),
-            "Int. Baccalaureate": set(["Physics"]),
-            "International Baccalaureate Diploma": set(["Physics"]),
-            "USA-Advanced Placement Test": set(["AP Physics C: Electricity and Magnetism",
+    return {"GCE Advanced Level": {"Physics A", "Physics"},
+            "Reformed A Level": {"Physics"},
+            "Reformed A Level England": {"Physics"},
+            "Pearson Edexcel International Advanced Level": {"Physics"},
+            "Cambridge International A Level": {"Physics"},
+            "Cambridge Pre-U Certificate (Principal Subject)": {"Physics (principal subject)"},
+            "Pre-U Certificate": {"Physics"},
+            "SQA Advanced Highers": {"Physics C857", "Physics"},
+            "ILC": {"Physics"},
+            "Pearson Edexcel International Advanced Level": {"Physics"},
+            "IB": {"Physics"},
+            "Int. Baccalaureate": {"Physics"},
+            "International Baccalaureate Diploma": {"Physics"},
+            "USA-Advanced Placement Test": {"AP Physics C: Electricity and Magnetism",
                                                 "AP Physics C: Mechanics",
                                                 "AP Physics 1",
                                                 "AP Physics C ELECTRICITY AND MAGNETISM",
                                                 "AP Physics C MECHANICS"
-                                                ]),
-            "USA- Advanced Placement Test": set(["AP Physics C: Electricity and Magnetism",
+                                                },
+            "USA- Advanced Placement Test": {"AP Physics C: Electricity and Magnetism",
                                                  "AP Physics C: Mechanics",
                                                  "AP Physics 1",
                                                  "AP Physics C ELECTRICITY AND MAGNETISM",
                                                  "AP Physics C MECHANICS"
-                                                 ]),
-            "Matura- Poland": set(["Physics",
+                                                 },
+            "Matura- Poland": {"Physics",
                                    "Physics - bilingual",
-                                   ]),
-            "New Matura- Poland": set([
+                                   },
+            "New Matura- Poland": {
                 "Physics Level: Advanced",
-            ]),
-            "Romania- Diploma de Bacalaureat": set(["Physics"]),
-            "France - Baccalaureat General (from 2021)": set(["physics",
-                                                              "Physics", ]),
-            "France- Baccalaureat": set(["Physics-Chemistry Specialism",
-                                         "Expert Mathematics"]),
-            "France- Option Internationale du Baccalaureat (OIB)": set(["Physics Chemistry Major (Specialism)",
+            },
+            "Romania- Diploma de Bacalaureat": {"Physics"},
+            "France - Baccalaureat General (from 2021)": {"physics",
+                                                              "Physics", },
+            "France- Baccalaureat": {"Physics-Chemistry Specialism",
+                                         "Expert Mathematics"},
+            "France- Option Internationale du Baccalaureat (OIB)": {"Physics Chemistry Major (Specialism)",
                                                                         "Physics and chemistry"
                                                                         "Physics & chemistry",
-                                                                        "Physics & Chemistry"]),
-            "France - Option Internationale du Baccalaureat (OIB) (from 2021)": set([
+                                                                        "Physics & Chemistry"},
+            "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
                 "Physics & Chemistry",
                 "Physics & chemistry",
                 "Physics and chemistry"
-            ]),
-            "India-Indian School Certificate (ISC)": set(["Physics"]),
-            "All India Senior School Certificate (CBSE)": set(["Physics",
-                                                               "PHYSICS", ]),
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": set(["Physics"]),
-            "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": set([
+            },
+            "India-Indian School Certificate (ISC)": {"Physics"},
+            "All India Senior School Certificate (CBSE)": {"Physics",
+                                                               "PHYSICS", },
+            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Physics"},
+            "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
                 "Physics"
-            ]),
-            "GCE A Level (H2)": set(["Physics"]),
-            "Hong Kong Diploma of Secondary Education": set(["Physics",
-                                                             ]),
-            "Spain-Titulo de Bachiller": set(["Physics and Chemistry",
-                                              "Physics"]),
-            "Zeugnis der Allgemeine Hochschulreif e (Abitur)": set(["Physics advanced course", "Physics", "Physics advanced"]),
-            "Abitur": set(["Physics advanced course", "Physics", "Physics advanced"]),
-            "Italy-Diploma di Esame di Stato": set(["Physics"]),
+            },
+            "GCE A Level (H2)": {"Physics"},
+            "Hong Kong Diploma of Secondary Education": {"Physics",
+                                                             },
+            "Spain-Titulo de Bachiller": {"Physics and Chemistry",
+                                              "Physics"},
+            "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Physics advanced course", "Physics", "Physics advanced"},
+            "Abitur": {"Physics advanced course", "Physics", "Physics advanced"},
+            "Italy-Diploma di Esame di Stato": {"Physics"},
             }
