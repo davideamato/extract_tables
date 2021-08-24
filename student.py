@@ -654,7 +654,7 @@ class Student:
 
                 # Filter out standard level subjects
                 grade_entries = [
-                    entry for entry in current_entries if "S" not in str(entry.grade).upper()]
+                    entry for entry in current_entries if not ("S" in str(entry.grade).upper() or "stand lvl" in str(entry.subject).lower())]
 
                 for entry in grade_entries:
                     # Convert to string
@@ -666,8 +666,10 @@ class Student:
                     if "H" in grade:
                         # If higher level, remove H
                         entry.grade = grade.replace("H", "")
+                        entry.grade_info[0] = entry.grade
                     elif "h" in grade:
                         entry.grade = grade.replace("h", "")
+                        entry.grade_info[0] = entry.grade
 
                 self.which_grades[grade_entries_key] = grade_entries
 
