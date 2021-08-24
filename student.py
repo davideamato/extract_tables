@@ -426,8 +426,10 @@ class ExtractedStudents:
 
         for col in target_cols:
             grade_val = ws.cell(row=row_counter, column=col).value
-            if grade_val is None:
-                overall_grade += "-"
+            if grade_val is None and col != 9:
+                # If final one is empty, don't append anything
+                # If it isn't the final subject, put a _ to indicate missing
+                overall_grade += "_"
             else:
                 overall_grade += grade_val
 
