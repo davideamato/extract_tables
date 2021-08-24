@@ -2,6 +2,7 @@
     Contains the objects for table extraction 
 '''
 
+from _typeshed import NoneType
 from collections import Counter
 from shutil import copyfile
 from utils import (InputError, desired_tables, detail_string,
@@ -307,7 +308,8 @@ class ExtractedStudents:
                         value="M&P missing, need manual entry")
                 continue
 
-            self.populate_grades(categorised_entries, ws, is_fm, row_counter, any_issues)
+            self.populate_grades(categorised_entries, ws,
+                                 is_fm, row_counter, any_issues, uk_based)
 
             # Compress list of strings into a single string
             any_issues = self.compress_log(any_issues)
@@ -319,10 +321,11 @@ class ExtractedStudents:
 
         return ws
 
-    def populate_grades(self, categorised_entries, ws, is_fm, row_counter, any_issues):
+    def populate_grades(self, categorised_entries, ws, is_fm, row_counter, any_issues, uk_based):
         # Populate subject and grades
         subjectCounter = 0
         map_subject_num_to_cols = {0: [5], 1: [6], 2: [7, 8], 3: [9, 10]}
+
         for subject_entries in categorised_entries.values():
 
             # If no entries, then go to next value
@@ -390,6 +393,24 @@ class ExtractedStudents:
                     ws.cell(row=row_counter, column=col, value=val)
 
             subjectCounter += 1
+
+        if uk_based:
+            self.populate_uk_overall_grade(ws, row_counter)
+
+    @staticmethod
+    def populate_uk_overall_grade(ws, row_counter):
+        overall_grade = ""
+        target_cols = [5, 6, 7, 9]
+
+        for col in target_cols:
+            grade_val = ws.cell(row=row_counter, column=col).values
+            if grade_val is None:
+                overall_grade += "-"
+            else:
+                overall_grade += grade_val
+
+        ws.cell(row=row_counter, column=12,
+                value="{}".format(overall_grade))
 
     @staticmethod
     def determine_overall_grade(intersection_qualification, student):
