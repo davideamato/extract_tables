@@ -416,22 +416,30 @@ class ExtractedStudents:
 
             subjectCounter += 1
 
-        if uk_based:
-            self.populate_uk_overall_grade(ws, row_counter)
+        overall_grade = ws.cell(row=row_counter, column=12).value
+        if overall_grade is not None:
+            self.populate_alphabetic_overall_grade(ws, row_counter)
 
     @staticmethod
-    def populate_uk_overall_grade(ws, row_counter):
+    def populate_alphabetic_overall_grade(ws, row_counter):
         overall_grade = ""
         target_cols = [5, 6, 7, 9]
 
         for col in target_cols:
             grade_val = ws.cell(row=row_counter, column=col).value
-            if grade_val is None and col != 9:
-                # If final one is empty, don't append anything
-                # If it isn't the final subject, put a _ to indicate missing
-                overall_grade += "_"
+            if grade_val is None: 
+                if col != 9:
+                    # If final one is empty, don't append anything
+                    # If it isn't the final subject, put a _ to indicate missing
+                    overall_grade += "_"
             else:
-                overall_grade += grade_val
+                grade_val = str(grade_val)
+
+                if grade_val.isnumeric():
+                    # If any of the values are numeric, exit function
+                    return
+                else:
+                    overall_grade += grade_val
 
         ws.cell(row=row_counter, column=12,
                 value="{}".format(overall_grade))
