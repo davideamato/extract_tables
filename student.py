@@ -321,13 +321,22 @@ class ExtractedStudents:
 
     @staticmethod
     def sanitise_grade_of_pass(grade_val):
-        lower_case_val = grade_val.lower()
-        if "(pass)" in lower_case_val:
-            loc = lower_case_val.find("(pass)")
-            return grade_val[:loc]
-        elif "pass" in lower_case_val:
-            loc = lower_case_val.find("pass")
-            return grade_val[:loc]
+
+        if grade_val is None:
+            # If grade is None, replace with a dash
+            return "-"
+
+        elif type(grade_val) is not str:
+            grade_val = str(grade_val)
+
+        if "(pass)" in grade_val:
+            return grade_val.replace("(pass)", "")
+        elif "(Pass)" in grade_val:
+            return grade_val.replace("(Pass)", "")
+        elif "pass" in grade_val:
+            return grade_val.replace("pass", "")
+        elif "Pass" in grade_val:
+            return grade_val.replace("Pass", "")
         else:
             return grade_val
 
@@ -417,7 +426,7 @@ class ExtractedStudents:
         target_cols = [5, 6, 7, 9]
 
         for col in target_cols:
-            grade_val = ws.cell(row=row_counter, column=col).values
+            grade_val = ws.cell(row=row_counter, column=col).value
             if grade_val is None:
                 overall_grade += "-"
             else:
@@ -430,6 +439,7 @@ class ExtractedStudents:
     def determine_overall_grade(intersection_qualification, student):
         # Is it IB?
         if intersection_qualification & ib_permutations():
+            # It is IB as intersection of qualification and IB perms is not empty
             if student.results_entries:
                 overall_grade = [
                     item.grade for item in student.results_entries if "IB Total points" in item.qualification]
@@ -621,10 +631,40 @@ class Student:
             "predicted": self.predicted_entries,
         }
 
+        self.sanitise_ib_grades()
+
     def __repr__(self):
         return "{} \n {} \n {}".format(self.completed_qualifications,
                                        self.uncompleted_qualifications,
                                        self.exam_results)
+
+    def sanitise_ib_grades(self):
+
+        all_quals = set(self.get_all_qualifications())
+
+        # Intersection not empty => it is IB
+        if all_quals & ib_permutations():
+            # Get grade entries that are not empty
+            non_empty_grade_entries = [
+                grade_entries for grade_entries in self.which_grades.values() if grade_entries]
+
+            # Iterate over non-empty grade entries
+            for grade_entries in non_empty_grade_entries:
+                # Filter out standard level subjects
+                grade_entries = [entry for entry in grade_entries if "S" not in str(entry.grade).upper()]
+
+                for entry in grade_entries:
+                    # Convert to string  
+                    if type(entry.grade) is not str:
+                        grade = str(entry.grade)
+                    else:
+                        grade = entry.grade
+
+                    if "H" in grade:
+                        # If higher level, remove H
+                        entry.grade = grade.replace("H", "")
+                    elif "h" in grade:
+                        entry.grade = grade.replace("h", "")
 
     def get_all_qualifications(self):
         return [item.qualification for grade_entries in self.which_grades.values(
