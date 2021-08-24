@@ -100,7 +100,7 @@ def check_output_dirs_exist():
 
 def check_ids_correspond(ids_from_pdf_folder):
     data_from_sheet = read_excel(
-        settings.path_to_target_file, engine="openpyxl", header = None)
+        settings.path_to_target_file, engine="openpyxl", header=None)
     ids_from_excel = data_from_sheet.values.flatten().tolist()
 
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
@@ -117,7 +117,7 @@ def check_ids_correspond(ids_from_pdf_folder):
             f"IDs in {settings.path_to_pdfs_to_extract} folder don't "
             f"match IDs in {settings.target_ucas_id_file} file")
         raise InputError(not intersection,
-            "IDs from PDF folder does not match IDs to extract in Excel file")
+                         "IDs from PDF folder does not match IDs to extract in Excel file")
 
     # Difference between set and intersection
     not_in_excel = (ids_from_pdf_folder - intersection)
@@ -137,7 +137,7 @@ def check_ids_correspond(ids_from_pdf_folder):
             logging.error(f"{item} ID not in Excel file but in folder")
 
         raise InputError(not not_in_excel or not not_in_folder,
-            f"Overlap in IDs between Excel file and folder of PDFs not 100% match")
+                         f"Overlap in IDs between Excel file and folder of PDFs not 100% match")
 
 
 def copy_file(path_to_file, extracted_students_instance, id):
@@ -149,6 +149,7 @@ def copy_file(path_to_file, extracted_students_instance, id):
         settings.output_path, marker_name, new_filename)
 
     shutil.copy(path_to_file, path_to_new_dir)
+
 
 def copy_pdfs_to_pool(all_pdf_paths):
     output_path = settings.path_to_pdf_pool
@@ -300,27 +301,27 @@ def desired_tables():
 
 def completed_qualification_valid_exams():
     return {"GCE Advanced\rLevel",
-                "Cambridge Pre-\rU Certificate\r(Principal\rSub",
-                "IB Total points",
-                "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
-                "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
-                "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel",
-                "SQA Advanced\rHighers",
-                "SQA\rAdvanced\rHighers",
-                "Spain-Titulo\rde Bachiller",
-                "USA-Advanced\rPlacement Test",
-                "USA-\rAdvanced\rPlacement\rTest",
-                "International\rBaccalaureate\rDiploma",
-                "Matura-\rPoland",
-                "France-\rBaccalaureat",
-                "France-\rBaccalaureat",
-                "France\r-Baccalaureat",
-                "France-\rOption\rInternationale\rdu\rBaccalaureat",
-                "France -\rBaccalaureat\rGeneral (from\r2021)",
-                "France\r-Baccalaureat",
-                "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
-                "All India Senior School Certificate (CBSE)",
-                }
+            "Cambridge Pre-\rU Certificate\r(Principal\rSub",
+            "IB Total points",
+            "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
+            "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
+            "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel",
+            "SQA Advanced\rHighers",
+            "SQA\rAdvanced\rHighers",
+            "Spain-Titulo\rde Bachiller",
+            "USA-Advanced\rPlacement Test",
+            "USA-\rAdvanced\rPlacement\rTest",
+            "International\rBaccalaureate\rDiploma",
+            "Matura-\rPoland",
+            "France-\rBaccalaureat",
+            "France-\rBaccalaureat",
+            "France\r-Baccalaureat",
+            "France-\rOption\rInternationale\rdu\rBaccalaureat",
+            "France -\rBaccalaureat\rGeneral (from\r2021)",
+            "France\r-Baccalaureat",
+            "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
+            "All India Senior School Certificate (CBSE)",
+            }
 
 
 def exam_results_valid_exams():
@@ -419,58 +420,60 @@ def math_mapping():
             "Pearson Edexcel International Advanced Level": {"Mathematics"},
             "ILC": {"Mathematics"},
             "USA-Advanced Placement Test": {"AP Calculus BC",
-                                                "AP Calculus\rBC",
-                                                "CALCULUS BC",
-                                                },
+                                            "AP Calculus\rBC",
+                                            "CALCULUS BC",
+                                            },
             "USA- Advanced Placement Test": {"AP Calculus BC",
-                                                 "AP Calculus\rBC",
-                                                 "CALCULUS BC",
-                                                 },
+                                             "AP Calculus\rBC",
+                                             "CALCULUS BC",
+                                             },
             "IB": {"Math Analysis & Appr",
-                       "Mathematics Analysis"},
+                   "Mathematics",
+                   "Mathematics Analysis"},
             "Int. Baccalaureate": {"Math Analysis & Appr",
-                                       "Mathematics Analysis"},
+                                   "Mathematics",
+                                   "Mathematics Analysis"},
             "International Baccalaureate Diploma": {"Math Analysis & Appr",
-                                                        "Mathematics Analysis",
-                                                        "Mathematics",
-                                                        },
+                                                    "Mathematics Analysis",
+                                                    "Mathematics",
+                                                    },
             "Matura- Poland": {"Mathematics - basic level",
-                                   "Mathematics - bilingual",
-                                   "Mathematics - extended level", },
+                               "Mathematics - bilingual",
+                               "Mathematics - extended level", },
             "New Matura- Poland": {
                 "Mathematics Level: Basic",
                 "Mathematics Level: Advanced",
-            },
-            "Romania- Diploma de Bacalaureat": {"Mathematics"},
-            "France- Baccalaureat": {"Mathematics Specialism",
-                                         "Expert Mathematics"},
-            "France - Baccalaureat General (from 2021)": {"mathematics",
-                                                              "Mathematics", },
-            "France- Option Internationale du Baccalaureat (OIB)": {"Mathematics Major (Specialism)",
-                                                                        "Mathematics Experts (Advanced)", },
-            "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
+    },
+        "Romania- Diploma de Bacalaureat": {"Mathematics"},
+        "France- Baccalaureat": {"Mathematics Specialism",
+                                 "Expert Mathematics"},
+        "France - Baccalaureat General (from 2021)": {"mathematics",
+                                                      "Mathematics", },
+        "France- Option Internationale du Baccalaureat (OIB)": {"Mathematics Major (Specialism)",
+                                                                "Mathematics Experts (Advanced)", },
+        "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
                 "Mathematics"
-            },
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Mathematics"},
-            "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
+    },
+        "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Mathematics"},
+        "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
                 "Mathematics",
-            },
-            "India-Indian School Certificate (ISC)": {"Mathematics"},
-            "All India Senior School Certificate (CBSE)": {"Mathematics",
-                                                               "MATHEMATICS", },
-            "GCE A Level (H2)": {"Mathematics"},
-            "Hong Kong Diploma of Secondary Education": {"Mathematics (compulsory component)",
-                                                             "Mathematics"},
-            "Spain-Titulo de Bachiller": {"Mathematics"},
-            "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
-            "Abitur": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
-            "Italy-Diploma di Esame di Stato": {"Mathematics"},
-            }
+    },
+        "India-Indian School Certificate (ISC)": {"Mathematics"},
+        "All India Senior School Certificate (CBSE)": {"Mathematics",
+                                                       "MATHEMATICS", },
+        "GCE A Level (H2)": {"Mathematics"},
+        "Hong Kong Diploma of Secondary Education": {"Mathematics (compulsory component)",
+                                                     "Mathematics"},
+        "Spain-Titulo de Bachiller": {"Mathematics"},
+        "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
+        "Abitur": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
+        "Italy-Diploma di Esame di Stato": {"Mathematics"},
+    }
 
 
 def fm_mapping():
     return {"GCE Advanced Level": {"Further Mathematics (MEI)",
-                                       "Further Mathematics"},
+                                   "Further Mathematics"},
             "Reformed A Level": {"Further Mathematics"},
             "Reformed A Level England": {"Further Mathematics"},
             "Cambridge International A Level": {"Further Mathematics"},
@@ -480,12 +483,12 @@ def fm_mapping():
             "SQA Advanced Highers": {
                 "Mathematics of Mechanics C802",
                 "Mathematics of Mechanics"
-            },
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Further Mathematics"},
-            "GCE A Level (H2)": {"Further Mathematics"},
-            "Hong Kong Diploma of Secondary Education": {"Calculus & Statistics",
-                                                             "Calculus & Algebra"},
-            }
+    },
+        "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Further Mathematics"},
+        "GCE A Level (H2)": {"Further Mathematics"},
+        "Hong Kong Diploma of Secondary Education": {"Calculus & Statistics",
+                                                     "Calculus & Algebra"},
+    }
 
 
 def physics_mapping():
@@ -503,50 +506,50 @@ def physics_mapping():
             "Int. Baccalaureate": {"Physics"},
             "International Baccalaureate Diploma": {"Physics"},
             "USA-Advanced Placement Test": {"AP Physics C: Electricity and Magnetism",
-                                                "AP Physics C: Mechanics",
-                                                "AP Physics 1",
-                                                "AP Physics C ELECTRICITY AND MAGNETISM",
-                                                "AP Physics C MECHANICS"
-                                                },
+                                            "AP Physics C: Mechanics",
+                                            "AP Physics 1",
+                                            "AP Physics C ELECTRICITY AND MAGNETISM",
+                                            "AP Physics C MECHANICS"
+                                            },
             "USA- Advanced Placement Test": {"AP Physics C: Electricity and Magnetism",
-                                                 "AP Physics C: Mechanics",
-                                                 "AP Physics 1",
-                                                 "AP Physics C ELECTRICITY AND MAGNETISM",
-                                                 "AP Physics C MECHANICS"
-                                                 },
+                                             "AP Physics C: Mechanics",
+                                             "AP Physics 1",
+                                             "AP Physics C ELECTRICITY AND MAGNETISM",
+                                             "AP Physics C MECHANICS"
+                                             },
             "Matura- Poland": {"Physics",
-                                   "Physics - bilingual",
-                                   },
+                               "Physics - bilingual",
+                               },
             "New Matura- Poland": {
                 "Physics Level: Advanced",
-            },
-            "Romania- Diploma de Bacalaureat": {"Physics"},
-            "France - Baccalaureat General (from 2021)": {"physics",
-                                                              "Physics", },
-            "France- Baccalaureat": {"Physics-Chemistry Specialism",
-                                         "Expert Mathematics"},
-            "France- Option Internationale du Baccalaureat (OIB)": {"Physics Chemistry Major (Specialism)",
-                                                                        "Physics and chemistry"
-                                                                        "Physics & chemistry",
-                                                                        "Physics & Chemistry"},
-            "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
+    },
+        "Romania- Diploma de Bacalaureat": {"Physics"},
+        "France - Baccalaureat General (from 2021)": {"physics",
+                                                      "Physics", },
+        "France- Baccalaureat": {"Physics-Chemistry Specialism",
+                                 "Expert Mathematics"},
+        "France- Option Internationale du Baccalaureat (OIB)": {"Physics Chemistry Major (Specialism)",
+                                                                "Physics and chemistry"
+                                                                "Physics & chemistry",
+                                                                "Physics & Chemistry"},
+        "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
                 "Physics & Chemistry",
                 "Physics & chemistry",
                 "Physics and chemistry"
-            },
-            "India-Indian School Certificate (ISC)": {"Physics"},
-            "All India Senior School Certificate (CBSE)": {"Physics",
-                                                               "PHYSICS", },
-            "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Physics"},
-            "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
+    },
+        "India-Indian School Certificate (ISC)": {"Physics"},
+        "All India Senior School Certificate (CBSE)": {"Physics",
+                                                       "PHYSICS", },
+        "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Physics"},
+        "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
                 "Physics"
-            },
-            "GCE A Level (H2)": {"Physics"},
-            "Hong Kong Diploma of Secondary Education": {"Physics",
-                                                             },
-            "Spain-Titulo de Bachiller": {"Physics and Chemistry",
-                                              "Physics"},
-            "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Physics advanced course", "Physics", "Physics advanced"},
-            "Abitur": {"Physics advanced course", "Physics", "Physics advanced"},
-            "Italy-Diploma di Esame di Stato": {"Physics"},
-            }
+    },
+        "GCE A Level (H2)": {"Physics"},
+        "Hong Kong Diploma of Secondary Education": {"Physics",
+                                                     },
+        "Spain-Titulo de Bachiller": {"Physics and Chemistry",
+                                      "Physics"},
+        "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Physics advanced course", "Physics", "Physics advanced"},
+        "Abitur": {"Physics advanced course", "Physics", "Physics advanced"},
+        "Italy-Diploma di Esame di Stato": {"Physics"},
+    }
