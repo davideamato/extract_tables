@@ -654,7 +654,10 @@ class Student:
 
                 # Filter out standard level subjects
                 grade_entries = [
-                    entry for entry in current_entries if not ("S" in str(entry.grade).upper() or "stand lvl" in str(entry.subject).lower())]
+                    entry for entry in current_entries if not ("S" in str(entry.grade).upper() or
+                                                               "stand lvl" in str(entry.subject).lower() or
+                                                               "standard lvl" in str(entry.subject).lower())
+                ]
 
                 for entry in grade_entries:
                     # Convert to string
