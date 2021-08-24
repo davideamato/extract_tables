@@ -6,6 +6,7 @@ import subprocess
 
 from collections import Counter
 from tqdm import tqdm
+from time import localtime, strftime
 
 
 import logging
@@ -39,6 +40,9 @@ TARGET_TABLES = desired_tables()
 EXIT_STRING = get_exit_string()
 
 if __name__ == "__main__":
+
+    start_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+    print(f"Start Time: {start_time}")
 
     check_output_dirs_exist()
     check_ids_correspond(APPLICANT_IDS)
@@ -144,3 +148,6 @@ if __name__ == "__main__":
 
     all_students.write_to_excel(settings.output_path)
     copy_pdfs_to_pool(ALL_FILES)
+
+    end_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+    print(f"End Time: {end_time}")
