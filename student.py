@@ -2,9 +2,7 @@
     Contains the objects for table extraction 
 '''
 
-from _typeshed import NoneType
 from collections import Counter
-from shutil import copyfile
 from utils import (InputError, desired_tables, detail_string,
                    escape_backslash_r, is_abs_path, math_mapping, physics_mapping,
                    fm_mapping, qualifications_with_overall_score, valid_exams,
@@ -321,6 +319,18 @@ class ExtractedStudents:
 
         return ws
 
+    @staticmethod
+    def sanitise_grade_of_pass(grade_val):
+        lower_case_val = grade_val.lower()
+        if "(pass)" in lower_case_val:
+            loc = lower_case_val.find("(pass)")
+            return grade_val[:loc]
+        elif "pass" in lower_case_val:
+            loc = lower_case_val.find("pass")
+            return grade_val[:loc]
+        else:
+            return grade_val
+
     def populate_grades(self, categorised_entries, ws, is_fm, row_counter, any_issues, uk_based):
         # Populate subject and grades
         subjectCounter = 0
@@ -340,6 +350,7 @@ class ExtractedStudents:
             # If there is only one subject entry, then just populate
             if len(subject_entries) == 1:
                 for col, val in zip(excel_col, subject_entries[0].grade_info):
+                    val = self.sanitise_grade_of_pass(val)
                     ws.cell(row=row_counter, column=col, value=val)
 
             # if it is at the 3rd subject, and not FM then iterate over all
@@ -347,12 +358,14 @@ class ExtractedStudents:
                 for entry in subject_entries[:2]:
                     excel_col = map_subject_num_to_cols.get(subjectCounter)
                     for col, val in zip(excel_col, entry.grade_info):
+                        val = self.sanitise_grade_of_pass(val)
                         ws.cell(row=row_counter, column=col, value=val)
                     subjectCounter += 1
 
             # If there is FM and there are more than 4 subjects, populate with 1st
             elif subjectCounter == 3 and len(subject_entries) > 1:
                 for col, val in zip(excel_col, subject_entries[0].grade_info):
+                    val = self.sanitise_grade_of_pass(val)
                     ws.cell(row=row_counter, column=col, value=val)
 
             # Doesn't fall into any of above cases => special case
@@ -390,6 +403,7 @@ class ExtractedStudents:
                         subject_entries, any_issues)
 
                 for col, val in zip(excel_col, selected.grade_info):
+                    val = self.sanitise_grade_of_pass(val)
                     ws.cell(row=row_counter, column=col, value=val)
 
             subjectCounter += 1
