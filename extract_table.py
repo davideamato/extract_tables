@@ -29,8 +29,6 @@ INTERNAL_MAPPING = get_internal_mapping(
 # Generates full path to the files to extract data from
 # Extracts unique IDs from file name
 ALL_FILES, APPLICANT_IDS = get_files_and_ids(PATH_TO_FILES)
-# ALL_FILES = ALL_FILES[:6]
-# APPLICANT_IDS = APPLICANT_IDS[:6]
 # print(ALL_FILES)
 # print(APPLICANT_IDS)
 
