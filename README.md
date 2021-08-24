@@ -142,9 +142,9 @@ What's in?
 2. PDF file copying
     - Upon consulting end users, it was desired that once the script has successfully executed, the PDFs should be moved into a general pool containing PDFs from earlier batches. However, as moving cannot be undone, a safer solution of copying was implemented.
     - For ease of the end user, it was desired that the PDFs for a given applicant be placed in a folder for the corresponding marker. 
-      - provide further deatils
-      - talk about txt file
-      - Potential to change it to include the batch number (but that'll need to be changed in the source code manually. I might be able to put it into settings)
+      - Within a marker's folder, contains all of the PDFs that have been assigned to the marker. 
+      The naming has also been made such that the order will correspond to the order within the output excel file for ease of use. 
+      - Within the folder also contains a text file, the text file will contain the IDs that have been assigned to the marker and can be used to check and ensure correspondence. 
 
 
 ### Executing the Script
@@ -157,7 +157,7 @@ This will execute the script and a progress bar will print on a single line.
 Upon sucessful execution, the outputs will be generated in the locations specified in [settings.py](settings.py).
 
 
-<h2> How has this been structured? </h2>
+## How has this been structured? 
 
 `extract_table.py` coordinates the whole table extraction. It iterates over all files in the folder provided. 
 - The extracted information for each pdf is stored in an instance of the object `ExtractedStudents()`
@@ -185,9 +185,9 @@ Upon sucessful execution, the outputs will be generated in the locations specifi
 
 `utils.py` contains the useful functions (utilities) and functions that store strings needed to extracting information.
 
-<h2> How to maintain? </h2>
+## How to maintain?
 
-<h3> I can't get Tabula to work, but Camelot does! </h3>
+### I can't get Tabula to work, but Camelot does! 
 
 Feel free to use Camelot instead. 
 Just ensure that at the two call of Tablua (one in `extract_table.py`, another in `check_broke_table()` function in `utils.py`) are replaced with Camelot.
@@ -200,6 +200,8 @@ Therefore, all that needs to be changed are the desired strings.
 These lie within the functions in `utils.py`. 
 
 The strings within those functions is the only places that need to updated in accordance to how the pdfs have changed. 
+
+The functions that will need updating are from line 277 onwards.
 
 
 <h2> To Do </h2>
