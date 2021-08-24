@@ -325,20 +325,19 @@ class ExtractedStudents:
         if grade_val is None:
             # If grade is None, replace with a dash
             return "-"
-
         elif type(grade_val) is not str:
-            grade_val = str(grade_val)
+            grade_val = str(grade_val).strip()
 
         if "(pass)" in grade_val:
-            return grade_val.replace("(pass)", "")
+            return grade_val.replace("(pass)", "").strip()
         elif "(Pass)" in grade_val:
-            return grade_val.replace("(Pass)", "")
+            return grade_val.replace("(Pass)", "").strip()
         elif "pass" in grade_val:
-            return grade_val.replace("pass", "")
+            return grade_val.replace("pass", "").strip()
         elif "Pass" in grade_val:
-            return grade_val.replace("Pass", "")
+            return grade_val.replace("Pass", "").strip()
         else:
-            return grade_val
+            return grade_val.strip()
 
     def populate_grades(self, categorised_entries, ws, is_fm, row_counter, any_issues, uk_based):
         # Populate subject and grades
@@ -645,16 +644,20 @@ class Student:
         # Intersection not empty => it is IB
         if all_quals & ib_permutations():
             # Get grade entries that are not empty
-            non_empty_grade_entries = [
-                grade_entries for grade_entries in self.which_grades.values() if grade_entries]
+            non_empty_grade_entries_key = [
+                entry_key for entry_key in self.which_grades.keys() if self.which_grades.get(entry_key)]
 
             # Iterate over non-empty grade entries
-            for grade_entries in non_empty_grade_entries:
+            for grade_entries_key in non_empty_grade_entries_key:
+
+                current_entries = self.which_grades.get(grade_entries_key)
+
                 # Filter out standard level subjects
-                grade_entries = [entry for entry in grade_entries if "S" not in str(entry.grade).upper()]
+                grade_entries = [
+                    entry for entry in current_entries if "S" not in str(entry.grade).upper()]
 
                 for entry in grade_entries:
-                    # Convert to string  
+                    # Convert to string
                     if type(entry.grade) is not str:
                         grade = str(entry.grade)
                     else:
@@ -665,6 +668,8 @@ class Student:
                         entry.grade = grade.replace("H", "")
                     elif "h" in grade:
                         entry.grade = grade.replace("h", "")
+
+                self.which_grades[grade_entries_key] = grade_entries
 
     def get_all_qualifications(self):
         return [item.qualification for grade_entries in self.which_grades.values(
