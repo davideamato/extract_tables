@@ -3,6 +3,7 @@
 '''
 
 from collections import Counter
+import re
 from utils import (InputError, desired_tables, detail_string,
                    escape_backslash_r, is_abs_path, math_mapping, physics_mapping,
                    fm_mapping, qualifications_with_overall_score, valid_exams,
@@ -417,7 +418,7 @@ class ExtractedStudents:
             subjectCounter += 1
 
         overall_grade = ws.cell(row=row_counter, column=12).value
-        if overall_grade is not None:
+        if overall_grade is None:
             self.populate_alphabetic_overall_grade(ws, row_counter)
 
     @staticmethod
@@ -427,15 +428,15 @@ class ExtractedStudents:
 
         for col in target_cols:
             grade_val = ws.cell(row=row_counter, column=col).value
-            if grade_val is None: 
+            if grade_val is None:
                 if col != 9:
                     # If final one is empty, don't append anything
                     # If it isn't the final subject, put a _ to indicate missing
                     overall_grade += "_"
             else:
-                grade_val = str(grade_val)
+                grade_val = str(grade_val).strip()
 
-                if grade_val.isnumeric():
+                if re.search(r"[a-zA-z*-]", grade_val) is None:
                     # If any of the values are numeric, exit function
                     return
                 else:
@@ -451,13 +452,22 @@ class ExtractedStudents:
             # It is IB as intersection of qualification and IB perms is not empty
             if student.results_entries:
                 overall_grade = [
-                    item.grade for item in student.results_entries if "IB Total points" in item.qualification]
+                    item.grade
+                    for item in student.results_entries
+                    if "IB Total points" in item.qualification
+                ]
             elif student.completed_entries:
                 overall_grade = [
-                    item.grade for item in student.completed_entries if "International Baccalaureate Diploma" in item.qualification]
+                    item.grade
+                    for item in student.completed_entries
+                    if "International Baccalaureate Diploma" in item.qualification
+                ]
             elif student.predicted_entries:
                 overall_grade = [
-                    item.grade for item in student.predicted_entries if "International Baccalaureate Diploma" in item.qualification]
+                    item.grade
+                    for item in student.predicted_entries
+                    if "International Baccalaureate Diploma" in item.qualification
+                ]
             else:
                 overall_grade = []
         else:
@@ -485,7 +495,7 @@ class ExtractedStudents:
                 return lst_of_entries[grades.index(max(grades))]
             else:
                 any_issues[-1] = "No grade"
-                return GradeEntry(None, None, "None", False, None, False)
+                return GradeEntry(None, None, "-", False, None, False)
 
         # Determine if all are unique and whether the lsit is empty
         if len(years) == len(set(years)) and years:
