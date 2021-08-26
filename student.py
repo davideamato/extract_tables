@@ -261,7 +261,7 @@ class ExtractedStudents:
 
             # Fill in the qualification to the worksheet
             ws.cell(row=row_counter, column=2,
-                    value="{}".format(sanitised_string))
+                    value="{}".format(sanitised_string.strip()))
 
             # Create log for issues
             any_issues = self.log_issues(
@@ -292,14 +292,16 @@ class ExtractedStudents:
                         # If any_issue is None => M&P grade not found. Skip rest of loop
                         ws.cell(row=row_counter, column=3,
                                 value="M&P missing, need manual entry. Multiple overall score. 1st selected.")
+                        output_overall_grade = self.strip_overall_grade_spaces(overall_grade)
                         ws.cell(row=row_counter, column=12,
-                                value="{}".format(overall_grade[0]))
+                                value="{}".format(output_overall_grade))
                         continue
 
                 # Populate if list is not empty
                 if num_overall_grade != 0:
+                    output_overall_grade = self.strip_overall_grade_spaces(overall_grade)
                     ws.cell(row=row_counter, column=12,
-                            value="{}".format(overall_grade[0]))
+                            value="{}".format(output_overall_grade))
 
             # If M&P missing, clearly there is an issue. Skip the rest of loop
             if any_issues is None:
@@ -319,6 +321,16 @@ class ExtractedStudents:
                 ws.cell(row=row_counter, column=3, value=any_issues)
 
         return ws
+
+    @staticmethod
+    def strip_overall_grade_spaces(overall_grades):
+        output_overall_grade = overall_grades[0]
+        if type(output_overall_grade) is str:
+            output_overall_grade = output_overall_grade.strip()
+        else:
+            output_overall_grade = str(output_overall_grade).strip()
+
+        return output_overall_grade
 
     @staticmethod
     def sanitise_grade_of_pass(grade_val):
