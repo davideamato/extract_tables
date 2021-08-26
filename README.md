@@ -111,7 +111,9 @@ What are the inputs and what are the used for?
    - Besides updating the path to the input files, name of the output files, and path to the output location; administrative allocation information _must_ be provided here.
    - The allocation information _necessary_ for the master excel.
    - What is the allocation information?
-     - Batch number: (Integer) Which batch this corresponds to. This must be incremented after each batch.
+     - Batch number: (Integer) Which batch this corresponds to. This must be incremented after each batch. 
+     **It is assumed in the later analytics that this number is unique and keeps increasing even after a cycle is complete.
+     Please do NOT RESTART the COUNT after a cycle is complete**
      - Cycle: (String) Which application cycle these IDs fall into. This will be either Nov or Jan and only needs to be updated after a cycle is complete.
      - Allocation Details: (Dictionary) Contains the initials of each marker (N.B. assumed to be 2 characters long) in the key and the ratio in the value. E.g.1, if the IDs are to be evenly distributed, then AP:TM:EN will be 1:1:1, 
      `allocation_details = {

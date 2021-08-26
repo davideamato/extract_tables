@@ -34,7 +34,9 @@ target_ucas_id_file = "target_ids.xlsx"
 path_to_target_file = path_to_pdfs_to_extract
 path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
 
-# Order it Cycle, Marker, Batch in Excel
+# IMPORTANT NOTE: IT IS ASSUMED THAT THE BATCH NUMBERS WILL KEEP INCREASING
+# EVEN AFTER THE CYCLE CHANGES! THIS IS VITAL FOR THE REMAINING WORKFLOW!
+# THE BATCH NUMBERS MUST BE UNIQUE!!!
 batch_number = 1
 cycle = "Nov"
 allocation_details = {
