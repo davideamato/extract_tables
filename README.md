@@ -105,6 +105,7 @@ What are the inputs and what are the used for?
 3. Target ID Excel file
    - This contains all the IDs which the data will be extracted for.
    - The values here _must_ correspond to the the ID numbers extracted from the PDF filenames. If this is not the case, the script will raise an error and terminate execution.
+   - __IMPORTANT__: The order of the IDs in the output Excel file will match the order provided in this file. For the order of the IDs, in the folder for each marker, to correspond to the what appears in _master_, the order provided must correspond to the internal source sheet. 
    - The assumed structure is that: 1) No headers, 2) IDs are all placed within a single column.
    - This almost equivalent to a csv file. However, to remain consistent with the other inputs being an excel file. 
 4. [settings.py](settings.py)
