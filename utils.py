@@ -4,6 +4,7 @@ import shutil
 
 from collections import Counter
 from pandas import read_excel
+import numpy as np
 
 import tabula
 import settings
@@ -103,8 +104,11 @@ def check_ids_correspond(ids_from_pdf_folder):
         settings.path_to_target_file, engine="openpyxl", header=None)
     ids_from_excel = data_from_sheet.values.flatten().tolist()
 
+    # Enforce same type - both Integers
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
+    ids_from_excel = [int(item) for item in ids_from_excel]
 
+    # Convert to set to allow for testing intersection
     ids_from_pdf_folder = set(ids_from_pdf_folder)
     ids_from_excel = set(ids_from_excel)
 
@@ -138,6 +142,29 @@ def check_ids_correspond(ids_from_pdf_folder):
 
         raise InputError(not not_in_excel or not not_in_folder,
                          f"Overlap in IDs between Excel file and folder of PDFs not 100% match")
+
+    return ids_from_excel
+
+def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
+
+    target_ids = check_ids_correspond(ids_from_all_pdfs)
+    target_ids = np.asarray(list(target_ids))
+
+    if type(ids_from_all_pdfs) is not list:
+        ids_from_all_pdfs = list(ids_from_all_pdfs)
+
+    # Enforced type being integer for comparison
+    ids_from_all_pdfs = [int(item) for item in ids_from_all_pdfs]
+
+    # Location of ID from pdfs in target ids list 
+    id_locs = [np.argwhere(target_ids == current_id).item() for current_id in ids_from_all_pdfs]
+
+    # Sort list based on id_locs, then extract the paths from it
+    sorted_pdf_paths = [path for _, path in sorted(zip(id_locs, all_pdf_paths), key=lambda pair: pair[0])]
+
+    target_ids = [str(item) for item in target_ids.tolist()]
+
+    return sorted_pdf_paths, target_ids
 
 
 def copy_file(path_to_file, extracted_students_instance, id):

@@ -12,7 +12,7 @@ from time import localtime, strftime
 import logging
 import tabula
 
-from utils import check_ids_correspond, check_output_dirs_exist, copy_file, copy_pdfs_to_pool, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping
+from utils import check_ids_correspond, check_output_dirs_exist, copy_file, copy_pdfs_to_pool, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping, order_pdfs_to_target_id_input
 from student import ExtractedStudents
 from student import Student
 import settings
@@ -45,7 +45,8 @@ if __name__ == "__main__":
     print(f"Start Time: {start_time}")
 
     check_output_dirs_exist()
-    check_ids_correspond(APPLICANT_IDS)
+    # check_ids_correspond(APPLICANT_IDS)
+    ALL_FILES, APPLICANT_IDS = order_pdfs_to_target_id_input(ALL_FILES, APPLICANT_IDS)
 
     # Initialise object to store extracted information
     all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
