@@ -88,6 +88,10 @@ However, due to time constraints on the project and the unexpected difficulties 
 This feature was not implemented. 
 Moreover, this could be a sanity check for the user to ensure that the output location has been correctly specified in [settings.py](settings.py).
 
+__IMPORTANT__: An implicit assumption made is that the IDs do not contain a leading 0. 
+If it does, this will be dropped. This dropping occurs when the ID is converted to an integer. 
+If the leading zero is required, change within [utils.py](utils.py) that the type enforced should be `str` instead of `int`.
+
 What are the inputs and what are the used for?
 1. PDFs to extract data from
    - These are the PDFs in which the data to be extracted reside in. It is assumed that this data are all in tables.
@@ -204,7 +208,13 @@ These lie within the functions in `utils.py`.
 
 The strings within those functions is the only places that need to updated in accordance to how the pdfs have changed. 
 
-The functions that will need updating are from line 277 onwards.
+The functions that will need updating are from line 277 onwards. 
+### I want my ID numbers to contain a leading 0, what do I do?
+As mentioned in the section above, the type needs to changed from `int` to `str`. 
+If the leading zero is required, change within [utils.py](utils.py) that the type enforced should be `str` instead of `int`.
+In general, I would advise not to use the ID with a leading 0 as it can lead to issues even in excel. 
+Another potential case would be the zero being dropped during the loading from the excel file. 
+In this case, instituite a check during the loading phase then prepend a `"0"` to the ID as a `str`. 
 
 
 <h2> To Do </h2>
