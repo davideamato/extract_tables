@@ -147,7 +147,9 @@ def check_ids_correspond(ids_from_pdf_folder):
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
 
+    # Perform check to see if IDs from PDFs and target IDs correspond
     target_ids = check_ids_correspond(ids_from_all_pdfs)
+    # Convert to numpy array to get argwhere to work 
     target_ids = np.asarray(list(target_ids))
 
     if type(ids_from_all_pdfs) is not list:
