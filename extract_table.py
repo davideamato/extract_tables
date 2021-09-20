@@ -12,7 +12,7 @@ from time import localtime, strftime
 import logging
 import tabula
 
-from utils import check_ids_correspond, check_output_dirs_exist, copy_file, copy_pdfs_to_pool, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping, order_pdfs_to_target_id_input
+from utils import check_output_dirs_exist, copy_file, copy_pdfs_to_pool, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping, order_pdfs_to_target_id_input
 from student import ExtractedStudents
 from student import Student
 import settings

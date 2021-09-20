@@ -30,7 +30,12 @@ qualification_mapping_sheet_name = 'Mapping'
 path_to_mapping_file = path_to_pdfs_to_extract
 path_to_mapping_file = get_full_file_path(path_to_mapping_file, qualification_mapping_filename)
 
-target_ucas_id_file = "target_ids.xlsx"
+# target_ucas_id_file = "target_ids.xlsx"
+target_ucas_id_file = "Banner_Example.xlsx"
+is_id_file_banner = True
+which_column = "F"
+# is_id_file_banner = False
+# which_column = None
 path_to_target_file = path_to_pdfs_to_extract
 path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
 
