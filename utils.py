@@ -100,13 +100,24 @@ def check_output_dirs_exist():
 
 
 def check_ids_correspond(ids_from_pdf_folder):
-    data_from_sheet = read_excel(
-        settings.path_to_target_file, engine="openpyxl", header=None)
+    if settings.is_id_file_banner:
+        data_from_sheet = read_excel(
+            settings.path_to_target_file, 
+            engine="openpyxl", 
+            usecols=settings.which_column,
+            dtype= int)
+        # print(data_from_sheet)
+    else:
+        data_from_sheet = read_excel(
+            settings.path_to_target_file, 
+            engine="openpyxl", 
+            dtype=int,
+            header=None)
     ids_from_excel = data_from_sheet.values.flatten().tolist()
 
     # Enforce same type - both Integers
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
-    ids_from_excel = [int(item) for item in ids_from_excel]
+    # ids_from_excel = [int(item) for item in ids_from_excel]
 
     # Convert to set to allow for testing intersection
     ids_from_pdf_folder = set(ids_from_pdf_folder)
