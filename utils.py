@@ -30,16 +30,21 @@ def initialise_logger():
     if os.path.exists(settings.path_to_log):
         os.remove(settings.path_to_log)
 
-    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
-                        filename=settings.path_to_log, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s:%(message)s",
+        filename=settings.path_to_log,
+        datefmt="%m/%d/%Y %I:%M:%S %p",
+        level=logging.INFO,
+    )
     logging.info("Start")
 
 
 def get_internal_mapping(path_to_file, sheet_name):
     if not path_to_file.endswith(".xlsx"):
         logging.error("Mapping file not in xlsx format")
-        raise InputError(not path_to_file.endswith(".xlsx"),
-                         "Input file must be in xlsx format")
+        raise InputError(
+            not path_to_file.endswith(".xlsx"), "Input file must be in xlsx format"
+        )
 
     input_file = path_to_file
 
@@ -77,8 +82,7 @@ def is_file_valid(file):
 def is_abs_path(input_path):
     if not os.path.isabs(input_path):
         logging.error("Absolut path to file not provided")
-        raise InputError(os.path.isabs(input_path),
-                         "Path provided is not absolute")
+        raise InputError(os.path.isabs(input_path), "Path provided is not absolute")
 
     return True
 
@@ -102,17 +106,16 @@ def check_output_dirs_exist():
 def check_ids_correspond(ids_from_pdf_folder):
     if settings.is_id_file_banner:
         data_from_sheet = read_excel(
-            settings.path_to_target_file, 
-            engine="openpyxl", 
+            settings.path_to_target_file,
+            engine="openpyxl",
             usecols=settings.which_column,
-            dtype= int)
+            dtype=int,
+        )
         # print(data_from_sheet)
     else:
         data_from_sheet = read_excel(
-            settings.path_to_target_file, 
-            engine="openpyxl", 
-            dtype=int,
-            header=None)
+            settings.path_to_target_file, engine="openpyxl", dtype=int, header=None
+        )
     ids_from_excel = data_from_sheet.values.flatten().tolist()
 
     # Enforce same type - both Integers
@@ -130,18 +133,22 @@ def check_ids_correspond(ids_from_pdf_folder):
         logging.error(
             f"Mismatch in IDs."
             f"IDs in {settings.path_to_pdfs_to_extract} folder don't "
-            f"match IDs in {settings.target_ucas_id_file} file")
-        raise InputError(not intersection,
-                         "IDs from PDF folder does not match IDs to extract in Excel file")
+            f"match IDs in {settings.target_ucas_id_file} file"
+        )
+        raise InputError(
+            not intersection,
+            "IDs from PDF folder does not match IDs to extract in Excel file",
+        )
 
     # Difference between set and intersection
-    not_in_excel = (ids_from_pdf_folder - intersection)
-    not_in_folder = (ids_from_excel - intersection)
+    not_in_excel = ids_from_pdf_folder - intersection
+    not_in_folder = ids_from_excel - intersection
     # A set is not empty => something is missing
     # Both empty => no issues
     if not_in_excel or not_in_folder:
         logging.error(
-            f"Overlap in IDs between Excel file and folder of PDFs not 100% match")
+            f"Overlap in IDs between Excel file and folder of PDFs not 100% match"
+        )
 
         # Convert to list to iterate over
         not_in_folder = list(not_in_folder)
@@ -151,16 +158,19 @@ def check_ids_correspond(ids_from_pdf_folder):
         for item in not_in_excel:
             logging.error(f"{item} ID not in Excel file but in folder")
 
-        raise InputError(not not_in_excel or not not_in_folder,
-                         f"Overlap in IDs between Excel file and folder of PDFs not 100% match")
+        raise InputError(
+            not not_in_excel or not not_in_folder,
+            f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
+        )
 
     return ids_from_excel
+
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
 
     # Perform check to see if IDs from PDFs and target IDs correspond
     target_ids = check_ids_correspond(ids_from_all_pdfs)
-    # Convert to numpy array to get argwhere to work 
+    # Convert to numpy array to get argwhere to work
     target_ids = np.asarray(list(target_ids))
 
     if type(ids_from_all_pdfs) is not list:
@@ -169,11 +179,16 @@ def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
     # Enforced type being integer for comparison
     ids_from_all_pdfs = [int(item) for item in ids_from_all_pdfs]
 
-    # Location of ID from pdfs in target ids list 
-    id_locs = [np.argwhere(target_ids == current_id).item() for current_id in ids_from_all_pdfs]
+    # Location of ID from pdfs in target ids list
+    id_locs = [
+        np.argwhere(target_ids == current_id).item() for current_id in ids_from_all_pdfs
+    ]
 
     # Sort list based on id_locs, then extract the paths from it
-    sorted_pdf_paths = [path for _, path in sorted(zip(id_locs, all_pdf_paths), key=lambda pair: pair[0])]
+    sorted_pdf_paths = [
+        path
+        for _, path in sorted(zip(id_locs, all_pdf_paths), key=lambda pair: pair[0])
+    ]
 
     target_ids = [str(item) for item in target_ids.tolist()]
 
@@ -185,8 +200,7 @@ def copy_file(path_to_file, extracted_students_instance, id):
     original_filename = os.path.basename(path_to_file)
 
     new_filename = str(numbering) + "_" + original_filename
-    path_to_new_dir = os.path.join(
-        settings.output_path, marker_name, new_filename)
+    path_to_new_dir = os.path.join(settings.output_path, marker_name, new_filename)
 
     shutil.copy(path_to_file, path_to_new_dir)
 
@@ -206,8 +220,15 @@ def get_files_and_ids(abs_path):
 
     # Remove duplicates in files
     # BUT doesn't address repeated IDs
-    lst_of_paths = list(set([os.path.join(abs_path, file) for file in os.listdir(
-        abs_path) if is_file_valid(file)]))
+    lst_of_paths = list(
+        set(
+            [
+                os.path.join(abs_path, file)
+                for file in os.listdir(abs_path)
+                if is_file_valid(file)
+            ]
+        )
+    )
 
     # Extract IDs from file names
     lst_of_ids = [file.split("_")[3] for file in lst_of_paths]
@@ -228,7 +249,8 @@ def get_files_and_ids(abs_path):
     for unique_id in lst_of_ids[1:]:
         if unique_id in lst_of_ids[:counter]:
             logging.info(
-                f"Duplicate file present for {unique_id}, file {lst_of_paths[counter]} removed")
+                f"Duplicate file present for {unique_id}, file {lst_of_paths[counter]} removed"
+            )
             lst_of_ids.pop(counter)
             lst_of_paths.pop(counter)
             num_repetitions += 1
@@ -243,14 +265,19 @@ def get_files_and_ids(abs_path):
 
 
 def check_broken_table(current_page_number, filename, current_table):
-    '''
+    """
         Determines if a table continues onto the next page
         If it does, return a the data in a form that can be appended to the original table
-    '''
+    """
 
     # Extract tables from next page
-    tables = tabula.read_pdf(filename, pages=str(
-        current_page_number + 1), lattice=True, guess=True, pandas_options={"header": 0},)
+    tables = tabula.read_pdf(
+        filename,
+        pages=str(current_page_number + 1),
+        lattice=True,
+        guess=True,
+        pandas_options={"header": 0},
+    )
 
     if not tables:
         return None
@@ -267,12 +294,16 @@ def check_broken_table(current_page_number, filename, current_table):
         if table_length == current_table_length:
             return top_table_header.to_series()
         elif detail_string() in top_table_header:
-            return move_data_out_of_header(top_table, current_table_header, table_length)
+            return move_data_out_of_header(
+                top_table, current_table_header, table_length
+            )
         else:
             return None
 
     elif len(top_table_header) == current_table_length:
-        return move_data_out_of_header(top_table, current_table_header, current_table_length)
+        return move_data_out_of_header(
+            top_table, current_table_header, current_table_length
+        )
     else:
         return None
 
@@ -294,14 +325,14 @@ def move_data_out_of_header(top_table, cur_table_header, table_length):
 
 def fix_broken_table(current_page_number, current_table, filename):
 
-    continued_values = check_broken_table(
-        current_page_number, filename, current_table)
+    continued_values = check_broken_table(current_page_number, filename, current_table)
 
     if continued_values is not None:
         # add new row to end of DataFrame
         # current_table.loc[len(current_table.index)] = continued_values
         updated_table = current_table.append(
-            continued_values, ignore_index=True, sort=False)
+            continued_values, ignore_index=True, sort=False
+        )
 
         # print(updated_table)
         return updated_table
@@ -311,20 +342,36 @@ def fix_broken_table(current_page_number, current_table, filename):
 
 def escape_backslash_r(input_string):
     if input_string is not None:
-        return input_string.encode('unicode-escape').decode().replace("\\r", " ").strip()
+        return (
+            input_string.encode("unicode-escape").decode().replace("\\r", " ").strip()
+        )
 
 
 def get_exit_string():
-    return 'Type of school, college or training centre:'
+    return "Type of school, college or training centre:"
 
 
 def raw_table_headers():
-    acheived_headers = ['Date', 'Body', 'Exam',
-                        'Subject', 'Grade', 'Result', 'Centre Number']
-    predicted_headers = ['Date', 'Body', 'Exam', 'Subject',
-                         'Grade', 'Result', 'Centre\rNumber', 'Predicted\rGrade']
-    examresults_headers = ['Date', 'Body',
-                           'Exam Level', 'Sitting', 'Subject', 'Grade']
+    acheived_headers = [
+        "Date",
+        "Body",
+        "Exam",
+        "Subject",
+        "Grade",
+        "Result",
+        "Centre Number",
+    ]
+    predicted_headers = [
+        "Date",
+        "Body",
+        "Exam",
+        "Subject",
+        "Grade",
+        "Result",
+        "Centre\rNumber",
+        "Predicted\rGrade",
+    ]
+    examresults_headers = ["Date", "Body", "Exam Level", "Sitting", "Subject", "Grade"]
 
     return (acheived_headers, predicted_headers, examresults_headers)
 
@@ -340,28 +387,29 @@ def desired_tables():
 
 
 def completed_qualification_valid_exams():
-    return {"GCE Advanced\rLevel",
-            "Cambridge Pre-\rU Certificate\r(Principal\rSub",
-            "IB Total points",
-            "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
-            "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
-            "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel",
-            "SQA Advanced\rHighers",
-            "SQA\rAdvanced\rHighers",
-            "Spain-Titulo\rde Bachiller",
-            "USA-Advanced\rPlacement Test",
-            "USA-\rAdvanced\rPlacement\rTest",
-            "International\rBaccalaureate\rDiploma",
-            "Matura-\rPoland",
-            "France-\rBaccalaureat",
-            "France-\rBaccalaureat",
-            "France\r-Baccalaureat",
-            "France-\rOption\rInternationale\rdu\rBaccalaureat",
-            "France -\rBaccalaureat\rGeneral (from\r2021)",
-            "France\r-Baccalaureat",
-            "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
-            "All India Senior School Certificate (CBSE)",
-            }
+    return {
+        "GCE Advanced\rLevel",
+        "Cambridge Pre-\rU Certificate\r(Principal\rSub",
+        "IB Total points",
+        "Cambridge\rPre-U\rCertificate\r(Principal\rSubject)",
+        "Pearson\rEdexcel\rInternational\rAdvanced\rLevel",
+        "Singapore-\rIntegrated\rProgramme-\rCambridge\rGCE\rAdvanced\rLevel",
+        "SQA Advanced\rHighers",
+        "SQA\rAdvanced\rHighers",
+        "Spain-Titulo\rde Bachiller",
+        "USA-Advanced\rPlacement Test",
+        "USA-\rAdvanced\rPlacement\rTest",
+        "International\rBaccalaureate\rDiploma",
+        "Matura-\rPoland",
+        "France-\rBaccalaureat",
+        "France-\rBaccalaureat",
+        "France\r-Baccalaureat",
+        "France-\rOption\rInternationale\rdu\rBaccalaureat",
+        "France -\rBaccalaureat\rGeneral (from\r2021)",
+        "France\r-Baccalaureat",
+        "Irish leaving\rcertificate -\rHigher level\r(first awarded\r2017)",
+        "All India Senior School Certificate (CBSE)",
+    }
 
 
 def exam_results_valid_exams():
@@ -450,146 +498,172 @@ def detail_string():
 
 
 def math_mapping():
-    return {"GCE Advanced Level": {"Mathematics", "Mathematics (MEI)", "Mathematics A"},
-            "Reformed A Level": {"Mathematics"},
-            "Reformed A Level England": {"Mathematics"},
-            "Cambridge International A Level": {"Mathematics"},
-            "Cambridge Pre-U Certificate (Principal Subject)": {"Mathematics (principal subject)"},
-            "Pre-U Certificate": {"Mathematics"},
-            "SQA Advanced Highers": {"Mathematics C847", "Mathematics"},
-            "Pearson Edexcel International Advanced Level": {"Mathematics"},
-            "ILC": {"Mathematics"},
-            "USA-Advanced Placement Test": {"AP Calculus BC",
-                                            "AP Calculus\rBC",
-                                            "CALCULUS BC",
-                                            },
-            "USA- Advanced Placement Test": {"AP Calculus BC",
-                                             "AP Calculus\rBC",
-                                             "CALCULUS BC",
-                                             },
-            "IB": {"Math Analysis & Appr",
-                   "Mathematics",
-                   "Mathematics Analysis"},
-            "Int. Baccalaureate": {"Math Analysis & Appr",
-                                   "Mathematics",
-                                   "Mathematics Analysis"},
-            "International Baccalaureate Diploma": {"Math Analysis & Appr",
-                                                    "Mathematics Analysis",
-                                                    "Mathematics",
-                                                    },
-            "Matura- Poland": {"Mathematics - basic level",
-                               "Mathematics - bilingual",
-                               "Mathematics - extended level", },
-            "New Matura- Poland": {
-                "Mathematics Level: Basic",
-                "Mathematics Level: Advanced",
-    },
+    return {
+        "GCE Advanced Level": {"Mathematics", "Mathematics (MEI)", "Mathematics A"},
+        "Reformed A Level": {"Mathematics"},
+        "Reformed A Level England": {"Mathematics"},
+        "Cambridge International A Level": {"Mathematics"},
+        "Cambridge Pre-U Certificate (Principal Subject)": {
+            "Mathematics (principal subject)"
+        },
+        "Pre-U Certificate": {"Mathematics"},
+        "SQA Advanced Highers": {"Mathematics C847", "Mathematics"},
+        "Pearson Edexcel International Advanced Level": {"Mathematics"},
+        "ILC": {"Mathematics"},
+        "USA-Advanced Placement Test": {
+            "AP Calculus BC",
+            "AP Calculus\rBC",
+            "CALCULUS BC",
+        },
+        "USA- Advanced Placement Test": {
+            "AP Calculus BC",
+            "AP Calculus\rBC",
+            "CALCULUS BC",
+        },
+        "IB": {"Math Analysis & Appr", "Mathematics", "Mathematics Analysis"},
+        "Int. Baccalaureate": {
+            "Math Analysis & Appr",
+            "Mathematics",
+            "Mathematics Analysis",
+        },
+        "International Baccalaureate Diploma": {
+            "Math Analysis & Appr",
+            "Mathematics Analysis",
+            "Mathematics",
+        },
+        "Matura- Poland": {
+            "Mathematics - basic level",
+            "Mathematics - bilingual",
+            "Mathematics - extended level",
+        },
+        "New Matura- Poland": {
+            "Mathematics Level: Basic",
+            "Mathematics Level: Advanced",
+        },
         "Romania- Diploma de Bacalaureat": {"Mathematics"},
-        "France- Baccalaureat": {"Mathematics Specialism",
-                                 "Expert Mathematics"},
-        "France - Baccalaureat General (from 2021)": {"mathematics",
-                                                      "Mathematics", },
-        "France- Option Internationale du Baccalaureat (OIB)": {"Mathematics Major (Specialism)",
-                                                                "Mathematics Experts (Advanced)", },
+        "France- Baccalaureat": {"Mathematics Specialism", "Expert Mathematics"},
+        "France - Baccalaureat General (from 2021)": {"mathematics", "Mathematics",},
+        "France- Option Internationale du Baccalaureat (OIB)": {
+            "Mathematics Major (Specialism)",
+            "Mathematics Experts (Advanced)",
+        },
         "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
-                "Mathematics"
-    },
-        "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Mathematics"},
+            "Mathematics"
+        },
+        "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {
+            "Mathematics"
+        },
         "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
-                "Mathematics",
-    },
+            "Mathematics",
+        },
         "India-Indian School Certificate (ISC)": {"Mathematics"},
-        "All India Senior School Certificate (CBSE)": {"Mathematics",
-                                                       "MATHEMATICS", },
+        "All India Senior School Certificate (CBSE)": {"Mathematics", "MATHEMATICS",},
         "GCE A Level (H2)": {"Mathematics"},
-        "Hong Kong Diploma of Secondary Education": {"Mathematics (compulsory component)",
-                                                     "Mathematics"},
+        "Hong Kong Diploma of Secondary Education": {
+            "Mathematics (compulsory component)",
+            "Mathematics",
+        },
         "Spain-Titulo de Bachiller": {"Mathematics"},
-        "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
-        "Abitur": {"Mathematics advanced", "Mathematics advanced course", "Mathematics"},
+        "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {
+            "Mathematics advanced",
+            "Mathematics advanced course",
+            "Mathematics",
+        },
+        "Abitur": {
+            "Mathematics advanced",
+            "Mathematics advanced course",
+            "Mathematics",
+        },
         "Italy-Diploma di Esame di Stato": {"Mathematics"},
     }
 
 
 def fm_mapping():
-    return {"GCE Advanced Level": {"Further Mathematics (MEI)",
-                                   "Further Mathematics"},
-            "Reformed A Level": {"Further Mathematics"},
-            "Reformed A Level England": {"Further Mathematics"},
-            "Cambridge International A Level": {"Further Mathematics"},
-            "Pearson Edexcel International Advanced Level": {"Further Mathematics"},
-            "Cambridge Pre-U Certificate (Principal Subject)": {"Further Mathematics (principal subject)"},
-            "Pre-U Certificate": {"Further Mathematics"},
-            "SQA Advanced Highers": {
-                "Mathematics of Mechanics C802",
-                "Mathematics of Mechanics"
-    },
-        "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Further Mathematics"},
+    return {
+        "GCE Advanced Level": {"Further Mathematics (MEI)", "Further Mathematics"},
+        "Reformed A Level": {"Further Mathematics"},
+        "Reformed A Level England": {"Further Mathematics"},
+        "Cambridge International A Level": {"Further Mathematics"},
+        "Pearson Edexcel International Advanced Level": {"Further Mathematics"},
+        "Cambridge Pre-U Certificate (Principal Subject)": {
+            "Further Mathematics (principal subject)"
+        },
+        "Pre-U Certificate": {"Further Mathematics"},
+        "SQA Advanced Highers": {
+            "Mathematics of Mechanics C802",
+            "Mathematics of Mechanics",
+        },
+        "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {
+            "Further Mathematics"
+        },
         "GCE A Level (H2)": {"Further Mathematics"},
-        "Hong Kong Diploma of Secondary Education": {"Calculus & Statistics",
-                                                     "Calculus & Algebra"},
+        "Hong Kong Diploma of Secondary Education": {
+            "Calculus & Statistics",
+            "Calculus & Algebra",
+        },
     }
 
 
 def physics_mapping():
-    return {"GCE Advanced Level": {"Physics A", "Physics"},
-            "Reformed A Level": {"Physics"},
-            "Reformed A Level England": {"Physics"},
-            "Pearson Edexcel International Advanced Level": {"Physics"},
-            "Cambridge International A Level": {"Physics"},
-            "Cambridge Pre-U Certificate (Principal Subject)": {"Physics (principal subject)"},
-            "Pre-U Certificate": {"Physics"},
-            "SQA Advanced Highers": {"Physics C857", "Physics"},
-            "ILC": {"Physics"},
-            "Pearson Edexcel International Advanced Level": {"Physics"},
-            "IB": {"Physics"},
-            "Int. Baccalaureate": {"Physics"},
-            "International Baccalaureate Diploma": {"Physics"},
-            "USA-Advanced Placement Test": {"AP Physics C: Electricity and Magnetism",
-                                            "AP Physics C: Mechanics",
-                                            "AP Physics 1",
-                                            "AP Physics C ELECTRICITY AND MAGNETISM",
-                                            "AP Physics C MECHANICS"
-                                            },
-            "USA- Advanced Placement Test": {"AP Physics C: Electricity and Magnetism",
-                                             "AP Physics C: Mechanics",
-                                             "AP Physics 1",
-                                             "AP Physics C ELECTRICITY AND MAGNETISM",
-                                             "AP Physics C MECHANICS"
-                                             },
-            "Matura- Poland": {"Physics",
-                               "Physics - bilingual",
-                               },
-            "New Matura- Poland": {
-                "Physics Level: Advanced",
-    },
+    return {
+        "GCE Advanced Level": {"Physics A", "Physics"},
+        "Reformed A Level": {"Physics"},
+        "Reformed A Level England": {"Physics"},
+        "Pearson Edexcel International Advanced Level": {"Physics"},
+        "Cambridge International A Level": {"Physics"},
+        "Cambridge Pre-U Certificate (Principal Subject)": {
+            "Physics (principal subject)"
+        },
+        "Pre-U Certificate": {"Physics"},
+        "SQA Advanced Highers": {"Physics C857", "Physics"},
+        "ILC": {"Physics"},
+        "Pearson Edexcel International Advanced Level": {"Physics"},
+        "IB": {"Physics"},
+        "Int. Baccalaureate": {"Physics"},
+        "International Baccalaureate Diploma": {"Physics"},
+        "USA-Advanced Placement Test": {
+            "AP Physics C: Electricity and Magnetism",
+            "AP Physics C: Mechanics",
+            "AP Physics 1",
+            "AP Physics C ELECTRICITY AND MAGNETISM",
+            "AP Physics C MECHANICS",
+        },
+        "USA- Advanced Placement Test": {
+            "AP Physics C: Electricity and Magnetism",
+            "AP Physics C: Mechanics",
+            "AP Physics 1",
+            "AP Physics C ELECTRICITY AND MAGNETISM",
+            "AP Physics C MECHANICS",
+        },
+        "Matura- Poland": {"Physics", "Physics - bilingual",},
+        "New Matura- Poland": {"Physics Level: Advanced",},
         "Romania- Diploma de Bacalaureat": {"Physics"},
-        "France - Baccalaureat General (from 2021)": {"physics",
-                                                      "Physics", },
-        "France- Baccalaureat": {"Physics-Chemistry Specialism",
-                                 "Expert Mathematics"},
-        "France- Option Internationale du Baccalaureat (OIB)": {"Physics Chemistry Major (Specialism)",
-                                                                "Physics and chemistry"
-                                                                "Physics & chemistry",
-                                                                "Physics & Chemistry"},
+        "France - Baccalaureat General (from 2021)": {"physics", "Physics",},
+        "France- Baccalaureat": {"Physics-Chemistry Specialism", "Expert Mathematics"},
+        "France- Option Internationale du Baccalaureat (OIB)": {
+            "Physics Chemistry Major (Specialism)",
+            "Physics and chemistry" "Physics & chemistry",
+            "Physics & Chemistry",
+        },
         "France - Option Internationale du Baccalaureat (OIB) (from 2021)": {
-                "Physics & Chemistry",
-                "Physics & chemistry",
-                "Physics and chemistry"
-    },
+            "Physics & Chemistry",
+            "Physics & chemistry",
+            "Physics and chemistry",
+        },
         "India-Indian School Certificate (ISC)": {"Physics"},
-        "All India Senior School Certificate (CBSE)": {"Physics",
-                                                       "PHYSICS", },
+        "All India Senior School Certificate (CBSE)": {"Physics", "PHYSICS",},
         "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Physics"},
         "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
-                "Physics"
-    },
+            "Physics"
+        },
         "GCE A Level (H2)": {"Physics"},
-        "Hong Kong Diploma of Secondary Education": {"Physics",
-                                                     },
-        "Spain-Titulo de Bachiller": {"Physics and Chemistry",
-                                      "Physics"},
-        "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {"Physics advanced course", "Physics", "Physics advanced"},
+        "Hong Kong Diploma of Secondary Education": {"Physics",},
+        "Spain-Titulo de Bachiller": {"Physics and Chemistry", "Physics"},
+        "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {
+            "Physics advanced course",
+            "Physics",
+            "Physics advanced",
+        },
         "Abitur": {"Physics advanced course", "Physics", "Physics advanced"},
         "Italy-Diploma di Esame di Stato": {"Physics"},
     }
