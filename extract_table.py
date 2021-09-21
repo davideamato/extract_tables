@@ -1,6 +1,6 @@
-'''
+"""
     File extract table of grades from UCAS forms
-'''
+"""
 
 import subprocess
 
@@ -12,7 +12,20 @@ from time import localtime, strftime
 import logging
 import tabula
 
-from utils import check_output_dirs_exist, copy_file, copy_pdfs_to_pool, initialise_logger, desired_tables,  fix_broken_table, get_exit_string,  get_files_and_ids, get_internal_mapping, order_pdfs_to_target_id_input
+from utils import (
+    check_output_dirs_exist,
+    copy_file,
+    copy_pdfs_to_pool,
+    initialise_logger,
+    desired_tables,
+    fix_broken_table,
+    get_exit_string,
+    get_files_and_ids,
+    get_previous_ids,
+    update_previous_id_database,
+    get_internal_mapping,
+    order_pdfs_to_target_id_input,
+)
 from student import ExtractedStudents
 from student import Student
 import settings
@@ -24,7 +37,8 @@ initialise_logger()
 
 PATH_TO_FILES = settings.path_to_pdfs_to_extract
 INTERNAL_MAPPING = get_internal_mapping(
-    settings.path_to_mapping_file, settings.qualification_mapping_sheet_name)
+    settings.path_to_mapping_file, settings.qualification_mapping_sheet_name
+)
 # print(INTERNAL_MAPPING)
 
 # Generates full path to the files to extract data from
@@ -45,6 +59,7 @@ if __name__ == "__main__":
     print(f"Start Time: {start_time}")
 
     check_output_dirs_exist()
+    past_ids = get_previous_ids(settings.path_to_database_of_extracted_pdfs)
     ALL_FILES, APPLICANT_IDS = order_pdfs_to_target_id_input(ALL_FILES, APPLICANT_IDS)
 
     # Initialise object to store extracted information
@@ -70,14 +85,20 @@ if __name__ == "__main__":
         while True:
             try:
                 # Extract table from pdf
-                tables = tabula.read_pdf(file, pages=str(page_number), lattice=True,
-                                         guess=True, pandas_options={"header": 0},)
+                tables = tabula.read_pdf(
+                    file,
+                    pages=str(page_number),
+                    lattice=True,
+                    guess=True,
+                    pandas_options={"header": 0},
+                )
             except subprocess.CalledProcessError:
                 logging.warning("EOF reached before exit condition")
                 logging.warning(f"Check file with ID: {app_id}")
                 all_students.add_student_sequentially(
-                    Student(app_id, grade_tables, grade_counters), counter)
-                copy_file(file, all_students, app_id) 
+                    Student(app_id, grade_tables, grade_counters), counter
+                )
+                copy_file(file, all_students, app_id)
                 # If EOF reached before exit table
                 # This shouldn't happen
                 break
@@ -107,8 +128,9 @@ if __name__ == "__main__":
             if exit_loop:
                 # Add completed form to all students
                 all_students.add_student_sequentially(
-                    Student(app_id, grade_tables, grade_counters), counter)
-                copy_file(file, all_students, app_id) 
+                    Student(app_id, grade_tables, grade_counters), counter
+                )
+                copy_file(file, all_students, app_id)
                 # print("")
                 break
 
@@ -148,6 +170,7 @@ if __name__ == "__main__":
 
     all_students.write_to_excel(settings.output_path)
     copy_pdfs_to_pool(ALL_FILES)
+    update_previous_id_database(settings.database_of_extracted_pdfs)
 
     end_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
     print(f"End Time: {end_time}")
