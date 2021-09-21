@@ -45,7 +45,6 @@ if __name__ == "__main__":
     print(f"Start Time: {start_time}")
 
     check_output_dirs_exist()
-    # check_ids_correspond(APPLICANT_IDS)
     ALL_FILES, APPLICANT_IDS = order_pdfs_to_target_id_input(ALL_FILES, APPLICANT_IDS)
 
     # Initialise object to store extracted information
