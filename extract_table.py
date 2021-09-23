@@ -21,7 +21,6 @@ from utils import (
     fix_broken_table,
     get_exit_string,
     get_files_and_ids,
-    get_previous_ids,
     update_previous_id_database,
     get_internal_mapping,
     order_pdfs_to_target_id_input,
@@ -59,7 +58,6 @@ if __name__ == "__main__":
     print(f"Start Time: {start_time}")
 
     check_output_dirs_exist()
-    past_ids = get_previous_ids(settings.path_to_database_of_extracted_pdfs)
     ALL_FILES, APPLICANT_IDS = order_pdfs_to_target_id_input(ALL_FILES, APPLICANT_IDS)
 
     # Initialise object to store extracted information
