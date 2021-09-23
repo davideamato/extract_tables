@@ -6,7 +6,6 @@ import subprocess
 
 from collections import Counter
 from tqdm import tqdm
-from time import localtime, strftime
 
 
 import logging
@@ -16,6 +15,7 @@ from utils import (
     check_output_dirs_exist,
     copy_file,
     copy_pdfs_to_pool,
+    get_current_time,
     initialise_logger,
     desired_tables,
     fix_broken_table,
@@ -54,7 +54,7 @@ EXIT_STRING = get_exit_string()
 
 if __name__ == "__main__":
 
-    start_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+    start_time = get_current_time()
     print(f"Start Time: {start_time}")
 
     check_output_dirs_exist()
@@ -170,5 +170,5 @@ if __name__ == "__main__":
     copy_pdfs_to_pool(ALL_FILES)
     update_previous_id_database(settings.database_of_extracted_pdfs)
 
-    end_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+    end_time = get_current_time()
     print(f"End Time: {end_time}")
