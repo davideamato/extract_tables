@@ -119,11 +119,13 @@ def check_target_id_file_settings():
     else:
         if settings.is_banner_cumulative:
             raise InputError(
-                settings.is_banner_cumulative and settings.is_id_file_banner, "If ID is NOT banner, is_banner_cumulative must be False"
+                settings.is_banner_cumulative and settings.is_id_file_banner,
+                "If ID is NOT banner, is_banner_cumulative must be False",
             )
         elif settings.which_column is not None:
             raise InputError(
-                not settings.is_id_file_banner and settings.which_column is not None, "If ID is NOT banner, which_column must be None",
+                not settings.is_id_file_banner and settings.which_column is not None,
+                "If ID is NOT banner, which_column must be None",
             )
 
 
@@ -297,34 +299,50 @@ def get_files_and_ids(abs_path):
     return lst_of_paths, lst_of_ids
 
 
+def check_batch_num_against_database(past_batch_nums):
+    # Check and get user input on whether to continue based on batch number
+    if max(past_batch_nums) > settings.batch_number:
+        raise InputError(
+            max(past_batch_nums) > settings.batch_number,
+            "Current batch number is less than largest previous batch number",
+        )
+    elif max(past_batch_nums) == settings.batch_number:
+        print(
+            f"Current batch number is {settings.batch_number} and is the same as max. previous batch number "
+        )
+        print("Is this correct? yes/no")
+        is_correct = input()
+        while is_correct not in {"yes", "no"}:
+            is_correct = input("Please enter 'yes' or 'no' ")
+
+        if is_correct == "no":
+            raise Exception
+
+
+def read_database_file(database_path):
+    database_ids = []
+    past_batch_nums = set()
+
+    with open(database_path, "r") as database_file:
+        database_reader = csv.DictReader(database_file, delimiter=",")
+
+        # Put past ids into list, other information is for human
+        for row in database_reader:
+            database_ids.append(
+                row[settings.database_headers[settings.database_header_id_num_index]]
+            )
+            past_batch_nums.add(
+                row[settings.database_headers[settings.database_header_batch_index]]
+            )
+
+        check_batch_num_against_database(past_batch_nums)
+
+    return database_ids
+
+
 def get_previous_ids(database_path):
     if os.path.exists(database_path):
-        database_ids = []
-        past_batch_nums = set()
-
-        with open(database_path, "r") as database_file:
-            database_reader = csv.DictReader(database_file, delimiter=",")
-
-            # Put past ids into list, other information is for human
-            for row in database_reader:
-                database_ids.append(
-                    row[
-                        settings.database_headers[settings.database_header_id_num_index]
-                    ]
-                )
-                past_batch_nums.add(
-                    row[settings.database_headers[settings.database_header_batch_index]]
-                )
-
-            # Check and get user input on whether to continue based on batch number
-            if max(past_batch_nums) > settings.batch_number:
-                raise InputError(
-                    max(past_batch_nums) > settings.batch_number,
-                    "Current batch number is less than largest previous batch number",
-                )
-            elif max(past_batch_nums) == settings.batch_number:
-
-
+        database_ids = read_database_file(database_path)
         # Return None if list is empty
         if database_ids:
             return database_ids
