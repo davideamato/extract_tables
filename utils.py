@@ -323,7 +323,10 @@ def get_files_and_ids(abs_path):
     )
 
     # Extract IDs from file names
-    lst_of_ids = [file.split("_")[3] for file in lst_of_paths]
+    lst_of_ids = [
+        os.path.basename(file).split("_")[settings.pdf_filename_split_index]
+        for file in lst_of_paths
+    ]
 
     num_files = len(lst_of_paths)
     logging.info(f"Total of {num_files} files")
