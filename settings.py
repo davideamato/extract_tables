@@ -34,13 +34,19 @@ path_to_mapping_file = get_full_file_path(
 # target_ucas_id_file = "target_ids.xlsx"
 target_ucas_id_file = "Banner_Example.xlsx"
 is_id_file_banner = True
+is_banner_cumulative = True
 which_column = "F"
 # is_id_file_banner = False
+# is_banner_cumulative = False
 # which_column = None
+
 path_to_target_file = path_to_pdfs_to_extract
 path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
 
-database_of_extracted_pdfs = "previously_extracted.yaml"
+database_headers = ["ID No.", "Batch No.", "Timestamp"]
+database_header_id_num_index = 0
+database_header_batch_index = 1
+database_of_extracted_pdfs = "previously_extracted.csv"
 path_to_database_of_extracted_pdfs = get_full_file_path(
     os.path.join(".", "data"), database_of_extracted_pdfs
 )
