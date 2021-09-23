@@ -21,12 +21,17 @@ def get_full_path(path):
 ############### INPUT RELATED ################
 ##############################################
 
-path_to_pdfs_to_extract = os.path.join(".", "pdfs")
+# _ is used as a delimeter to split the filename of the pdf
+# This index is for which item in the list (from split) corresponds to the 
+# ID of an applicant 
+pdf_filename_split_index = 2
+
+path_to_pdfs_to_extract = os.path.join(".", "pdf_subset")
 path_to_pdfs_to_extract = get_full_path(path_to_pdfs_to_extract)
 
 qualification_mapping_filename = "mapping.xlsx"
 qualification_mapping_sheet_name = "Mapping"
-path_to_mapping_file = path_to_pdfs_to_extract
+path_to_mapping_file = os.path.join(".", "pdfs")
 path_to_mapping_file = get_full_file_path(
     path_to_mapping_file, qualification_mapping_filename
 )
@@ -40,13 +45,12 @@ which_column = "F"
 # is_banner_cumulative = False
 # which_column = None
 
-path_to_target_file = path_to_pdfs_to_extract
+path_to_target_file = os.path.join(".", "pdfs")
 path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
 
 database_headers = ["ID No.", "Batch No.", "Timestamp"]
 database_header_id_num_index = 0
 database_header_batch_index = 1
-database_header_timestamp_index = 2
 database_of_extracted_pdfs = "previously_extracted.csv"
 path_to_database_of_extracted_pdfs = get_full_file_path(
     os.path.join(".", "data"), database_of_extracted_pdfs
