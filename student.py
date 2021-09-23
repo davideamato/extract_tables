@@ -1,13 +1,22 @@
-'''
+"""
     Contains the objects for table extraction 
-'''
+"""
 
 from collections import Counter
 import re
-from utils import (InputError, desired_tables, detail_string,
-                   escape_backslash_r, is_abs_path, math_mapping, physics_mapping,
-                   fm_mapping, qualifications_with_overall_score, valid_exams,
-                   ib_permutations)
+from utils import (
+    InputError,
+    desired_tables,
+    detail_string,
+    escape_backslash_r,
+    is_abs_path,
+    math_mapping,
+    physics_mapping,
+    fm_mapping,
+    qualifications_with_overall_score,
+    valid_exams,
+    ib_permutations,
+)
 
 from pandas import isna
 import os
@@ -16,11 +25,13 @@ from random import randint
 
 
 class GradeEntry:
-    '''
+    """
         Class to store the grades
-    '''
+    """
 
-    def __init__(self, qualification, subject, grade, is_predicted, year, is_exam_result):
+    def __init__(
+        self, qualification, subject, grade, is_predicted, year, is_exam_result
+    ):
         if type(grade) is str:
             self.grade = escape_backslash_r(grade)
         else:
@@ -36,24 +47,36 @@ class GradeEntry:
 
     def __repr__(self):
         return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted: {} Exam Result: {}".format(
-            self.qualification, self.subject, self.grade, self.year, self.is_predicted, self.is_exam_result)
+            self.qualification,
+            self.subject,
+            self.grade,
+            self.year,
+            self.is_predicted,
+            self.is_exam_result,
+        )
 
     def __str__(self):
         return r"Qualification: {} Subject: {} Grade: {} Year: {} Predicted: {} Exam Result: {}".format(
-            self.qualification, self.subject, self.grade, self.year, self.is_predicted, self.is_exam_result)
+            self.qualification,
+            self.subject,
+            self.grade,
+            self.year,
+            self.is_predicted,
+            self.is_exam_result,
+        )
 
 
 class ExtractedStudents:
-    '''
+    """
         Class that stores all the students and co-ordinates the output
-    '''
+    """
 
     def __init__(self, applicant_ids, internal_mapping):
         self.student_ids = applicant_ids
 
         self.num_students = len(applicant_ids)
 
-        self.all_students = [None]*self.num_students
+        self.all_students = [None] * self.num_students
 
         self.internal_mapping = internal_mapping
 
@@ -70,7 +93,7 @@ class ExtractedStudents:
         return self
 
     def __next__(self):
-        if self.index == self.num_students-1:
+        if self.index == self.num_students - 1:
             raise StopIteration
 
         self.index += 1
@@ -81,8 +104,10 @@ class ExtractedStudents:
         if new_student.unique_id == self.student_ids[counter]:
             self.all_students[counter] = new_student
         else:
-            raise RuntimeError("The order of adding students is incorrect \n"
-                               "This should be done sequentially IDs in list should correspond")
+            raise RuntimeError(
+                "The order of adding students is incorrect \n"
+                "This should be done sequentially IDs in list should correspond"
+            )
 
     def assign_students_to_marker(self):
         # Get details from settings
@@ -103,7 +128,7 @@ class ExtractedStudents:
         remainder = self.num_students % num_parts
 
         # Allocate based of num parts per marker
-        num_allocated = [parts*students_per_part for parts in ratio]
+        num_allocated = [parts * students_per_part for parts in ratio]
 
         # Randomly add remainder to markers
         for _ in range(remainder):
@@ -117,11 +142,14 @@ class ExtractedStudents:
             name = initials + str(settings.batch_number)
 
             # Allocate by slicing list
-            allocation[name] = self.student_ids[start_index:start_index + num_students]
+            allocation[name] = self.student_ids[
+                start_index : start_index + num_students
+            ]
 
             # Write text file containing IDs to folder
             path_to_marker_pdfs = os.path.join(
-                settings.output_path, name, settings.ids_in_folder_file)
+                settings.output_path, name, settings.ids_in_folder_file
+            )
             with open(path_to_marker_pdfs, "w") as file:
                 file.write(" ,".join(allocation[name]))
 
@@ -157,21 +185,33 @@ class ExtractedStudents:
 
         lb = 2
 
-        for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
+        for row_counter, student in zip(
+            range(lb, self.num_students + lb), self.all_students
+        ):
 
-            ws.cell(row=row_counter, column=1,
-                    value="{}".format(student.unique_id))
+            ws.cell(row=row_counter, column=1, value="{}".format(student.unique_id))
 
             if student.which_grades[desired_data]:
-                ws.cell(row=row_counter, column=2, value="{}".format(
-                    student.which_grades[desired_data][0].qualification))
+                ws.cell(
+                    row=row_counter,
+                    column=2,
+                    value="{}".format(
+                        student.which_grades[desired_data][0].qualification
+                    ),
+                )
                 col_counter = 3
 
                 for entry in student.which_grades[desired_data]:
-                    ws.cell(row=row_counter, column=col_counter,
-                            value="{}".format(entry.subject))
-                    ws.cell(row=row_counter, column=col_counter +
-                            1, value="{}".format(entry.grade))
+                    ws.cell(
+                        row=row_counter,
+                        column=col_counter,
+                        value="{}".format(entry.subject),
+                    )
+                    ws.cell(
+                        row=row_counter,
+                        column=col_counter + 1,
+                        value="{}".format(entry.grade),
+                    )
                     col_counter += 2
 
         return ws
@@ -201,14 +241,14 @@ class ExtractedStudents:
     def update_al_string(categorised_entries, input_string, is_fm):
         if is_fm:
             # If fm => min 3 subjects
-            if categorised_entries['additional_subjects']:
+            if categorised_entries["additional_subjects"]:
                 # If the list is not empty => 4 or more subjects
                 return input_string + " (A*AAA)"
             else:
                 # If the list is empty => 3 subjects
                 return input_string + " (A*A*A)"
         else:
-            if len(categorised_entries['additional_subjects']) > 1:
+            if len(categorised_entries["additional_subjects"]) > 1:
                 return input_string + " (A*AAA)"
             else:
                 # If the list is empty => 3 subjects
@@ -220,10 +260,11 @@ class ExtractedStudents:
 
         lb = 2
 
-        for row_counter, student in zip(range(lb, self.num_students+lb), self.all_students):
+        for row_counter, student in zip(
+            range(lb, self.num_students + lb), self.all_students
+        ):
             # Fill in UCAS ID
-            ws.cell(row=row_counter, column=1,
-                    value="{}".format(student.unique_id))
+            ws.cell(row=row_counter, column=1, value="{}".format(student.unique_id))
 
             # Fill with admin details
             ws.cell(row=row_counter, column=13, value=settings.cycle)
@@ -231,8 +272,11 @@ class ExtractedStudents:
             # [student.unique_id] => get value using that key
             # [0] => first value in list (value of key is a list)
             # [:2] => slice first two letters in string (initials of maker)
-            ws.cell(row=row_counter, column=14,
-                    value=self.student_to_marker_mapping[student.unique_id][0][:2])
+            ws.cell(
+                row=row_counter,
+                column=14,
+                value=self.student_to_marker_mapping[student.unique_id][0][:2],
+            )
             ws.cell(row=row_counter, column=15, value=settings.batch_number)
 
             # Categorise each entry into subjects
@@ -257,27 +301,31 @@ class ExtractedStudents:
 
             if "A Levels" in sanitised_string:
                 sanitised_string = self.update_al_string(
-                    categorised_entries, sanitised_string, is_fm)
+                    categorised_entries, sanitised_string, is_fm
+                )
 
             # Fill in the qualification to the worksheet
-            ws.cell(row=row_counter, column=2,
-                    value="{}".format(sanitised_string.strip()))
+            ws.cell(
+                row=row_counter, column=2, value="{}".format(sanitised_string.strip())
+            )
 
             # Create log for issues
-            any_issues = self.log_issues(
-                categorised_entries, uk_based, ws, row_counter)
+            any_issues = self.log_issues(categorised_entries, uk_based, ws, row_counter)
 
             # Get all unique qualifications
             qualification = student.unique_qualifications()
 
             # Identify if the qualification has an overall score
             # Intersection of qualification set and set of qualifications with overall score is not empty
-            intersection_qualification = qualification & qualifications_with_overall_score()
+            intersection_qualification = (
+                qualification & qualifications_with_overall_score()
+            )
             # If it does, find the overall score
             if intersection_qualification:
 
                 overall_grade = self.determine_overall_grade(
-                    intersection_qualification, student)
+                    intersection_qualification, student
+                )
 
                 # If an overall grade exists, populate cell
                 num_overall_grade = len(overall_grade)
@@ -286,31 +334,45 @@ class ExtractedStudents:
                 if num_overall_grade > 1:
                     # Log multiple grades as an issue
                     if any_issues is not None:
-                        any_issues.append(
-                            "Multiple overall score. 1st selected.")
+                        any_issues.append("Multiple overall score. 1st selected.")
                     else:
                         # If any_issue is None => M&P grade not found. Skip rest of loop
-                        ws.cell(row=row_counter, column=3,
-                                value="M&P missing, need manual entry. Multiple overall score. 1st selected.")
-                        output_overall_grade = self.strip_overall_grade_spaces(overall_grade)
-                        ws.cell(row=row_counter, column=12,
-                                value="{}".format(output_overall_grade))
+                        ws.cell(
+                            row=row_counter,
+                            column=3,
+                            value="M&P missing, need manual entry. Multiple overall score. 1st selected.",
+                        )
+                        output_overall_grade = self.strip_overall_grade_spaces(
+                            overall_grade
+                        )
+                        ws.cell(
+                            row=row_counter,
+                            column=12,
+                            value="{}".format(output_overall_grade),
+                        )
                         continue
 
                 # Populate if list is not empty
                 if num_overall_grade != 0:
-                    output_overall_grade = self.strip_overall_grade_spaces(overall_grade)
-                    ws.cell(row=row_counter, column=12,
-                            value="{}".format(output_overall_grade))
+                    output_overall_grade = self.strip_overall_grade_spaces(
+                        overall_grade
+                    )
+                    ws.cell(
+                        row=row_counter,
+                        column=12,
+                        value="{}".format(output_overall_grade),
+                    )
 
             # If M&P missing, clearly there is an issue. Skip the rest of loop
             if any_issues is None:
-                ws.cell(row=row_counter, column=3,
-                        value="M&P missing, need manual entry")
+                ws.cell(
+                    row=row_counter, column=3, value="M&P missing, need manual entry"
+                )
                 continue
 
-            self.populate_grades(categorised_entries, ws,
-                                 is_fm, row_counter, any_issues, uk_based)
+            self.populate_grades(
+                categorised_entries, ws, is_fm, row_counter, any_issues, uk_based
+            )
 
             # Compress list of strings into a single string
             any_issues = self.compress_log(any_issues)
@@ -352,7 +414,9 @@ class ExtractedStudents:
         else:
             return grade_val.strip()
 
-    def populate_grades(self, categorised_entries, ws, is_fm, row_counter, any_issues, uk_based):
+    def populate_grades(
+        self, categorised_entries, ws, is_fm, row_counter, any_issues, uk_based
+    ):
         # Populate subject and grades
         subjectCounter = 0
         map_subject_num_to_cols = {0: [5], 1: [6], 2: [7, 8], 3: [9, 10]}
@@ -393,15 +457,17 @@ class ExtractedStudents:
             else:
 
                 exam_result_entries = [
-                    entry for entry in subject_entries if entry.is_exam_result]
+                    entry for entry in subject_entries if entry.is_exam_result
+                ]
                 predicted_entries = [
-                    entry for entry in subject_entries if entry.is_predicted]
+                    entry for entry in subject_entries if entry.is_predicted
+                ]
                 excel_col = excel_col
 
-                map_counter_to_subject = {
-                    0: "math", 1: "physics", 2: "3rd", 3: "4th"}
-                any_issues.append("For {}, selected ".format(
-                    map_counter_to_subject[subjectCounter]))
+                map_counter_to_subject = {0: "math", 1: "physics", 2: "3rd", 3: "4th"}
+                any_issues.append(
+                    "For {}, selected ".format(map_counter_to_subject[subjectCounter])
+                )
 
                 # # REFACTOR
                 if len(exam_result_entries) == 1:
@@ -409,19 +475,16 @@ class ExtractedStudents:
                     selected = exam_result_entries[0]
                 elif len(exam_result_entries) > 1:
                     any_issues[-1] += "exam result"
-                    selected = self.select_an_entry(
-                        exam_result_entries, any_issues)
+                    selected = self.select_an_entry(exam_result_entries, any_issues)
                 elif len(predicted_entries) == 1:
                     any_issues[-1] += "predicted grade"
                     selected = predicted_entries[0]
                 elif len(predicted_entries) > 1:
                     any_issues[-1] += "predicted grade"
-                    selected = self.select_an_entry(
-                        predicted_entries, any_issues)
+                    selected = self.select_an_entry(predicted_entries, any_issues)
                 else:
                     any_issues[-1] += "from all"
-                    selected = self.select_an_entry(
-                        subject_entries, any_issues)
+                    selected = self.select_an_entry(subject_entries, any_issues)
 
                 for col, val in zip(excel_col, selected.grade_info):
                     val = self.sanitise_grade_of_pass(val)
@@ -454,8 +517,7 @@ class ExtractedStudents:
                 else:
                     overall_grade += grade_val
 
-        ws.cell(row=row_counter, column=12,
-                value="{}".format(overall_grade))
+        ws.cell(row=row_counter, column=12, value="{}".format(overall_grade))
 
     @staticmethod
     def determine_overall_grade(intersection_qualification, student):
@@ -483,11 +545,13 @@ class ExtractedStudents:
             else:
                 overall_grade = []
         else:
-            intersection_qualification = list(
-                intersection_qualification)
+            intersection_qualification = list(intersection_qualification)
             # Get all grades that aren't none
-            overall_grade = [item for qualification in intersection_qualification for item in student.get_grade_for_qualification(
-                qualification)]
+            overall_grade = [
+                item
+                for qualification in intersection_qualification
+                for item in student.get_grade_for_qualification(qualification)
+            ]
 
         return overall_grade
 
@@ -499,8 +563,9 @@ class ExtractedStudents:
 
         # If the list is empty then look for highest grade
         if not years:
-            grades = [str(entry.grade)
-                      for entry in lst_of_entries if entry.grade is not None]
+            grades = [
+                str(entry.grade) for entry in lst_of_entries if entry.grade is not None
+            ]
             # If this list is not empty, no issues. Take the highest
             if grades:
                 any_issues[-1] += "highest "
@@ -517,13 +582,13 @@ class ExtractedStudents:
             return lst_of_entries[years.index(max(years))]
 
         max_year = max(years)
-        most_recent = [
-            entry for entry in lst_of_entries if entry.year == max_year]
+        most_recent = [entry for entry in lst_of_entries if entry.year == max_year]
         if len(most_recent) > 1:
             # Max year is repeated
 
-            grades = [str(entry.grade)
-                      for entry in most_recent if entry.grade is not None]
+            grades = [
+                str(entry.grade) for entry in most_recent if entry.grade is not None
+            ]
             any_issues[-1] += "highest most recent "
 
             return lst_of_entries[grades.index(max(grades))]
@@ -539,8 +604,9 @@ class ExtractedStudents:
 
     @staticmethod
     def log_issues(categorised_entries, uk_based, ws, rowCounter):
-        convert_lst_to_bool = [not bool(cat_entry)
-                               for cat_entry in categorised_entries.values()]
+        convert_lst_to_bool = [
+            not bool(cat_entry) for cat_entry in categorised_entries.values()
+        ]
         # All lists in categorised entries are empty
         if all(convert_lst_to_bool):
             return "No valid qual & subjects."
@@ -561,7 +627,11 @@ class ExtractedStudents:
                 else:
                     # log.append(">4 Subjects.")
                     ws.cell(row=rowCounter, column=4, value=">4")
-            elif entries_length == 0 and subject != "fm" and subject != "additional_subjects":
+            elif (
+                entries_length == 0
+                and subject != "fm"
+                and subject != "additional_subjects"
+            ):
                 log.append("{} missing.".format(subject))
 
         return log
@@ -583,13 +653,14 @@ class ExtractedStudents:
                 for entry in grade_entries:
                     if entry.subject in math_mapping().get(entry.qualification, set()):
                         categorised_entries["math"].append(entry)
-                    elif entry.subject in physics_mapping().get(entry.qualification, set()):
+                    elif entry.subject in physics_mapping().get(
+                        entry.qualification, set()
+                    ):
                         categorised_entries["physics"].append(entry)
                     elif entry.subject in fm_mapping().get(entry.qualification, set()):
                         categorised_entries["fm"].append(entry)
                     else:
-                        categorised_entries["additional_subjects"].append(
-                            entry)
+                        categorised_entries["additional_subjects"].append(entry)
 
         return categorised_entries
 
@@ -618,9 +689,9 @@ class ExtractedStudents:
 
 
 class Student:
-    '''
+    """
         Class for a single pdf/student
-    '''
+    """
 
     def __init__(self, id, extracted_tables, table_headers):
         self.unique_id = id
@@ -665,9 +736,11 @@ class Student:
         self.sanitise_ib_grades()
 
     def __repr__(self):
-        return "{} \n {} \n {}".format(self.completed_qualifications,
-                                       self.uncompleted_qualifications,
-                                       self.exam_results)
+        return "{} \n {} \n {}".format(
+            self.completed_qualifications,
+            self.uncompleted_qualifications,
+            self.exam_results,
+        )
 
     def sanitise_ib_grades(self):
 
@@ -677,7 +750,10 @@ class Student:
         if all_quals & ib_permutations():
             # Get grade entries that are not empty
             non_empty_grade_entries_key = [
-                entry_key for entry_key in self.which_grades.keys() if self.which_grades.get(entry_key)]
+                entry_key
+                for entry_key in self.which_grades.keys()
+                if self.which_grades.get(entry_key)
+            ]
 
             # Iterate over non-empty grade entries
             for grade_entries_key in non_empty_grade_entries_key:
@@ -686,9 +762,13 @@ class Student:
 
                 # Filter out standard level subjects
                 grade_entries = [
-                    entry for entry in current_entries if not ("S" in str(entry.grade).upper() or
-                                                               "stand lvl" in str(entry.subject).lower() or
-                                                               "standard lvl" in str(entry.subject).lower())
+                    entry
+                    for entry in current_entries
+                    if not (
+                        "S" in str(entry.grade).upper()
+                        or "stand lvl" in str(entry.subject).lower()
+                        or "standard lvl" in str(entry.subject).lower()
+                    )
                 ]
 
                 for entry in grade_entries:
@@ -709,8 +789,12 @@ class Student:
                 self.which_grades[grade_entries_key] = grade_entries
 
     def get_all_qualifications(self):
-        return [item.qualification for grade_entries in self.which_grades.values(
-        ) if grade_entries for item in grade_entries]
+        return [
+            item.qualification
+            for grade_entries in self.which_grades.values()
+            if grade_entries
+            for item in grade_entries
+        ]
 
     def unique_qualifications(self):
         return set(self.get_all_qualifications())
@@ -731,11 +815,15 @@ class Student:
                 for item in values:
                     # It is the qualification we are looking for.
                     # The grade is not None AND year is not None (implies it is a module/detail entry)
-                    if target_qualification in item.qualification and item.grade is not None and item.year is not None:
+                    if (
+                        target_qualification in item.qualification
+                        and item.grade is not None
+                        and item.year is not None
+                    ):
                         yield item.grade
 
     def is_detailed_entry(self, input_qualification, rowCounter):
-        target = input_qualification['Date'][rowCounter]
+        target = input_qualification["Date"][rowCounter]
         if type(target) is not str:
             return False
 
@@ -753,13 +841,15 @@ class Student:
         else:
             raise NotImplementedError
 
-        if not isna(input_qualification[qualification_identifier][rowCounter-1]):
-            qualification = input_qualification[qualification_identifier][rowCounter-1]
+        if not isna(input_qualification[qualification_identifier][rowCounter - 1]):
+            qualification = input_qualification[qualification_identifier][
+                rowCounter - 1
+            ]
         else:
             qualification = None
 
         output = []
-        all_module_details = input_qualification['Body'][rowCounter]
+        all_module_details = input_qualification["Body"][rowCounter]
 
         # Ignores the first entry which would just be the date
         individual_modules = all_module_details.split("Title:")[1:]
@@ -777,14 +867,7 @@ class Student:
             else:
                 grade = None
 
-            entry = GradeEntry(
-                qualification,
-                module_info,
-                grade,
-                True,
-                None,
-                False,
-            )
+            entry = GradeEntry(qualification, module_info, grade, True, None, False,)
             output.append(entry)
 
         return output
@@ -798,29 +881,32 @@ class Student:
             if self.is_completed_qual_valid(row):
 
                 entry = GradeEntry(
-                    self.completed_qualifications['Exam'][row],
-                    self.completed_qualifications['Subject'][row],
-                    self.completed_qualifications['Grade'][row],
+                    self.completed_qualifications["Exam"][row],
+                    self.completed_qualifications["Subject"][row],
+                    self.completed_qualifications["Grade"][row],
                     False,
-                    self.completed_qualifications['Date'][row].split("-")[-1],
+                    self.completed_qualifications["Date"][row].split("-")[-1],
                     False,
                 )
 
                 self.completed_entries.append(entry)
 
-            elif self.is_detailed_entry(self.completed_qualifications, row) and self.is_completed_qual_valid(row-1):
+            elif self.is_detailed_entry(
+                self.completed_qualifications, row
+            ) and self.is_completed_qual_valid(row - 1):
 
                 detailed_entries = self.handle_detailed_entry(
-                    self.completed_qualifications, row)
+                    self.completed_qualifications, row
+                )
                 self.completed_entries += detailed_entries
 
         return self.completed_entries
 
     def is_completed_qual_valid(self, row):
-        if isna(self.completed_qualifications['Exam'][row]):
+        if isna(self.completed_qualifications["Exam"][row]):
             return False
 
-        if self.completed_qualifications['Exam'][row] in valid_exams():
+        if self.completed_qualifications["Exam"][row] in valid_exams():
             return True
         else:
             return False
@@ -834,11 +920,11 @@ class Student:
             if self.is_examresult_valid(row):
 
                 entry = GradeEntry(
-                    self.exam_results['Exam Level'][row],
-                    self.exam_results['Subject'][row],
-                    self.exam_results['Grade'][row],
+                    self.exam_results["Exam Level"][row],
+                    self.exam_results["Subject"][row],
+                    self.exam_results["Grade"][row],
                     False,
-                    self.exam_results['Date'][row].split("-")[-1],
+                    self.exam_results["Date"][row].split("-")[-1],
                     True,
                 )
 
@@ -846,17 +932,16 @@ class Student:
 
             elif self.is_detailed_entry(self.exam_results, row):
 
-                detailed_entries = self.handle_detailed_entry(
-                    self.exam_results, row)
+                detailed_entries = self.handle_detailed_entry(self.exam_results, row)
                 self.results_entries += detailed_entries
 
         return self.results_entries
 
     def is_examresult_valid(self, row):
-        if isna(self.exam_results['Exam Level'][row]):
+        if isna(self.exam_results["Exam Level"][row]):
             return False
 
-        if self.exam_results['Exam Level'][row] in valid_exams():
+        if self.exam_results["Exam Level"][row] in valid_exams():
             return True
         else:
             return False
@@ -868,64 +953,69 @@ class Student:
         for row in self.uncompleted_qualifications.index:
 
             is_pred_grade = isna(
-                self.uncompleted_qualifications['Predicted\rGrade'][row])
-            is_grade = isna(self.uncompleted_qualifications['Grade'][row])
+                self.uncompleted_qualifications["Predicted\rGrade"][row]
+            )
+            is_grade = isna(self.uncompleted_qualifications["Grade"][row])
 
             if is_pred_grade ^ is_grade:
 
                 if is_pred_grade:
-                    valid_grade = self.uncompleted_qualifications['Grade'][row]
+                    valid_grade = self.uncompleted_qualifications["Grade"][row]
                 else:
-                    valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row]
+                    valid_grade = self.uncompleted_qualifications["Predicted\rGrade"][
+                        row
+                    ]
 
-                if isna(self.uncompleted_qualifications['Exam'][row]):
-                    qualification = self.uncompleted_qualifications['Body'][row]
+                if isna(self.uncompleted_qualifications["Exam"][row]):
+                    qualification = self.uncompleted_qualifications["Body"][row]
                 else:
-                    qualification = self.uncompleted_qualifications['Exam'][row]
+                    qualification = self.uncompleted_qualifications["Exam"][row]
 
                 entry = GradeEntry(
                     qualification,
-                    self.uncompleted_qualifications['Subject'][row],
+                    self.uncompleted_qualifications["Subject"][row],
                     valid_grade,
                     True,
-                    self.uncompleted_qualifications['Date'][row].split(
-                        "-")[-1],
+                    self.uncompleted_qualifications["Date"][row].split("-")[-1],
                     False,
                 )
                 self.predicted_entries.append(entry)
 
             elif (not is_pred_grade) & (not is_grade):
 
-                if "Unnamed" in self.uncompleted_qualifications['Grade'][row]:
-                    valid_grade = self.uncompleted_qualifications['Predicted\rGrade'][row]
+                if "Unnamed" in self.uncompleted_qualifications["Grade"][row]:
+                    valid_grade = self.uncompleted_qualifications["Predicted\rGrade"][
+                        row
+                    ]
                 else:
-                    valid_grade = self.uncompleted_qualifications['Grade'][row]
+                    valid_grade = self.uncompleted_qualifications["Grade"][row]
 
-                if isna(self.uncompleted_qualifications['Exam'][row]):
-                    qualification = self.uncompleted_qualifications['Body'][row]
+                if isna(self.uncompleted_qualifications["Exam"][row]):
+                    qualification = self.uncompleted_qualifications["Body"][row]
                 else:
-                    qualification = self.uncompleted_qualifications['Exam'][row]
+                    qualification = self.uncompleted_qualifications["Exam"][row]
 
                 entry = GradeEntry(
                     qualification,
-                    self.uncompleted_qualifications['Subject'][row],
+                    self.uncompleted_qualifications["Subject"][row],
                     valid_grade,
                     True,
-                    self.uncompleted_qualifications['Date'][row].split(
-                        "-")[-1],
-                    False
+                    self.uncompleted_qualifications["Date"][row].split("-")[-1],
+                    False,
                 )
                 self.predicted_entries.append(entry)
 
-            elif type(self.uncompleted_qualifications['Date'][row]) is str:
-                if is_pred_grade & is_grade and self.uncompleted_qualifications['Date'][row] in detail_string():
-                    all_module_details = self.uncompleted_qualifications[
-                        'Body'][row]
+            elif type(self.uncompleted_qualifications["Date"][row]) is str:
+                if (
+                    is_pred_grade & is_grade
+                    and self.uncompleted_qualifications["Date"][row] in detail_string()
+                ):
+                    all_module_details = self.uncompleted_qualifications["Body"][row]
 
-                    if isna(self.uncompleted_qualifications['Exam'][row-1]):
-                        qualification = self.uncompleted_qualifications['Body'][row-1]
+                    if isna(self.uncompleted_qualifications["Exam"][row - 1]):
+                        qualification = self.uncompleted_qualifications["Body"][row - 1]
                     else:
-                        qualification = self.uncompleted_qualifications['Exam'][row-1]
+                        qualification = self.uncompleted_qualifications["Exam"][row - 1]
 
                     # Ignores the first entry which would just be the date
                     individual_modules = all_module_details.split("Title:")[1:]
@@ -950,12 +1040,7 @@ class Student:
                             grade = None
 
                         entry = GradeEntry(
-                            qualification,
-                            subject,
-                            grade,
-                            True,
-                            None,
-                            False,
+                            qualification, subject, grade, True, None, False,
                         )
                         self.predicted_entries.append(entry)
 
