@@ -1,5 +1,6 @@
 import os
 import logging
+import csv
 import shutil
 
 from collections import Counter
@@ -103,7 +104,33 @@ def check_output_dirs_exist():
             raise NotADirectoryError(f"{folder_name} Folder does not exists")
 
 
+def check_target_id_file_settings():
+    if settings.is_id_file_banner:
+        if settings.which_column is None:
+            raise InputError(
+                settings.is_id_file_banner and settings.which_column is None,
+                "If ID file is banner, which column must be specified",
+            )
+        elif settings.is_banner_cumulative is None:
+            raise InputError(
+                settings.is_id_file_banner and settings.is_banner_cumulative is None,
+                "If ID file is banner, this must be True or False (a boolean)",
+            )
+    else:
+        if settings.is_banner_cumulative:
+            raise InputError(
+                settings.is_banner_cumulative and settings.is_id_file_banner, "If ID is NOT banner, is_banner_cumulative must be False"
+            )
+        elif settings.which_column is not None:
+            raise InputError(
+                not settings.is_id_file_banner and settings.which_column is not None, "If ID is NOT banner, which_column must be None",
+            )
+
+
 def check_ids_correspond(ids_from_pdf_folder):
+
+    check_target_id_file_settings()
+
     if settings.is_id_file_banner:
         data_from_sheet = read_excel(
             settings.path_to_target_file,
@@ -118,52 +145,58 @@ def check_ids_correspond(ids_from_pdf_folder):
         )
     ids_from_excel = data_from_sheet.values.flatten().tolist()
 
-    # Enforce same type - both Integers
-    ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
-    # ids_from_excel = [int(item) for item in ids_from_excel]
-
-    # Convert to set to allow for testing intersection
-    ids_from_pdf_folder = set(ids_from_pdf_folder)
-    ids_from_excel = set(ids_from_excel)
-
-    intersection = ids_from_excel & ids_from_pdf_folder
-
-    # Intersection lap is empty => No overlap
-    if not intersection:
-        logging.error(
-            f"Mismatch in IDs."
-            f"IDs in {settings.path_to_pdfs_to_extract} folder don't "
-            f"match IDs in {settings.target_ucas_id_file} file"
+    if settings.is_id_file_banner and settings.is_banner_cumulative:
+        ids_from_database = get_previous_ids(
+            settings.path_to_database_of_extracted_pdfs
         )
-        raise InputError(
-            not intersection,
-            "IDs from PDF folder does not match IDs to extract in Excel file",
-        )
+    else:
 
-    # Difference between set and intersection
-    not_in_excel = ids_from_pdf_folder - intersection
-    not_in_folder = ids_from_excel - intersection
-    # A set is not empty => something is missing
-    # Both empty => no issues
-    if not_in_excel or not_in_folder:
-        logging.error(
-            f"Overlap in IDs between Excel file and folder of PDFs not 100% match"
-        )
+        # Enforce same type - both Integers
+        ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
+        # ids_from_excel = [int(item) for item in ids_from_excel]
 
-        # Convert to list to iterate over
-        not_in_folder = list(not_in_folder)
-        not_in_excel = list(not_in_excel)
-        for item in not_in_folder:
-            logging.error(f"{item} ID not in folder but in Excel file")
-        for item in not_in_excel:
-            logging.error(f"{item} ID not in Excel file but in folder")
+        # Convert to set to allow for testing intersection
+        ids_from_pdf_folder = set(ids_from_pdf_folder)
+        ids_from_excel = set(ids_from_excel)
 
-        raise InputError(
-            not not_in_excel or not not_in_folder,
-            f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
-        )
+        intersection = ids_from_excel & ids_from_pdf_folder
 
-    return ids_from_excel
+        # Intersection lap is empty => No overlap
+        if not intersection:
+            logging.error(
+                f"Mismatch in IDs."
+                f"IDs in {settings.path_to_pdfs_to_extract} folder don't "
+                f"match IDs in {settings.target_ucas_id_file} file"
+            )
+            raise InputError(
+                not intersection,
+                "IDs from PDF folder does not match IDs to extract in Excel file",
+            )
+
+        # Difference between set and intersection
+        not_in_excel = ids_from_pdf_folder - intersection
+        not_in_folder = ids_from_excel - intersection
+        # A set is not empty => something is missing
+        # Both empty => no issues
+        if not_in_excel or not_in_folder:
+            logging.error(
+                f"Overlap in IDs between Excel file and folder of PDFs not 100% match"
+            )
+
+            # Convert to list to iterate over
+            not_in_folder = list(not_in_folder)
+            not_in_excel = list(not_in_excel)
+            for item in not_in_folder:
+                logging.error(f"{item} ID not in folder but in Excel file")
+            for item in not_in_excel:
+                logging.error(f"{item} ID not in Excel file but in folder")
+
+            raise InputError(
+                not not_in_excel or not not_in_folder,
+                f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
+            )
+
+        return ids_from_excel
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
@@ -262,6 +295,47 @@ def get_files_and_ids(abs_path):
     print("Check log for details")
 
     return lst_of_paths, lst_of_ids
+
+
+def get_previous_ids(database_path):
+    if os.path.exists(database_path):
+        database_ids = []
+        past_batch_nums = set()
+
+        with open(database_path, "r") as database_file:
+            database_reader = csv.DictReader(database_file, delimiter=",")
+
+            # Put past ids into list, other information is for human
+            for row in database_reader:
+                database_ids.append(
+                    row[
+                        settings.database_headers[settings.database_header_id_num_index]
+                    ]
+                )
+                past_batch_nums.add(
+                    row[settings.database_headers[settings.database_header_batch_index]]
+                )
+
+            # Check and get user input on whether to continue based on batch number
+            if max(past_batch_nums) > settings.batch_number:
+                raise InputError(
+                    max(past_batch_nums) > settings.batch_number,
+                    "Current batch number is less than largest previous batch number",
+                )
+            elif max(past_batch_nums) == settings.batch_number:
+
+
+        # Return None if list is empty
+        if database_ids:
+            return database_ids
+        else:
+            return None
+    else:
+        return None
+
+
+def update_previous_id_database(database_path):
+    return True
 
 
 def check_broken_table(current_page_number, filename, current_table):
