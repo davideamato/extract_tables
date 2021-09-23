@@ -162,58 +162,58 @@ def check_ids_correspond(ids_from_pdf_folder):
         )
         # ids_from_database = set(ids_from_database)
         print(ids_from_database)
-        if ids_from_database is not None:
+    else:
+        ids_from_database = None
+        print(ids_from_database)
 
-            # if not ids_from_database.issubset(ids_from_excel):
-            #     raise InputError(
-            #         not ids_from_database.issubset(ids_from_excel),
-            #         "Database IDs are not a subset of target ids file",
-            #     )
+    if ids_from_database is not None:
 
-            if not ids_from_target_file.issuperset(ids_from_database):
-                not_in_target = set(ids_from_database) - ids_from_target_file
-                print(
-                    f"Following IDs in database but not in target ids file: {not_in_target}"
-                )
-                logging.error(
-                    f"Following IDs in database but not in target ids file: {not_in_target}"
-                )
-                raise InputError(
-                    not ids_from_target_file.issuperset(ids_from_database),
-                    "Target ids file is not a super set of database IDs",
-                )
+        # if not ids_from_database.issubset(ids_from_excel):
+        #     raise InputError(
+        #         not ids_from_database.issubset(ids_from_excel),
+        #         "Database IDs are not a subset of target ids file",
+        #     )
 
-            if not ids_from_target_file.issuperset(ids_from_pdf_folder):
-                not_in_target = ids_from_pdf_folder - ids_from_target_file
-                # print(f"PDFs for IDs found but not in target file")
-                # print(f"IDs: {not_in_target}")
-                print(
-                    f"Following IDs in PDFs but not in target ids file: {not_in_target}"
-                )
+        if not ids_from_target_file.issuperset(ids_from_database):
+            not_in_target = set(ids_from_database) - ids_from_target_file
+            print(
+                f"Following IDs in database but not in target ids file: {not_in_target}"
+            )
+            logging.error(
+                f"Following IDs in database but not in target ids file: {not_in_target}"
+            )
+            raise InputError(
+                not ids_from_target_file.issuperset(ids_from_database),
+                "Target ids file is not a super set of database IDs",
+            )
 
-                logging.warning(
-                    f"Following IDs in PDFs but not in target ids file: {not_in_target}"
-                )
+        if not ids_from_target_file.issuperset(ids_from_pdf_folder):
+            not_in_target = ids_from_pdf_folder - ids_from_target_file
+            # print(f"PDFs for IDs found but not in target file")
+            # print(f"IDs: {not_in_target}")
+            print(f"Following IDs in PDFs but not in target ids file: {not_in_target}")
 
-                # raise InputError(
-                #     not ids_from_target_file.issuperset(ids_from_database),
-                #     "Target ids file is not a super set of PDF IDs"
-                # )
+            logging.warning(
+                f"Following IDs in PDFs but not in target ids file: {not_in_target}"
+            )
 
-            # New IDs are defined as IDs in target file but not in database
-            new_ids = ids_from_target_file - set(ids_from_database)
+            # raise InputError(
+            #     not ids_from_target_file.issuperset(ids_from_database),
+            #     "Target ids file is not a super set of PDF IDs"
+            # )
 
-            if ids_from_pdf_folder.issuperset(new_ids):
-                return list(new_ids)
-            else:
-                missing_ids = new_ids - ids_from_pdf_folder
-                logging.error(
-                    f"Following IDs are new but PDF not found: {missing_ids}",
-                )
-                raise InputError(
-                    ids_from_pdf_folder.issuperset(new_ids),
-                    f"Following IDs are new but PDF not found: {missing_ids}",
-                )
+        # New IDs are defined as IDs in target file but not in database
+        new_ids = ids_from_target_file - set(ids_from_database)
+
+        if ids_from_pdf_folder.issuperset(new_ids):
+            return list(new_ids)
+        else:
+            missing_ids = new_ids - ids_from_pdf_folder
+            logging.error(f"Following IDs are new but PDF not found: {missing_ids}",)
+            raise InputError(
+                ids_from_pdf_folder.issuperset(new_ids),
+                f"Following IDs are new but PDF not found: {missing_ids}",
+            )
 
     else:
 
