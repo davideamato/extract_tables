@@ -2,6 +2,7 @@ import os
 import logging
 import csv
 import shutil
+from time import localtime, strftime
 
 from collections import Counter
 from pandas import read_excel
@@ -323,7 +324,7 @@ def read_database_file(database_path):
     database_ids = []
     past_batch_nums = set()
 
-    with open(database_path, "r") as database_file:
+    with open(database_path, "rb") as database_file:
         database_reader = csv.DictReader(database_file, delimiter=",")
 
         # Put past ids into list, other information is for human
@@ -352,7 +353,39 @@ def get_previous_ids(database_path):
         return None
 
 
-def update_previous_id_database(database_path):
+def update_previous_id_database(database_path, new_ids):
+    if os.path.exists(database_path):
+        is_existing_file = True
+        open_mode = "ab"
+    else:
+        is_existing_file = False
+        open_mode = "wb"
+
+    timestamp = strftime("%Y-%m-%d %H:%M", localtime())
+
+    with open(database_path, open_mode) as database_file:
+        database_writer = csv.DictWriter(
+            database_file, fieldnames=settings.database_headers, delimiter=","
+        )
+
+        if not is_existing_file:
+            database_writer.writeheader()
+
+        for id_num in new_ids:
+            database_writer.writerow(
+                {
+                    settings.database_headers[
+                        settings.database_header_id_num_index
+                    ]: id_num,
+                    settings.database_headers[
+                        settings.database_header_batch_index
+                    ]: settings.batch_number,
+                    settings.database_headers[
+                        settings.database_header_timestamp_index
+                    ]: timestamp,
+                }
+            )
+
     return True
 
 
