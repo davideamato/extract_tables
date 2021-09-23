@@ -146,26 +146,82 @@ def check_ids_correspond(ids_from_pdf_folder):
         data_from_sheet = read_excel(
             settings.path_to_target_file, engine="openpyxl", dtype=int, header=None
         )
-    ids_from_excel = data_from_sheet.values.flatten().tolist()
+    ids_from_target_file = data_from_sheet.values.flatten().tolist()
+
+    # Enforce same type - both Integers
+    ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
+    # ids_from_excel = [int(item) for item in ids_from_excel]
+
+    # Convert to set to allow for testing intersection
+    ids_from_pdf_folder = set(ids_from_pdf_folder)
+    ids_from_target_file = set(ids_from_target_file)
 
     if settings.is_id_file_banner and settings.is_banner_cumulative:
         ids_from_database = get_previous_ids(
             settings.path_to_database_of_extracted_pdfs
         )
+        # ids_from_database = set(ids_from_database)
+        print(ids_from_database)
+        if ids_from_database is not None:
+
+            # if not ids_from_database.issubset(ids_from_excel):
+            #     raise InputError(
+            #         not ids_from_database.issubset(ids_from_excel),
+            #         "Database IDs are not a subset of target ids file",
+            #     )
+
+            if not ids_from_target_file.issuperset(ids_from_database):
+                not_in_target = set(ids_from_database) - ids_from_target_file
+                print(
+                    f"Following IDs in database but not in target ids file: {not_in_target}"
+                )
+                logging.error(
+                    f"Following IDs in database but not in target ids file: {not_in_target}"
+                )
+                raise InputError(
+                    not ids_from_target_file.issuperset(ids_from_database),
+                    "Target ids file is not a super set of database IDs",
+                )
+
+            if not ids_from_target_file.issuperset(ids_from_pdf_folder):
+                not_in_target = ids_from_pdf_folder - ids_from_target_file
+                # print(f"PDFs for IDs found but not in target file")
+                # print(f"IDs: {not_in_target}")
+                print(
+                    f"Following IDs in PDFs but not in target ids file: {not_in_target}"
+                )
+
+                logging.warning(
+                    f"Following IDs in PDFs but not in target ids file: {not_in_target}"
+                )
+
+                # raise InputError(
+                #     not ids_from_target_file.issuperset(ids_from_database),
+                #     "Target ids file is not a super set of PDF IDs"
+                # )
+
+            # New IDs are defined as IDs in target file but not in database
+            new_ids = ids_from_target_file - set(ids_from_database)
+
+            if ids_from_pdf_folder.issuperset(new_ids):
+                return list(new_ids)
+            else:
+                missing_ids = new_ids - ids_from_pdf_folder
+                logging.error(
+                    f"Following IDs are new but PDF not found: {missing_ids}",
+                )
+                raise InputError(
+                    ids_from_pdf_folder.issuperset(new_ids),
+                    f"Following IDs are new but PDF not found: {missing_ids}",
+                )
+
     else:
 
-        # Enforce same type - both Integers
-        ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
-        # ids_from_excel = [int(item) for item in ids_from_excel]
-
-        # Convert to set to allow for testing intersection
-        ids_from_pdf_folder = set(ids_from_pdf_folder)
-        ids_from_excel = set(ids_from_excel)
-
-        intersection = ids_from_excel & ids_from_pdf_folder
+        intersection = ids_from_target_file & ids_from_pdf_folder
 
         # Intersection lap is empty => No overlap
-        if not intersection:
+        if ids_from_target_file.isdisjoint(ids_from_pdf_folder):
+            # if not intersection:
             logging.error(
                 f"Mismatch in IDs."
                 f"IDs in {settings.path_to_pdfs_to_extract} folder don't "
@@ -178,7 +234,7 @@ def check_ids_correspond(ids_from_pdf_folder):
 
         # Difference between set and intersection
         not_in_excel = ids_from_pdf_folder - intersection
-        not_in_folder = ids_from_excel - intersection
+        not_in_folder = ids_from_target_file - intersection
         # A set is not empty => something is missing
         # Both empty => no issues
         if not_in_excel or not_in_folder:
@@ -199,7 +255,7 @@ def check_ids_correspond(ids_from_pdf_folder):
                 f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
             )
 
-        return ids_from_excel
+        return ids_from_target_file
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
@@ -353,6 +409,10 @@ def get_previous_ids(database_path):
         return None
 
 
+def get_current_time():
+    return strftime("%Y-%m-%d %H:%M", localtime())
+
+
 def update_previous_id_database(database_path, new_ids):
     if os.path.exists(database_path):
         is_existing_file = True
@@ -385,8 +445,6 @@ def update_previous_id_database(database_path, new_ids):
                     ]: timestamp,
                 }
             )
-
-    return True
 
 
 def check_broken_table(current_page_number, filename, current_table):
