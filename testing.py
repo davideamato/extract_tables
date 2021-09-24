@@ -16,7 +16,7 @@ from utils import (
 import utils
 
 unittest.TestLoader.sortTestMethodsUsing = None
-
+settings.terminate_if_batch_num_repeated = False
 
 def clear_folder(folder_path):
     if os.listdir(folder_path):
