@@ -245,10 +245,6 @@ def check_ids_correspond(ids_from_pdf_folder):
             print(msg)
             logging.warning(msg)
 
-            # raise InputError(
-            #     not ids_from_target_file.issuperset(ids_from_database),
-            #     "Target ids file is not a super set of PDF IDs"
-            # )
 
         # New IDs are defined as IDs in target file but not in database
         new_ids = ids_from_target_file - ids_from_database
@@ -302,30 +298,6 @@ def check_ids_correspond(ids_from_pdf_folder):
                 logging.error(msg)
                 raise InputError("ids_from_target_file != intersection", msg)
 
-        # # Difference between set and intersection
-        # not_in_excel = ids_from_pdf_folder - intersection
-        # not_in_folder = ids_from_target_file - intersection
-        # # A set is not empty => something is missing
-        # # Both empty => no issues
-        # if not_in_excel or not_in_folder:
-        #     logging.error(
-        #         f"Overlap in IDs between Excel file and folder of PDFs not 100% match"
-        #     )
-
-        #     # Convert to list to iterate over
-        #     not_in_folder = list(not_in_folder)
-        #     not_in_excel = list(not_in_excel)
-        #     for item in not_in_folder:
-        #         logging.error(f"{item} ID not in folder but in Excel file")
-        #     for item in not_in_excel:
-        #         logging.error(f"{item} ID not in Excel file but in folder")
-
-        #     raise InputError(
-        #         not not_in_excel or not not_in_folder,
-        #         f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
-        #     )
-
-        # return list(ids_from_target_file)
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
