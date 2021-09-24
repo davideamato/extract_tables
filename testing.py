@@ -103,12 +103,13 @@ class TestIDCorrespondence(unittest.TestCase):
         self.assertSetEqual(correct_ids, set(solution))
 
     def test_banner_target_no_database_is_cumulative(self):
-        # same behaviour as previous
-        # no database means it doesn't matter whether or not it is cumulative
+        # Fails if batch number != 1
+        # Suceeds if batch number == 1
+        # No database but cumulative => Repetition will be present therefore fails
         path_to_files = get_full_path(os.path.join(".", "test_no_database_cumulative"))
 
         settings.is_id_file_banner = True
-        settings.is_banner_cumulative = False
+        settings.is_banner_cumulative = True
 
         settings.path_to_pdfs_to_extract = path_to_files
         settings.path_to_target_file = get_full_file_path(
@@ -123,6 +124,15 @@ class TestIDCorrespondence(unittest.TestCase):
         solution = check_ids_correspond(applicant_ids)
 
         self.assertSetEqual(correct_ids, set(solution))
+
+        settings.batch_number = 2
+        with self.assertRaises(Exception) as context:
+            check_ids_correspond(applicant_ids)
+
+        self.assertTrue(
+            "No database values found but banner is cumulative"
+            in str(context.exception)
+        )
 
     @patch("utils.get_batch_continue_input", return_value="yes")
     def test_banner_target_with_database_not_cumulative_disjoint(self, mock_input):
