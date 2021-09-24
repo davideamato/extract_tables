@@ -420,7 +420,7 @@ def get_files_and_ids(abs_path):
     return lst_of_paths, lst_of_ids
 
 
-def check_batch_num_against_database(past_batch_nums):
+def check_batch_num_against_database(past_batch_nums, is_same_then_terminate=False):
     # Check and get user input on whether to continue based on batch number
     prev_max_batch_num = max(past_batch_nums)
     print(
@@ -433,7 +433,7 @@ def check_batch_num_against_database(past_batch_nums):
             f"Current batch number ({settings.batch_number}) is less than largest previous batch number ({prev_max_batch_num})",
         )
     elif prev_max_batch_num == settings.batch_number:
-        if settings.terminate_if_batch_num_repeated:
+        if is_same_then_terminate:
             raise InputError(
                 "prev_max_batch_num == settings.batch_number",
                 "Please increment batch number by 1",
@@ -477,7 +477,9 @@ def read_database_file(database_path):
                 )
             )
 
-        check_batch_num_against_database(past_batch_nums)
+        check_batch_num_against_database(
+            past_batch_nums, is_same_then_terminate=settings.terminate_if_batch_num_repeated
+        )
 
     return database_ids
 
