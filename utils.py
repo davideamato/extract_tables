@@ -292,7 +292,9 @@ def check_ids_correspond(ids_from_pdf_folder):
                 "IDs from PDF folder does not match IDs to extract in Excel file",
             )
 
-        if ids_from_pdf_folder > ids_from_target_file:
+        if ids_from_pdf_folder > ids_from_target_file or (
+            ids_from_pdf_folder - ids_from_target_file
+        ):
             not_in_target = ids_from_pdf_folder - ids_from_target_file
             not_in_target = ", ".join([str(item) for item in list(not_in_target)])
             msg = (
@@ -305,15 +307,14 @@ def check_ids_correspond(ids_from_pdf_folder):
             logging.warning(msg)
 
             return list(ids_from_target_file)
+        elif ids_from_target_file == intersection:
+            return list(ids_from_target_file)
         else:
-            if ids_from_target_file == intersection:
-                return list(ids_from_target_file)
-            else:
-                file_not_found = ids_from_target_file - intersection
-                file_not_found = ", ".join([str(item) for item in list(file_not_found)])
-                msg = f"Following ID(s) in target file but PDF not found: {file_not_found}"
-                logging.error(msg)
-                raise InputError("ids_from_target_file != intersection", msg)
+            file_not_found = ids_from_target_file - intersection
+            file_not_found = ", ".join([str(item) for item in list(file_not_found)])
+            msg = f"Following ID(s) in target file but PDF not found: {file_not_found}"
+            logging.error(msg)
+            raise InputError("ids_from_target_file != intersection", msg)
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
@@ -424,7 +425,7 @@ def check_batch_num_against_database(past_batch_nums, is_same_then_terminate=Fal
     # Check and get user input on whether to continue based on batch number
     prev_max_batch_num = max(past_batch_nums)
     print(
-        f"Current batch number: {settings.batch_number}"
+        f"Current batch number: {settings.batch_number}\t"
         + f"Largest previous batch number: {prev_max_batch_num}"
     )
     if prev_max_batch_num > settings.batch_number:
@@ -478,7 +479,8 @@ def read_database_file(database_path):
             )
 
         check_batch_num_against_database(
-            past_batch_nums, is_same_then_terminate=settings.terminate_if_batch_num_repeated
+            past_batch_nums,
+            is_same_then_terminate=settings.terminate_if_batch_num_repeated,
         )
 
     return database_ids
