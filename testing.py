@@ -17,6 +17,7 @@ import utils
 
 unittest.TestLoader.sortTestMethodsUsing = None
 
+
 def clear_folder(folder_path):
     if os.listdir(folder_path):
         # https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
@@ -79,10 +80,10 @@ class TestIDCorrespondence(unittest.TestCase):
     def test_banner_target_no_database_not_cumulative(self):
         # suceeds
         # Should have same behaviour as if banner is not target
+
         path_to_files = get_full_path(
             os.path.join(".", "test_no_database_not_cumulative")
         )
-        _, applicant_ids = get_files_and_ids(path_to_files)
 
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = False
@@ -95,16 +96,16 @@ class TestIDCorrespondence(unittest.TestCase):
             path_to_files, settings.database_of_extracted_pdfs
         )
 
+        _, applicant_ids = get_files_and_ids(path_to_files)
         correct_ids = {1462950865, 1461856964, 1483858362}
         solution = check_ids_correspond(applicant_ids)
 
-        self.assertEqual(correct_ids, solution)
+        self.assertSetEqual(correct_ids, set(solution))
 
     def test_banner_target_no_database_is_cumulative(self):
         # same behaviour as previous
         # no database means it doesn't matter whether or not it is cumulative
         path_to_files = get_full_path(os.path.join(".", "test_no_database_cumulative"))
-        _, applicant_ids = get_files_and_ids(path_to_files)
 
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = False
@@ -117,33 +118,39 @@ class TestIDCorrespondence(unittest.TestCase):
             path_to_files, settings.database_of_extracted_pdfs
         )
 
+        _, applicant_ids = get_files_and_ids(path_to_files)
         correct_ids = {1462950865, 1461856964, 1483858362}
         solution = check_ids_correspond(applicant_ids)
 
-        self.assertEqual(correct_ids, solution)
+        self.assertSetEqual(correct_ids, set(solution))
 
-    # def test_banner_target_with_database_not_cumulative(self):
-    #     # suceeds
-    #     path_to_files = get_full_path(
-    #         os.path.join(".", "test_with_database_not_cumulative")
-    #     )
-    #     _, applicant_ids = get_files_and_ids(path_to_files)
+    @patch("utils.get_batch_continue_input", return_value="yes")
+    def test_banner_target_with_database_not_cumulative_fails(self, mock_input):
+        # Fails
+        # If database is provided but target file is not cumulative,
+        # THEN it doesn't know what to do as there is conflicting info
+        path_to_files = get_full_path(
+            os.path.join(".", "test_with_database_not_cumulative")
+        )
 
-    #     settings.is_id_file_banner = True
-    #     settings.is_banner_cumulative = False
+        settings.is_id_file_banner = True
+        settings.is_banner_cumulative = False
 
-    #     settings.path_to_pdfs_to_extract = path_to_files
-    #     settings.path_to_target_file = get_full_file_path(
-    #         path_to_files, settings.target_ucas_id_file
-    #     )
-    #     settings.path_to_database_of_extracted_pdfs = get_full_file_path(
-    #         path_to_files, settings.database_of_extracted_pdfs
-    #     )
+        settings.path_to_pdfs_to_extract = path_to_files
+        settings.path_to_target_file = get_full_file_path(
+            path_to_files, settings.target_ucas_id_file
+        )
+        settings.path_to_database_of_extracted_pdfs = get_full_file_path(
+            path_to_files, settings.database_of_extracted_pdfs
+        )
 
-    #     correct_ids = {1462950865, 1461856964, 1483858362}
-    #     solution = check_ids_correspond(applicant_ids)
+        _, applicant_ids = get_files_and_ids(path_to_files)
 
-    #     self.assertEqual(correct_ids, solution)
+        with self.assertRaises(Exception) as context:
+            check_ids_correspond(applicant_ids)
+
+        self.assertTrue("Target ids file is not a super set of database IDs" in str(context.exception))
+
 
 
 #     def banner_target_with_database_is_cumulative(self):
