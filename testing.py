@@ -13,6 +13,7 @@ from utils import (
     get_previous_ids,
     update_previous_id_database,
 )
+import utils
 
 unittest.TestLoader.sortTestMethodsUsing = None
 
@@ -40,7 +41,7 @@ class TestUpdateDatabase(unittest.TestCase):
         return super().setUp()
 
     @patch("utils.get_batch_continue_input", return_value="yes")
-    def test_1_new_database(self, input):
+    def test_1_new_database(self, mock_input):
 
         clear_folder(self.output_folder)
         new_ids = [random.randint(1400000000, 1500000000) for _ in range(10)]
@@ -51,25 +52,27 @@ class TestUpdateDatabase(unittest.TestCase):
 
         self.assertTrue(os.path.exists(self.output_file))
 
-        # settings.batch_number += 1
         previous_ids = get_previous_ids(self.output_file)
 
         self.assertEqual(set(previous_ids), set(new_ids))
 
     @patch("utils.get_batch_continue_input", return_value="yes")
-    def test_2_append_database(self, input):
+    def test_2_append_database(self, mock_input):
 
         self.assertTrue(os.path.exists(self.output_file))
 
         new_ids = [random.randint(1400000000, 1500000000) for _ in range(10)]
         previous_ids = get_previous_ids(self.output_file)
         settings.batch_number += 1
-
         update_previous_id_database(self.output_file, new_ids)
         ids_from_database = get_previous_ids(self.output_file)
         previous_ids.extend(new_ids)
 
         self.assertEqual(set(ids_from_database), set(previous_ids))
+
+    @patch("utils.get_batch_continue_input", return_value="no")
+    def test_3_dont_continue(self, mock_input):
+        self.assertRaises(Exception, utils.get_batch_continue_input())
 
 
 class TestIDCorrespondence(unittest.TestCase):
