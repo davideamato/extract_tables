@@ -3,6 +3,7 @@ import logging
 import csv
 import shutil
 from time import localtime, strftime
+from unittest.mock import patch
 
 from collections import Counter
 from pandas import read_excel
@@ -359,6 +360,7 @@ def get_files_and_ids(abs_path):
     return lst_of_paths, lst_of_ids
 
 
+# @patch('testing.', return_value = "yes")
 def check_batch_num_against_database(past_batch_nums):
     # Check and get user input on whether to continue based on batch number
     if max(past_batch_nums) > settings.batch_number:
@@ -371,12 +373,25 @@ def check_batch_num_against_database(past_batch_nums):
             f"Current batch number is {settings.batch_number} and is the same as max. previous batch number "
         )
         print("Is this correct? yes/no")
-        is_correct = input()
-        while is_correct not in {"yes", "no"}:
-            is_correct = input("Please enter 'yes' or 'no' ")
+        # is_correct = input()
+        # while is_correct not in {"yes", "no"}:
+        #     is_correct = input("Please enter 'yes' or 'no' ")
 
-        if is_correct == "no":
-            raise Exception
+        # if is_correct == "no":
+        #     raise Exception
+        get_batch_continue_input()
+
+def get_batch_continue_input():
+    # print(
+    #     f"Current batch number is {settings.batch_number} and is the same as max. previous batch number "
+    # )
+    # print("Is this correct? yes/no")
+    is_correct = input()
+    while is_correct not in {"yes", "no"}:
+        is_correct = input("Please enter 'yes' or 'no' ")
+
+    if is_correct == "no":
+        raise Exception
 
 
 def read_database_file(database_path):
@@ -419,7 +434,7 @@ def get_current_time():
 def update_previous_id_database(database_path, new_ids):
     if os.path.exists(database_path):
         is_existing_file = True
-        open_mode = "ab"
+        open_mode = "a"
     else:
         is_existing_file = False
         open_mode = "w"
