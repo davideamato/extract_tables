@@ -1,4 +1,4 @@
-<h1> Extract Tables from PDF </h1>
+# Extract Tables from PDF 
 
 According to internal specifications, this script:
 1. Extracts key information from tables in a pdf
@@ -9,7 +9,7 @@ This does not always result in the "correct" result due to the inconsistency and
 Therefore, this has been written to account for the fact that it will fail at points. The aim is to capture the
 most commonly occuring cases to reduce the overall workload.
 
-<h2> Core Dependency </h2>
+## Core Dependency  
 
 This requires Python 3. It was developed in Python 3.7 and 3.8 so the known minimum is Python 3.7+
 
@@ -18,7 +18,7 @@ a pdf. As this package is a python wrapper of [tabula-java](https://github.com/t
 
 Why [Tabula](https://tabula.technology/) and not [Camelot](https://camelot-py.readthedocs.io/en/master/index.html)? The pdfs to be analysed resulted in Camelot throwing an error while Tabula did not. 
 
-<h2> Installation </h2>
+## Installation  
 
 Installation can be broken down into three main steps:
   1. Download the code base
@@ -28,7 +28,7 @@ After that, you're good to go!
 
 *N.B. on Operating System:* This was developed in Linux (Ubuntu 18.04) and has not been tested in any other operating system.
 
-<h3> Download the Code Base </h3>
+### Download the Code Base  
 
 This should be relatively painless. There are a couple of ways to do this,
   - Using git clone. Go to the folder you want to download into, then run this command
@@ -38,7 +38,7 @@ This should be relatively painless. There are a couple of ways to do this,
   - Download the zip file
   - Click the Green download code button 
 
-<h3> Setting up Python environment </h3>
+### Setting up Python environment  
 
 There are two ways to set up the Python environment - using [pip](https://pypi.org/project/pip/) or [Conda](https://github.com/conda/conda) to download the required Python packages. 
 
@@ -62,7 +62,7 @@ For pip installation, [requirements.txt](requirements.txt) is the `environment.y
        ```
   2. This should have all the requirement packages installed. If in doubt, this [post](https://stackoverflow.com/questions/29980798/where-does-pip-install-its-packages) is quite helpful to understand where pip has installed it to.
 
-<h3> Install Tabula Dependencies </h3>
+### Install Tabula Dependencies  
  
 Tabula requires Java 8+. I think [this](https://www.oracle.com/java/technologies/javase-jre8-downloads.html) is the link to download it. 
 
@@ -70,7 +70,7 @@ If using Tabula on Windows 10, their documentation contains a useful [page](http
 on how to get it to work.
 
 
-<h2> How to use? </h2>
+## How to use?  
 
 ### Overview
 
@@ -228,10 +228,22 @@ For batch number condition:
 ```
 
 ##### What behaviour is defined and what happens?
-The following assume banner input, 
+The following assume banner is target ID file and the associated PDF is present, 
 
-1. Banner is _not_ cumulative and _no_ database is present
-    - This will extract all IDs 
+1. Target ID file is _not_ cumulative and _no_ database is present
+    - Extract all IDs that are in target ID file 
+2. Target ID file _is_ cumulative and _no_ database is present
+    - If batch number is 1, extract all IDs that are in target ID file 
+    - If batch number is _not_ 1, fails. No database but it is cumulative implies there is insufficient information or settings are incorrect
+3. Target ID file is _not_ cumulative and database _is_ present
+    - If database and target are disjoint, then succeed as target is truth
+    - If database intersects target, then remove database IDs from target 
+    - If database superset of target, then fails
+4. Target IDs is identical to database IDs
+    - Fails as there are no new IDs
+5. Target ID file _is_ cumulative and database _is_ present
+    - Typical use case
+    - Extracts new IDs
 
 ### Script Output
 
@@ -316,7 +328,7 @@ Another potential case would be the zero being dropped during the loading from t
 In this case, instituite a check during the loading phase then prepend a `"0"` to the ID as a `str`. 
 
 
-<h2> To Do </h2>
+## To Do  
 
 - [ ] Refactor!
 - [ ] Implement testing. This really should've been done during development
