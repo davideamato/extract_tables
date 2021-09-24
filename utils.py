@@ -131,6 +131,62 @@ def check_target_id_file_settings():
             )
 
 
+def check_database_path():
+    if settings.path_to_database_of_extracted_pdfs is None:
+        if settings.is_banner_cumulative:
+            raise InputError(
+                True,
+                (
+                    "Database not provided BUT target file is cumulative."
+                    + "\nPlease provide a path to database"
+                ),
+            )
+        else:
+            return None
+
+    _, ext = os.path.splitext(settings.database_of_extracted_pdfs)
+
+    if ext != ".csv":
+        raise InputError(True, "Database file MUST be a .csv")
+
+
+def handle_banner_and_database_permutations(ids_from_database):
+    msg = None
+    if settings.is_banner_cumulative and ids_from_database is None:
+        msg = "WARNING: No database values found but banner is cumulative"
+        if settings.batch_number != 1:
+            raise InputError(True, msg)
+        else:
+            msg += (
+                "\n\t Batch number is 1. Will continue on assumption of no previous IDs"
+            )
+            msg += "\n\t Please terminate if this is incorrect"
+    elif not settings.is_banner_cumulative and ids_from_database is not None:
+        msg = (
+            "WARNING: Database values found but banner is not cumulative"
+            + "\nPlease set database path to None if not needed"
+        )
+
+    if msg is not None:
+        print(msg)
+        logging.warning(msg)
+
+
+def get_ids_from_database():
+    if settings.is_id_file_banner:
+        if check_database_path() is None:
+            return None
+
+        ids_from_database = get_previous_ids(
+            settings.path_to_database_of_extracted_pdfs
+        )
+        handle_banner_and_database_permutations(ids_from_database)
+    else:
+        ids_from_database = None
+
+    return ids_from_database
+
+
 def check_ids_correspond(ids_from_pdf_folder):
 
     check_target_id_file_settings()
@@ -157,15 +213,37 @@ def check_ids_correspond(ids_from_pdf_folder):
     ids_from_pdf_folder = set(ids_from_pdf_folder)
     ids_from_target_file = set(ids_from_target_file)
 
-    if settings.is_id_file_banner and settings.is_banner_cumulative:
+    # if settings.is_id_file_banner and settings.is_banner_cumulative:
+    #     ids_from_database = get_previous_ids(
+    #         settings.path_to_database_of_extracted_pdfs
+    #     )
+    #     # ids_from_database = set(ids_from_database)
+    #     # print(ids_from_database)
+    # else:
+    #     ids_from_database = None
+    #     # print(ids_from_database)
+    ids_from_database = get_ids_from_database()
+
+    if settings.is_id_file_banner:
         ids_from_database = get_previous_ids(
             settings.path_to_database_of_extracted_pdfs
         )
         # ids_from_database = set(ids_from_database)
-        print(ids_from_database)
+        # print(ids_from_database)
+        if settings.is_banner_cumulative and ids_from_database is None:
+            msg = "WARNING: No database values but banner is cumulative"
+            print(msg)
+            logging.warning(msg)
+        elif not settings.is_banner_cumulative and ids_from_database is not None:
+            msg = (
+                "WARNING: Database values found but banner is not cumulative"
+                + "\nPlease remove "
+            )
+            print(msg)
+            logging.warning(msg)
     else:
         ids_from_database = None
-        print(ids_from_database)
+        # print(ids_from_database)
 
     if ids_from_database is not None:
 
