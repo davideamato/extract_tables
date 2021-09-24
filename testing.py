@@ -1,5 +1,6 @@
 import os
 import unittest
+from unittest.mock import patch
 import random
 import shutil
 
@@ -13,14 +14,20 @@ from utils import (
     update_previous_id_database,
 )
 
+unittest.TestLoader.sortTestMethodsUsing = None
 
-def cmp(a, b):
-    # https://stackoverflow.com/questions/22490366/how-to-use-cmp-in-python-3
-    return (a > b) - (a < b)
-
-
-# unittest.TestLoader.sortTestMethodsUsing = None
-unittest.TestLoader.sortTestMethodsUsing = lambda _, x, y: cmp(y, x)
+def clear_folder(folder_path):
+    if os.listdir(folder_path):
+        # https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print("Failed to delete %s. Reason: %s" % (file_path, e))
 
 
 class TestUpdateDatabase(unittest.TestCase):
@@ -29,24 +36,13 @@ class TestUpdateDatabase(unittest.TestCase):
         self.output_file = get_full_file_path(
             self.output_folder, settings.database_of_extracted_pdfs,
         )
-        self.populated_ids = None
-
-        if os.listdir(self.output_folder):
-            # https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
-            for filename in os.listdir(self.output_folder):
-                file_path = os.path.join(self.output_folder, filename)
-                try:
-                    if os.path.isfile(file_path) or os.path.islink(file_path):
-                        os.unlink(file_path)
-                    elif os.path.isdir(file_path):
-                        shutil.rmtree(file_path)
-                except Exception as e:
-                    print("Failed to delete %s. Reason: %s" % (file_path, e))
 
         return super().setUp()
 
-    def test_1_new_database(self):
+    @patch("utils.get_batch_continue_input", return_value="yes")
+    def test_1_new_database(self, input):
 
+        clear_folder(self.output_folder)
         new_ids = [random.randint(1400000000, 1500000000) for _ in range(10)]
 
         self.assertFalse(os.path.exists(self.output_file))
@@ -55,24 +51,25 @@ class TestUpdateDatabase(unittest.TestCase):
 
         self.assertTrue(os.path.exists(self.output_file))
 
+        # settings.batch_number += 1
         previous_ids = get_previous_ids(self.output_file)
 
         self.assertEqual(set(previous_ids), set(new_ids))
 
-        self.populated_ids = new_ids
-
-    def test_2_append_database(self):
+    @patch("utils.get_batch_continue_input", return_value="yes")
+    def test_2_append_database(self, input):
 
         self.assertTrue(os.path.exists(self.output_file))
 
         new_ids = [random.randint(1400000000, 1500000000) for _ in range(10)]
+        previous_ids = get_previous_ids(self.output_file)
         settings.batch_number += 1
 
         update_previous_id_database(self.output_file, new_ids)
         ids_from_database = get_previous_ids(self.output_file)
-        self.populated_ids.extend(new_ids)
+        previous_ids.extend(new_ids)
 
-        self.assertEqual(set(ids_from_database), set(self.populated_ids))
+        self.assertEqual(set(ids_from_database), set(previous_ids))
 
 
 class TestIDCorrespondence(unittest.TestCase):
