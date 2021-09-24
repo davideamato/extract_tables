@@ -134,6 +134,105 @@ What are the inputs and what are the used for?
       }`.
       Here, TM will not be allocated any IDs and AP will have double that of EN.
 
+#### Input Update
+
+##### Assumptions
+1. Banner file is input
+    - Replaces target_ids excel file
+    - Contains all previous and new IDs
+2. Treat banner file as the “ground truth”
+    - Implication: IDs from pdf files are a subset of IDs from the banner file
+    - Therefore, behaviour of the code should be
+        1. If an ID from the PDFs is found, __terminate__ – throw InvalidInput error
+        2. If a new ID is not amongst the PDF IDs, __terminate__
+ 
+
+##### Definition of new ID
+An ID is new if,
+1. Exists in banner file
+2. Not exist in existing IDs
+
+The new ID set is the difference between the set of banner IDs and the set of database IDs.
+
+ 
+##### What is the database?
+
+CSV file that contains,
+1. IDs
+2. Associated batch number
+ 
+
+##### What the code will do?
+1. Gets all the IDs from the PDFs
+2. Get IDs from banner file
+3. Get IDs from database
+    1. Check if database exists – Create if it doesn’t, read if it does
+    2. Find the largest previous batch number
+        1. Print to line previous (largest in database) batch number and current batch number from settings
+        2. If they are the same, behaviour depends on `settings.terminate_if_batch_num_repeated` variable. If `True`, it will __terminate__. This is to ensure that the order of the PDFs in the individual marker folders is “correct”. If `False`, user input is required. This is useful if getting of previous IDs is used in a different context.
+4. Find new IDs using set definition
+5. Check correspondence between new IDs and those in PDF folder. __Terminate__ is any of the above assumptions are violated
+ 
+
+##### When is database updated?
+
+It is the last “action” before the script ends
+
+##### Additional settings to configure
+
+For target ids file:
+```py
+  # The standard settings fall into two cases
+
+  # Case 1: File is banner
+  is_id_file_banner = True
+  is_banner_cumulative = True
+  which_column = "F"
+
+  # Case 2: File is not banner
+  is_id_file_banner = False
+  is_banner_cumulative = False
+  which_column = None
+
+  # A less standard setting would be 
+  # Please refer to the testing module (testing.py) to understand the implications or to the section below on "What behaviour is defined and what happens?"
+  is_id_file_banner = True
+  is_banner_cumulative = False
+```
+
+For database file:
+```py
+  # Vars that don't need changing:
+  database_headers = ["ID No.", "Batch No.", "Timestamp"]
+  database_header_id_num_index = 0
+  database_header_batch_index = 1
+  database_header_timestamp_index = 2
+
+  # Case 1: With database
+  database_of_extracted_pdfs = "previously_extracted.csv"
+  path_to_database_of_extracted_pdfs = get_full_file_path(
+      os.path.join(".", "data"), database_of_extracted_pdfs
+  )
+
+  # Case 2: Without database
+  database_of_extracted_pdfs = None
+  path_to_database_of_extracted_pdfs = None
+```
+
+For batch number condition:
+```py
+  # To terminate
+  terminate_if_batch_num_repeated = True
+  # To require user input
+  terminate_if_batch_num_repeated = False
+```
+
+##### What behaviour is defined and what happens?
+The following assume banner input, 
+
+1. Banner is _not_ cumulative and _no_ database is present
+    - This will extract all IDs 
+
 ### Script Output
 
 The main output is the excel file containing the grades. 
