@@ -253,7 +253,7 @@ def check_ids_correspond(ids_from_pdf_folder):
             )
             print(msg)
             logging.warning(msg)
-        elif not (ids_from_pdf_folder - ids_from_target_file):
+        elif ids_from_pdf_folder - ids_from_target_file:
             not_in_target = ids_from_pdf_folder - ids_from_target_file
             not_in_target = ", ".join([str(item) for item in list(not_in_target)])
             msg = f"Following IDs in PDFs but not in target ids file: {not_in_target}"
