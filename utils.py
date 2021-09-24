@@ -3,6 +3,7 @@ import logging
 import csv
 import shutil
 from time import localtime, strftime
+from typing import Iterable
 from unittest.mock import patch
 
 from collections import Counter
@@ -213,16 +214,15 @@ def check_ids_correspond(ids_from_pdf_folder):
     # Enforce same type - both Integers
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
 
-    # Convert to set to allow for testing intersection
+    # Convert to set to allow for obtain desired set
     ids_from_pdf_folder = set(ids_from_pdf_folder)
     ids_from_target_file = set(ids_from_target_file)
-
-    ids_from_database = get_ids_from_database()
+    ids_from_database = set(get_ids_from_database())
 
     if ids_from_database is not None:
 
         if not ids_from_target_file.issuperset(ids_from_database):
-            not_in_target = set(ids_from_database) - ids_from_target_file
+            not_in_target = ids_from_database - ids_from_target_file
             msg = (
                 f"Following IDs in database but not in target ids file: {not_in_target}"
             )
@@ -245,7 +245,7 @@ def check_ids_correspond(ids_from_pdf_folder):
             # )
 
         # New IDs are defined as IDs in target file but not in database
-        new_ids = ids_from_target_file - set(ids_from_database)
+        new_ids = ids_from_target_file - ids_from_database
 
         if ids_from_pdf_folder.issuperset(new_ids):
             return list(new_ids)
@@ -295,7 +295,7 @@ def check_ids_correspond(ids_from_pdf_folder):
                 f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
             )
 
-        return ids_from_target_file
+        return list(ids_from_target_file)
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
@@ -303,7 +303,10 @@ def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
     # Perform check to see if IDs from PDFs and target IDs correspond
     target_ids = check_ids_correspond(ids_from_all_pdfs)
     # Convert to numpy array to get argwhere to work
-    target_ids = np.asarray(list(target_ids))
+    if type(target_ids) is Iterable:
+        target_ids = np.asarray(target_ids)
+    else:
+        target_ids = np.asarray(list(target_ids))
 
     if type(ids_from_all_pdfs) is not list:
         ids_from_all_pdfs = list(ids_from_all_pdfs)
