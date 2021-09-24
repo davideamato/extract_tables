@@ -131,7 +131,7 @@ def check_target_id_file_settings():
             )
 
 
-def check_database_path():
+def is_database_path_valid():
     if settings.path_to_database_of_extracted_pdfs is None:
         if settings.is_banner_cumulative:
             raise InputError(
@@ -142,12 +142,14 @@ def check_database_path():
                 ),
             )
         else:
-            return None
+            return False
 
     _, ext = os.path.splitext(settings.database_of_extracted_pdfs)
 
     if ext != ".csv":
         raise InputError(True, "Database file MUST be a .csv")
+
+    return True
 
 
 def handle_banner_and_database_permutations(ids_from_database):
@@ -175,12 +177,13 @@ def handle_banner_and_database_permutations(ids_from_database):
 
 def get_ids_from_database():
     if settings.is_id_file_banner:
-        if check_database_path() is None:
+        if not is_database_path_valid():
             return None
 
         ids_from_database = get_previous_ids(
             settings.path_to_database_of_extracted_pdfs
         )
+        # print(ids_from_database)
         handle_banner_and_database_permutations(ids_from_database)
     else:
         ids_from_database = None
@@ -221,8 +224,10 @@ def check_ids_correspond(ids_from_pdf_folder):
     if ids_from_database is not None:
         ids_from_database = set(ids_from_database)
 
-        if not ids_from_target_file.issuperset(ids_from_database):
+        if not ids_from_target_file > ids_from_database:
             not_in_target = ids_from_database - ids_from_target_file
+            # not_in_target = list(not_in_target)
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
             msg = (
                 f"Following IDs in database but not in target ids file: {not_in_target}"
             )
@@ -233,8 +238,9 @@ def check_ids_correspond(ids_from_pdf_folder):
                 "Target ids file is not a super set of database IDs",
             )
 
-        if not ids_from_target_file.issuperset(ids_from_pdf_folder):
+        if not ids_from_target_file > ids_from_pdf_folder:
             not_in_target = ids_from_pdf_folder - ids_from_target_file
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
             msg = f"Following IDs in PDFs but not in target ids file: {not_in_target}"
             print(msg)
             logging.warning(msg)
@@ -251,7 +257,8 @@ def check_ids_correspond(ids_from_pdf_folder):
             return list(new_ids)
         else:
             missing_ids = new_ids - ids_from_pdf_folder
-            msg = f"Following IDs are new but PDF not found: {missing_ids}"
+            missing_ids = ", ".join([str(item) for item in list(missing_ids)])
+            msg = f"Following ID(s) are new but PDF not found: {missing_ids}"
             logging.error(msg)
             raise InputError(ids_from_pdf_folder.issuperset(new_ids), msg)
 
@@ -272,30 +279,53 @@ def check_ids_correspond(ids_from_pdf_folder):
                 "IDs from PDF folder does not match IDs to extract in Excel file",
             )
 
-        # Difference between set and intersection
-        not_in_excel = ids_from_pdf_folder - intersection
-        not_in_folder = ids_from_target_file - intersection
-        # A set is not empty => something is missing
-        # Both empty => no issues
-        if not_in_excel or not_in_folder:
-            logging.error(
-                f"Overlap in IDs between Excel file and folder of PDFs not 100% match"
+        if ids_from_pdf_folder > ids_from_target_file:
+            not_in_target = ids_from_pdf_folder - ids_from_target_file
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
+            msg = (
+                "WARNING!! \n"
+                + f"Following ID(s) in PDF folder but not in target file: {not_in_target} \n"
+                + "ONLY processsing IDs in target file \n"
+                + "IDs listed above will be IGNORED"
             )
+            print(msg)
+            logging.warning(msg)
 
-            # Convert to list to iterate over
-            not_in_folder = list(not_in_folder)
-            not_in_excel = list(not_in_excel)
-            for item in not_in_folder:
-                logging.error(f"{item} ID not in folder but in Excel file")
-            for item in not_in_excel:
-                logging.error(f"{item} ID not in Excel file but in folder")
+            return list(ids_from_target_file)
+        else:
+            if ids_from_target_file == intersection:
+                return list(ids_from_target_file)
+            else:
+                file_not_found = ids_from_target_file - intersection
+                file_not_found = ", ".join([str(item) for item in list(file_not_found)])
+                msg = f"Following ID(s) in target file but PDF not found: {file_not_found}"
+                logging.error(msg)
+                raise InputError("ids_from_target_file != intersection", msg)
 
-            raise InputError(
-                not not_in_excel or not not_in_folder,
-                f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
-            )
+        # # Difference between set and intersection
+        # not_in_excel = ids_from_pdf_folder - intersection
+        # not_in_folder = ids_from_target_file - intersection
+        # # A set is not empty => something is missing
+        # # Both empty => no issues
+        # if not_in_excel or not_in_folder:
+        #     logging.error(
+        #         f"Overlap in IDs between Excel file and folder of PDFs not 100% match"
+        #     )
 
-        return list(ids_from_target_file)
+        #     # Convert to list to iterate over
+        #     not_in_folder = list(not_in_folder)
+        #     not_in_excel = list(not_in_excel)
+        #     for item in not_in_folder:
+        #         logging.error(f"{item} ID not in folder but in Excel file")
+        #     for item in not_in_excel:
+        #         logging.error(f"{item} ID not in Excel file but in folder")
+
+        #     raise InputError(
+        #         not not_in_excel or not not_in_folder,
+        #         f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
+        #     )
+
+        # return list(ids_from_target_file)
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
