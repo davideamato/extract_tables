@@ -383,16 +383,16 @@ def read_database_file(database_path):
     database_ids = []
     past_batch_nums = set()
 
-    with open(database_path, "rb") as database_file:
+    with open(database_path, "r") as database_file:
         database_reader = csv.DictReader(database_file, delimiter=",")
 
         # Put past ids into list, other information is for human
         for row in database_reader:
             database_ids.append(
-                row[settings.database_headers[settings.database_header_id_num_index]]
+                int(row[settings.database_headers[settings.database_header_id_num_index]])
             )
             past_batch_nums.add(
-                row[settings.database_headers[settings.database_header_batch_index]]
+                int(row[settings.database_headers[settings.database_header_batch_index]])
             )
 
         check_batch_num_against_database(past_batch_nums)
@@ -422,7 +422,7 @@ def update_previous_id_database(database_path, new_ids):
         open_mode = "ab"
     else:
         is_existing_file = False
-        open_mode = "wb"
+        open_mode = "w"
 
     timestamp = strftime("%Y-%m-%d %H:%M", localtime())
 
