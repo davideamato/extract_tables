@@ -8,50 +8,52 @@ from utils import get_files_and_ids
 class TestIDCorrespondence(unittest.TestCase):
     def banner_target_no_database_not_cumulative(self):
         # suceeds
-        path_to_files = os.path.join(".", "a")
+        # Should have same behaviour as if banner is not target
+        path_to_files = os.path.join(".", "test_no_database_not_cumulative")
         all_files, applicant_ids = get_files_and_ids(path_to_files)
 
         settings.is_id_file_banner = True
-        settings.is_banner_cumulative = True
+        settings.is_banner_cumulative = False
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_no_database_is_cumulative(self):
-        # determine behaviour
-        path_to_files = os.path.join(".", "a")
+        # same behaviour as previous
+        # no database means it doesn't matter whether or not it is cumulative
+        path_to_files = os.path.join(".", "test_no_database_cumulative")
         all_files, applicant_ids = get_files_and_ids(path_to_files)
 
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_not_cumulative(self):
         # suceeds
-        path_to_files = os.path.join(".", "a")
+        path_to_files = os.path.join(".", "test_with_database_not_cumulative")
         all_files, applicant_ids = get_files_and_ids(path_to_files)
 
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_is_cumulative(self):
         # suceeds
-        path_to_files = os.path.join(".", "a")
+        path_to_files = os.path.join(".", "test_with_database_cumulative")
         all_files, applicant_ids = get_files_and_ids(path_to_files)
 
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_not_cumulative_fails(self):
@@ -62,8 +64,8 @@ class TestIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_is_cumulative_fails(self):
@@ -74,19 +76,19 @@ class TestIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def id_only_target_succeeds(self):
-        all_files, applicant_ids = get_files_and_ids(path_to_files)
         path_to_files = os.path.join(".", "a")
+        all_files, applicant_ids = get_files_and_ids(path_to_files)
 
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
 
@@ -99,8 +101,8 @@ class TestFileIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_no_database_is_cumulative(self):
@@ -110,8 +112,8 @@ class TestFileIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_not_cumulative(self):
@@ -121,8 +123,8 @@ class TestFileIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_is_cumulative(self):
@@ -132,8 +134,8 @@ class TestFileIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_not_cumulative_fails(self):
@@ -143,8 +145,8 @@ class TestFileIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def banner_target_with_database_is_cumulative_fails(self):
@@ -154,8 +156,8 @@ class TestFileIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
 
     def id_only_target_succeeds(self):
@@ -164,6 +166,6 @@ class TestFileIDCorrespondence(unittest.TestCase):
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
 
-        settings.path_to_target_file = True
-        settings.path_to_database_of_extracted_pdfs = True
+        settings.path_to_target_file = path_to_files
+        settings.path_to_database_of_extracted_pdfs = path_to_files
         pass
