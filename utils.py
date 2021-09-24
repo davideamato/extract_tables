@@ -46,7 +46,7 @@ def get_internal_mapping(path_to_file, sheet_name):
     if not path_to_file.endswith(".xlsx"):
         logging.error("Mapping file not in xlsx format")
         raise InputError(
-            not path_to_file.endswith(".xlsx"), "Input file must be in xlsx format"
+            'not path_to_file.endswith(".xlsx")', "Input file must be in xlsx format"
         )
 
     input_file = path_to_file
@@ -85,7 +85,9 @@ def is_file_valid(file):
 def is_abs_path(input_path):
     if not os.path.isabs(input_path):
         logging.error("Absolut path to file not provided")
-        raise InputError(os.path.isabs(input_path), "Path provided is not absolute")
+        raise InputError(
+            "not os.path.isabs(input_path)", "Path provided is not absolute"
+        )
 
     return True
 
@@ -110,23 +112,23 @@ def check_target_id_file_settings():
     if settings.is_id_file_banner:
         if settings.which_column is None:
             raise InputError(
-                settings.is_id_file_banner and settings.which_column is None,
+                "settings.is_id_file_banner and settings.which_column is None",
                 "If ID file is banner, which column must be specified",
             )
         elif settings.is_banner_cumulative is None:
             raise InputError(
-                settings.is_id_file_banner and settings.is_banner_cumulative is None,
+                "settings.is_id_file_banner and settings.is_banner_cumulative is None",
                 "If ID file is banner, this must be True or False (a boolean)",
             )
     else:
         if settings.is_banner_cumulative:
             raise InputError(
-                settings.is_banner_cumulative and settings.is_id_file_banner,
+                "settings.is_banner_cumulative and settings.is_id_file_banner",
                 "If ID is NOT banner, is_banner_cumulative must be False",
             )
         elif settings.which_column is not None:
             raise InputError(
-                not settings.is_id_file_banner and settings.which_column is not None,
+                "not settings.is_id_file_banner and settings.which_column is not None",
                 "If ID is NOT banner, which_column must be None",
             )
 
@@ -158,7 +160,7 @@ def handle_banner_and_database_permutations(ids_from_database):
         msg = "WARNING: No database values found but banner is cumulative"
         if settings.batch_number != 1:
             msg += f" and batch number ({settings.batch_number}) != 1 "
-            raise InputError(True, msg)
+            raise InputError("settings.batch_number != 1", msg)
         else:
             msg += (
                 "\n\t Batch number is 1. Will continue on assumption of no previous IDs"
@@ -224,30 +226,45 @@ def check_ids_correspond(ids_from_pdf_folder):
     if ids_from_database is not None:
         ids_from_database = set(ids_from_database)
 
-        if not ids_from_target_file > ids_from_database:
+        # print(ids_from_target_file)
+        # print(ids_from_pdf_folder)
+        # print(ids_from_database)
+
+        if ids_from_target_file < ids_from_database:
             not_in_target = ids_from_database - ids_from_target_file
             # not_in_target = list(not_in_target)
             not_in_target = ", ".join([str(item) for item in list(not_in_target)])
             msg = (
-                f"Following IDs in database but not in target ids file: {not_in_target}"
+                "Database IDs is a superset of target IDs"
+                + f"Following IDs in database but not in target ids file: {not_in_target}"
             )
             print(msg)
             logging.error(msg)
             raise InputError(
-                not ids_from_target_file.issuperset(ids_from_database),
+                "not ids_from_target_file.issuperset(ids_from_database)",
                 "Target ids file is not a super set of database IDs",
             )
-
-        if not ids_from_target_file > ids_from_pdf_folder:
+        elif ids_from_target_file < ids_from_pdf_folder:
+            not_in_target = ids_from_pdf_folder - ids_from_target_file
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
+            msg = (
+                "PDF IDs is a superset of target IDs"
+                + f"Following IDs in PDFs but not in target ids file: {not_in_target}"
+            )
+            print(msg)
+            logging.warning(msg)
+        elif not (ids_from_pdf_folder - ids_from_target_file):
             not_in_target = ids_from_pdf_folder - ids_from_target_file
             not_in_target = ", ".join([str(item) for item in list(not_in_target)])
             msg = f"Following IDs in PDFs but not in target ids file: {not_in_target}"
             print(msg)
             logging.warning(msg)
 
-
         # New IDs are defined as IDs in target file but not in database
         new_ids = ids_from_target_file - ids_from_database
+
+        if not new_ids:
+            raise InputError("not new_ids", "TERMINATE: No new IDs")
 
         if ids_from_pdf_folder.issuperset(new_ids):
             return list(new_ids)
@@ -256,7 +273,7 @@ def check_ids_correspond(ids_from_pdf_folder):
             missing_ids = ", ".join([str(item) for item in list(missing_ids)])
             msg = f"Following ID(s) are new but PDF not found: {missing_ids}"
             logging.error(msg)
-            raise InputError(ids_from_pdf_folder.issuperset(new_ids), msg)
+            raise InputError("not ids_from_pdf_folder.issuperset(new_ids)", msg)
 
     else:
 
@@ -271,7 +288,7 @@ def check_ids_correspond(ids_from_pdf_folder):
                 f"match IDs in {settings.target_ucas_id_file} file"
             )
             raise InputError(
-                not intersection,
+                "not ids_from_target_file.isdisjoint(ids_from_pdf_folder)",
                 "IDs from PDF folder does not match IDs to extract in Excel file",
             )
 
@@ -297,7 +314,6 @@ def check_ids_correspond(ids_from_pdf_folder):
                 msg = f"Following ID(s) in target file but PDF not found: {file_not_found}"
                 logging.error(msg)
                 raise InputError("ids_from_target_file != intersection", msg)
-
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
@@ -409,7 +425,7 @@ def check_batch_num_against_database(past_batch_nums):
     prev_max_batch_num = max(past_batch_nums)
     if prev_max_batch_num > settings.batch_number:
         raise InputError(
-            prev_max_batch_num > settings.batch_number,
+            "prev_max_batch_num > settings.batch_number",
             f"Current batch number ({settings.batch_number}) is less than largest previous batch number ({prev_max_batch_num})",
         )
     elif prev_max_batch_num == settings.batch_number:

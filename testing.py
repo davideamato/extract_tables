@@ -125,12 +125,15 @@ class TestIDCorrespondence(unittest.TestCase):
         self.assertSetEqual(correct_ids, set(solution))
 
     @patch("utils.get_batch_continue_input", return_value="yes")
-    def test_banner_target_with_database_not_cumulative_fails(self, mock_input):
-        # Fails
+    def test_banner_target_with_database_not_cumulative_disjoint(self, mock_input):
+        # Succeeds
         # If database is provided but target file is not cumulative,
-        # THEN it doesn't know what to do as there is conflicting info
+        # THEN there are three scenarios
+            # 1. database and target are disjoint => succeed as target is truth
+            # 2. database intersects target => remove database vals from target 
+            # 3. database superset of target => fails
         path_to_files = get_full_path(
-            os.path.join(".", "test_with_database_not_cumulative")
+            os.path.join(".", "test_with_database_not_cumulative_disjoint")
         )
 
         settings.is_id_file_banner = True
@@ -145,13 +148,88 @@ class TestIDCorrespondence(unittest.TestCase):
         )
 
         _, applicant_ids = get_files_and_ids(path_to_files)
+        # These IDs are different from IDs in the target file
+        database_ids = [1462950865, 1461856964, 1483858362]
+        if not os.path.exists(settings.path_to_database_of_extracted_pdfs):
+            update_previous_id_database(
+                settings.path_to_database_of_extracted_pdfs, database_ids
+            )
+
+        correct_ids = {1491252509, 1491254202, 1493441903}
+        ids_to_extract = check_ids_correspond(applicant_ids)
+        
+        self.assertSetEqual(correct_ids, set(ids_to_extract))
+
+
+    @patch("utils.get_batch_continue_input", return_value="yes")
+    def test_banner_target_with_database_not_cumulative_intersect(self, mock_input):
+        # Succeeds
+        # If database is provided but target file is not cumulative,
+        # THEN there are three scenarios
+            # 1. database and target are disjoint => succeed as target is truth
+            # 2. database intersects target => remove database vals from target 
+            # 3. database superset of target => fails
+        path_to_files = get_full_path(
+            os.path.join(".", "test_with_database_not_cumulative_intersect")
+        )
+
+        settings.is_id_file_banner = True
+        settings.is_banner_cumulative = False
+
+        settings.path_to_pdfs_to_extract = path_to_files
+        settings.path_to_target_file = get_full_file_path(
+            path_to_files, settings.target_ucas_id_file
+        )
+        settings.path_to_database_of_extracted_pdfs = get_full_file_path(
+            path_to_files, settings.database_of_extracted_pdfs
+        )
+
+        _, applicant_ids = get_files_and_ids(path_to_files)
+        # These IDs are different from IDs in the target file
+        database_ids = [1462950865, 1461856964, 1483858362, 1493441903]
+        if not os.path.exists(settings.path_to_database_of_extracted_pdfs):
+            update_previous_id_database(
+                settings.path_to_database_of_extracted_pdfs, database_ids
+            )
+
+        new_ids = check_ids_correspond(applicant_ids)
+
+        correct_ids = {1491252509, 1491254202}
+        self.assertSetEqual(set(new_ids), correct_ids)
+
+    @patch("utils.get_batch_continue_input", return_value="yes")
+    def test_banner_target_database_target_same(self, mock_input):
+        # Fails - No new IDs
+        path_to_files = get_full_path(
+            os.path.join(".", "test_database_target_same")
+        )
+
+        settings.is_id_file_banner = True
+        settings.is_banner_cumulative = True
+
+        settings.path_to_pdfs_to_extract = path_to_files
+        settings.path_to_target_file = get_full_file_path(
+            path_to_files, settings.target_ucas_id_file
+        )
+        settings.path_to_database_of_extracted_pdfs = get_full_file_path(
+            path_to_files, settings.database_of_extracted_pdfs
+        )
+
+        _, applicant_ids = get_files_and_ids(path_to_files)
+        # These IDs are different from IDs in the target file
+        database_ids = [1491252509, 1491254202, 1493441903]
+        if not os.path.exists(settings.path_to_database_of_extracted_pdfs):
+            update_previous_id_database(
+                settings.path_to_database_of_extracted_pdfs, database_ids
+            )
 
         with self.assertRaises(Exception) as context:
             check_ids_correspond(applicant_ids)
 
-        self.assertTrue("Target ids file is not a super set of database IDs" in str(context.exception))
-
-
+        self.assertTrue(
+            "No new IDs"
+            in str(context.exception)
+        )
 
 #     def banner_target_with_database_is_cumulative(self):
 #         # suceeds
