@@ -335,7 +335,9 @@ def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
 
     # Location of ID from pdfs in target ids list
     id_locs = [
-        np.argwhere(target_ids == current_id).item() for current_id in ids_from_all_pdfs
+        np.argwhere(target_ids == current_id).item()
+        for current_id in ids_from_all_pdfs
+        if current_id in target_ids
     ]
 
     # Sort list based on id_locs, then extract the paths from it
