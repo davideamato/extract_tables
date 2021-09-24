@@ -360,7 +360,6 @@ def get_files_and_ids(abs_path):
     return lst_of_paths, lst_of_ids
 
 
-# @patch('testing.', return_value = "yes")
 def check_batch_num_against_database(past_batch_nums):
     # Check and get user input on whether to continue based on batch number
     prev_max_batch_num = max(past_batch_nums)
@@ -374,20 +373,10 @@ def check_batch_num_against_database(past_batch_nums):
             f"Current batch number is {settings.batch_number} and is the same as max. previous batch number ({prev_max_batch_num}) "
         )
         print("Is this correct? yes/no")
-        # is_correct = input()
-        # while is_correct not in {"yes", "no"}:
-        #     is_correct = input("Please enter 'yes' or 'no' ")
-
-        # if is_correct == "no":
-        #     raise Exception
         get_batch_continue_input()
 
 
 def get_batch_continue_input():
-    # print(
-    #     f"Current batch number is {settings.batch_number} and is the same as max. previous batch number "
-    # )
-    # print("Is this correct? yes/no")
     is_correct = input()
     while is_correct not in {"yes", "no"}:
         is_correct = input("Please enter 'yes' or 'no' ")
