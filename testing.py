@@ -186,6 +186,7 @@ class TestIDCorrespondence(unittest.TestCase):
 
         _, applicant_ids = get_files_and_ids(path_to_files)
         # These IDs are different from IDs in the target file
+        # EXCEPT for the last one in the list which is in both
         database_ids = [1462950865, 1461856964, 1483858362, 1493441903]
         if not os.path.exists(settings.path_to_database_of_extracted_pdfs):
             update_previous_id_database(
@@ -216,7 +217,7 @@ class TestIDCorrespondence(unittest.TestCase):
         )
 
         _, applicant_ids = get_files_and_ids(path_to_files)
-        # These IDs are different from IDs in the target file
+        # These IDs are identical to IDs in the target file
         database_ids = [1491252509, 1491254202, 1493441903]
         if not os.path.exists(settings.path_to_database_of_extracted_pdfs):
             update_previous_id_database(
@@ -231,131 +232,36 @@ class TestIDCorrespondence(unittest.TestCase):
             in str(context.exception)
         )
 
-#     def banner_target_with_database_is_cumulative(self):
-#         # suceeds
-#         path_to_files = os.path.join(".", "test_with_database_cumulative")
-#         all_files, applicant_ids = get_files_and_ids(path_to_files)
+    def test_banner_target_with_database_is_cumulative(self):
+        # Succeeds - Typical case
+        path_to_files = get_full_path(
+            os.path.join(".", "test_with_database_cumulative")
+        )
 
-#         settings.is_id_file_banner = True
-#         settings.is_banner_cumulative = True
+        settings.is_id_file_banner = True
+        settings.is_banner_cumulative = True
 
-#         settings.path_to_target_file = path_to_files
-#         settings.path_to_database_of_extracted_pdfs = path_to_files
-#         pass
+        settings.path_to_pdfs_to_extract = path_to_files
+        settings.path_to_target_file = get_full_file_path(
+            path_to_files, settings.target_ucas_id_file
+        )
+        settings.path_to_database_of_extracted_pdfs = get_full_file_path(
+            path_to_files, settings.database_of_extracted_pdfs
+        )
 
-# #     def banner_target_with_database_not_cumulative_fails(self):
-# #         # failure situation
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
+        _, applicant_ids = get_files_and_ids(path_to_files)
+        # These IDs are a subset of IDs in the target file
+        database_ids = [1462950865, 1461856964, 1483858362]
+        if not os.path.exists(settings.path_to_database_of_extracted_pdfs):
+            update_previous_id_database(
+                settings.path_to_database_of_extracted_pdfs, database_ids
+            )
 
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def banner_target_with_database_is_cumulative_fails(self):
-# #         # failure situation
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def id_only_target_succeeds(self):
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-
-# # class TestFileIDCorrespondence(unittest.TestCase):
-# #     def banner_target_no_database_not_cumulative(self):
-# #         # suceeds
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def banner_target_no_database_is_cumulative(self):
-# #         # determine behaviour
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def banner_target_with_database_not_cumulative(self):
-# #         # suceeds
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def banner_target_with_database_is_cumulative(self):
-# #         # suceeds
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def banner_target_with_database_not_cumulative_fails(self):
-# #         # failure situation
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def banner_target_with_database_is_cumulative_fails(self):
-# #         # failure situation
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
-
-# #     def id_only_target_succeeds(self):
-# #         path_to_files = os.path.join(".", "a")
-# #         all_files, applicant_ids = get_files_and_ids(path_to_files)
-# #         settings.is_id_file_banner = True
-# #         settings.is_banner_cumulative = True
-
-# #         settings.path_to_target_file = path_to_files
-# #         settings.path_to_database_of_extracted_pdfs = path_to_files
-# #         pass
+        settings.batch_number += 1
+        correct_ids = {1491252509, 1491254202, 1493441903}
+        ids_to_extract = check_ids_correspond(applicant_ids)
+        
+        self.assertSetEqual(correct_ids, set(ids_to_extract))
 
 
 if __name__ == "__main__":
