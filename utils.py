@@ -3,6 +3,7 @@ import logging
 import csv
 import shutil
 from time import localtime, strftime
+from typing import Iterable
 
 from collections import Counter
 from pandas import read_excel
@@ -45,7 +46,7 @@ def get_internal_mapping(path_to_file, sheet_name):
     if not path_to_file.endswith(".xlsx"):
         logging.error("Mapping file not in xlsx format")
         raise InputError(
-            not path_to_file.endswith(".xlsx"), "Input file must be in xlsx format"
+            'not path_to_file.endswith(".xlsx")', "Input file must be in xlsx format"
         )
 
     input_file = path_to_file
@@ -84,7 +85,9 @@ def is_file_valid(file):
 def is_abs_path(input_path):
     if not os.path.isabs(input_path):
         logging.error("Absolut path to file not provided")
-        raise InputError(os.path.isabs(input_path), "Path provided is not absolute")
+        raise InputError(
+            "not os.path.isabs(input_path)", "Path provided is not absolute"
+        )
 
     return True
 
@@ -109,31 +112,88 @@ def check_target_id_file_settings():
     if settings.is_id_file_banner:
         if settings.which_column is None:
             raise InputError(
-                settings.is_id_file_banner and settings.which_column is None,
+                "settings.is_id_file_banner and settings.which_column is None",
                 "If ID file is banner, which column must be specified",
             )
         elif settings.is_banner_cumulative is None:
             raise InputError(
-                settings.is_id_file_banner and settings.is_banner_cumulative is None,
+                "settings.is_id_file_banner and settings.is_banner_cumulative is None",
                 "If ID file is banner, this must be True or False (a boolean)",
             )
     else:
         if settings.is_banner_cumulative:
             raise InputError(
-                settings.is_banner_cumulative and settings.is_id_file_banner,
+                "settings.is_banner_cumulative and settings.is_id_file_banner",
                 "If ID is NOT banner, is_banner_cumulative must be False",
             )
         elif settings.which_column is not None:
             raise InputError(
-                not settings.is_id_file_banner and settings.which_column is not None,
+                "not settings.is_id_file_banner and settings.which_column is not None",
                 "If ID is NOT banner, which_column must be None",
             )
 
 
-def check_ids_correspond(ids_from_pdf_folder):
+def is_database_path_valid():
+    if settings.path_to_database_of_extracted_pdfs is None:
+        if settings.is_banner_cumulative:
+            raise InputError(
+                True,
+                (
+                    "Database not provided BUT target file is cumulative."
+                    + "\nPlease provide a path to database"
+                ),
+            )
+        else:
+            return False
 
-    check_target_id_file_settings()
+    _, ext = os.path.splitext(settings.database_of_extracted_pdfs)
 
+    if ext != ".csv":
+        raise InputError(True, "Database file MUST be a .csv")
+
+    return True
+
+
+def handle_banner_and_database_permutations(ids_from_database):
+    msg = None
+    if settings.is_banner_cumulative and ids_from_database is None:
+        msg = "WARNING: No database values found but banner is cumulative"
+        if settings.batch_number != 1:
+            msg += f" and batch number ({settings.batch_number}) != 1 "
+            raise InputError("settings.batch_number != 1", msg)
+        else:
+            msg += (
+                "\n\t Batch number is 1. Will continue on assumption of no previous IDs"
+            )
+            msg += "\n\t Please terminate if this is incorrect"
+    elif not settings.is_banner_cumulative and ids_from_database is not None:
+        msg = (
+            "WARNING: Database values found but banner is not cumulative"
+            + "\nPlease set database path to None if not needed"
+        )
+
+    if msg is not None:
+        print(msg)
+        logging.warning(msg)
+
+
+def get_ids_from_database():
+    if settings.is_id_file_banner:
+        if not is_database_path_valid():
+            return None
+
+        ids_from_database = get_previous_ids(
+            settings.path_to_database_of_extracted_pdfs
+        )
+        # print(ids_from_database)
+        handle_banner_and_database_permutations(ids_from_database)
+    else:
+        ids_from_database = None
+
+    return ids_from_database
+
+
+def get_data_from_target_file():
     if settings.is_id_file_banner:
         data_from_sheet = read_excel(
             settings.path_to_target_file,
@@ -146,74 +206,74 @@ def check_ids_correspond(ids_from_pdf_folder):
         data_from_sheet = read_excel(
             settings.path_to_target_file, engine="openpyxl", dtype=int, header=None
         )
-    ids_from_target_file = data_from_sheet.values.flatten().tolist()
+    return data_from_sheet.values.flatten().tolist()
+
+
+def check_ids_correspond(ids_from_pdf_folder):
+
+    check_target_id_file_settings()
+
+    ids_from_target_file = get_data_from_target_file()
 
     # Enforce same type - both Integers
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
-    # ids_from_excel = [int(item) for item in ids_from_excel]
 
-    # Convert to set to allow for testing intersection
+    # Convert to set to allow for obtain desired set
     ids_from_pdf_folder = set(ids_from_pdf_folder)
     ids_from_target_file = set(ids_from_target_file)
-
-    if settings.is_id_file_banner and settings.is_banner_cumulative:
-        ids_from_database = get_previous_ids(
-            settings.path_to_database_of_extracted_pdfs
-        )
-        # ids_from_database = set(ids_from_database)
-        print(ids_from_database)
-    else:
-        ids_from_database = None
-        print(ids_from_database)
+    ids_from_database = get_ids_from_database()
 
     if ids_from_database is not None:
+        ids_from_database = set(ids_from_database)
 
-        # if not ids_from_database.issubset(ids_from_excel):
-        #     raise InputError(
-        #         not ids_from_database.issubset(ids_from_excel),
-        #         "Database IDs are not a subset of target ids file",
-        #     )
+        # print(ids_from_target_file)
+        # print(ids_from_pdf_folder)
+        # print(ids_from_database)
 
-        if not ids_from_target_file.issuperset(ids_from_database):
-            not_in_target = set(ids_from_database) - ids_from_target_file
-            print(
-                f"Following IDs in database but not in target ids file: {not_in_target}"
+        if ids_from_target_file < ids_from_database:
+            not_in_target = ids_from_database - ids_from_target_file
+            # not_in_target = list(not_in_target)
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
+            msg = (
+                "Database IDs is a superset of target IDs"
+                + f"Following IDs in database but not in target ids file: {not_in_target}"
             )
-            logging.error(
-                f"Following IDs in database but not in target ids file: {not_in_target}"
-            )
+            print(msg)
+            logging.error(msg)
             raise InputError(
-                not ids_from_target_file.issuperset(ids_from_database),
+                "not ids_from_target_file.issuperset(ids_from_database)",
                 "Target ids file is not a super set of database IDs",
             )
-
-        if not ids_from_target_file.issuperset(ids_from_pdf_folder):
+        elif ids_from_target_file < ids_from_pdf_folder:
             not_in_target = ids_from_pdf_folder - ids_from_target_file
-            # print(f"PDFs for IDs found but not in target file")
-            # print(f"IDs: {not_in_target}")
-            print(f"Following IDs in PDFs but not in target ids file: {not_in_target}")
-
-            logging.warning(
-                f"Following IDs in PDFs but not in target ids file: {not_in_target}"
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
+            msg = (
+                "PDF IDs is a superset of target IDs"
+                + f"Following IDs in PDFs but not in target ids file: {not_in_target}"
             )
-
-            # raise InputError(
-            #     not ids_from_target_file.issuperset(ids_from_database),
-            #     "Target ids file is not a super set of PDF IDs"
-            # )
+            print(msg)
+            logging.warning(msg)
+        elif ids_from_pdf_folder - ids_from_target_file:
+            not_in_target = ids_from_pdf_folder - ids_from_target_file
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
+            msg = f"Following IDs in PDFs but not in target ids file: {not_in_target}"
+            print(msg)
+            logging.warning(msg)
 
         # New IDs are defined as IDs in target file but not in database
-        new_ids = ids_from_target_file - set(ids_from_database)
+        new_ids = ids_from_target_file - ids_from_database
+
+        if not new_ids:
+            raise InputError("not new_ids", "TERMINATE: No new IDs")
 
         if ids_from_pdf_folder.issuperset(new_ids):
             return list(new_ids)
         else:
             missing_ids = new_ids - ids_from_pdf_folder
-            logging.error(f"Following IDs are new but PDF not found: {missing_ids}",)
-            raise InputError(
-                ids_from_pdf_folder.issuperset(new_ids),
-                f"Following IDs are new but PDF not found: {missing_ids}",
-            )
+            missing_ids = ", ".join([str(item) for item in list(missing_ids)])
+            msg = f"Following ID(s) are new but PDF not found: {missing_ids}"
+            logging.error(msg)
+            raise InputError("not ids_from_pdf_folder.issuperset(new_ids)", msg)
 
     else:
 
@@ -228,34 +288,32 @@ def check_ids_correspond(ids_from_pdf_folder):
                 f"match IDs in {settings.target_ucas_id_file} file"
             )
             raise InputError(
-                not intersection,
+                "not ids_from_target_file.isdisjoint(ids_from_pdf_folder)",
                 "IDs from PDF folder does not match IDs to extract in Excel file",
             )
 
-        # Difference between set and intersection
-        not_in_excel = ids_from_pdf_folder - intersection
-        not_in_folder = ids_from_target_file - intersection
-        # A set is not empty => something is missing
-        # Both empty => no issues
-        if not_in_excel or not_in_folder:
-            logging.error(
-                f"Overlap in IDs between Excel file and folder of PDFs not 100% match"
+        if ids_from_pdf_folder > ids_from_target_file:
+            not_in_target = ids_from_pdf_folder - ids_from_target_file
+            not_in_target = ", ".join([str(item) for item in list(not_in_target)])
+            msg = (
+                "WARNING!! \n"
+                + f"Following ID(s) in PDF folder but not in target file: {not_in_target} \n"
+                + "ONLY processsing IDs in target file \n"
+                + "IDs listed above will be IGNORED"
             )
+            print(msg)
+            logging.warning(msg)
 
-            # Convert to list to iterate over
-            not_in_folder = list(not_in_folder)
-            not_in_excel = list(not_in_excel)
-            for item in not_in_folder:
-                logging.error(f"{item} ID not in folder but in Excel file")
-            for item in not_in_excel:
-                logging.error(f"{item} ID not in Excel file but in folder")
-
-            raise InputError(
-                not not_in_excel or not not_in_folder,
-                f"Overlap in IDs between Excel file and folder of PDFs not 100% match",
-            )
-
-        return ids_from_target_file
+            return list(ids_from_target_file)
+        else:
+            if ids_from_target_file == intersection:
+                return list(ids_from_target_file)
+            else:
+                file_not_found = ids_from_target_file - intersection
+                file_not_found = ", ".join([str(item) for item in list(file_not_found)])
+                msg = f"Following ID(s) in target file but PDF not found: {file_not_found}"
+                logging.error(msg)
+                raise InputError("ids_from_target_file != intersection", msg)
 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
@@ -263,7 +321,10 @@ def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
     # Perform check to see if IDs from PDFs and target IDs correspond
     target_ids = check_ids_correspond(ids_from_all_pdfs)
     # Convert to numpy array to get argwhere to work
-    target_ids = np.asarray(list(target_ids))
+    if type(target_ids) is Iterable:
+        target_ids = np.asarray(target_ids)
+    else:
+        target_ids = np.asarray(list(target_ids))
 
     if type(ids_from_all_pdfs) is not list:
         ids_from_all_pdfs = list(ids_from_all_pdfs)
@@ -361,38 +422,49 @@ def get_files_and_ids(abs_path):
 
 def check_batch_num_against_database(past_batch_nums):
     # Check and get user input on whether to continue based on batch number
-    if max(past_batch_nums) > settings.batch_number:
+    prev_max_batch_num = max(past_batch_nums)
+    if prev_max_batch_num > settings.batch_number:
         raise InputError(
-            max(past_batch_nums) > settings.batch_number,
-            "Current batch number is less than largest previous batch number",
+            "prev_max_batch_num > settings.batch_number",
+            f"Current batch number ({settings.batch_number}) is less than largest previous batch number ({prev_max_batch_num})",
         )
-    elif max(past_batch_nums) == settings.batch_number:
+    elif prev_max_batch_num == settings.batch_number:
         print(
-            f"Current batch number is {settings.batch_number} and is the same as max. previous batch number "
+            f"Current batch number is {settings.batch_number} and is the same as max. previous batch number ({prev_max_batch_num}) "
         )
         print("Is this correct? yes/no")
-        is_correct = input()
-        while is_correct not in {"yes", "no"}:
-            is_correct = input("Please enter 'yes' or 'no' ")
+        get_batch_continue_input()
 
-        if is_correct == "no":
-            raise Exception
+
+def get_batch_continue_input():
+    is_correct = input()
+    while is_correct not in {"yes", "no"}:
+        is_correct = input("Please enter 'yes' or 'no' ")
+
+    if is_correct == "no":
+        raise Exception
 
 
 def read_database_file(database_path):
     database_ids = []
     past_batch_nums = set()
 
-    with open(database_path, "rb") as database_file:
+    with open(database_path, "r") as database_file:
         database_reader = csv.DictReader(database_file, delimiter=",")
 
         # Put past ids into list, other information is for human
         for row in database_reader:
             database_ids.append(
-                row[settings.database_headers[settings.database_header_id_num_index]]
+                int(
+                    row[
+                        settings.database_headers[settings.database_header_id_num_index]
+                    ]
+                )
             )
             past_batch_nums.add(
-                row[settings.database_headers[settings.database_header_batch_index]]
+                int(
+                    row[settings.database_headers[settings.database_header_batch_index]]
+                )
             )
 
         check_batch_num_against_database(past_batch_nums)
@@ -419,10 +491,10 @@ def get_current_time():
 def update_previous_id_database(database_path, new_ids):
     if os.path.exists(database_path):
         is_existing_file = True
-        open_mode = "ab"
+        open_mode = "a"
     else:
         is_existing_file = False
-        open_mode = "wb"
+        open_mode = "w"
 
     timestamp = strftime("%Y-%m-%d %H:%M", localtime())
 
