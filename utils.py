@@ -208,24 +208,10 @@ def check_ids_correspond(ids_from_pdf_folder):
 
     check_target_id_file_settings()
 
-    # if settings.is_id_file_banner:
-    #     data_from_sheet = read_excel(
-    #         settings.path_to_target_file,
-    #         engine="openpyxl",
-    #         usecols=settings.which_column,
-    #         dtype=int,
-    #     )
-    #     # print(data_from_sheet)
-    # else:
-    #     data_from_sheet = read_excel(
-    #         settings.path_to_target_file, engine="openpyxl", dtype=int, header=None
-    #     )
-    # ids_from_target_file = data_from_sheet.values.flatten().tolist()
     ids_from_target_file = get_data_from_target_file()
 
     # Enforce same type - both Integers
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
-    # ids_from_excel = [int(item) for item in ids_from_excel]
 
     # Convert to set to allow for testing intersection
     ids_from_pdf_folder = set(ids_from_pdf_folder)
@@ -234,12 +220,6 @@ def check_ids_correspond(ids_from_pdf_folder):
     ids_from_database = get_ids_from_database()
 
     if ids_from_database is not None:
-
-        # if not ids_from_database.issubset(ids_from_excel):
-        #     raise InputError(
-        #         not ids_from_database.issubset(ids_from_excel),
-        #         "Database IDs are not a subset of target ids file",
-        #     )
 
         if not ids_from_target_file.issuperset(ids_from_database):
             not_in_target = set(ids_from_database) - ids_from_target_file
@@ -255,8 +235,6 @@ def check_ids_correspond(ids_from_pdf_folder):
 
         if not ids_from_target_file.issuperset(ids_from_pdf_folder):
             not_in_target = ids_from_pdf_folder - ids_from_target_file
-            # print(f"PDFs for IDs found but not in target file")
-            # print(f"IDs: {not_in_target}")
             msg = f"Following IDs in PDFs but not in target ids file: {not_in_target}"
             print(msg)
             logging.warning(msg)
