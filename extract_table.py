@@ -168,7 +168,9 @@ if __name__ == "__main__":
 
     all_students.write_to_excel(settings.output_path)
     copy_pdfs_to_pool(ALL_FILES)
-    update_previous_id_database(settings.database_of_extracted_pdfs)
+    update_previous_id_database(
+        settings.path_to_database_of_extracted_pdfs, APPLICANT_IDS
+    )
 
     end_time = get_current_time()
     print(f"End Time: {end_time}")

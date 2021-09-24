@@ -1,4 +1,4 @@
-<h1> Extract Tables from PDF </h1>
+# Extract Tables from PDF 
 
 According to internal specifications, this script:
 1. Extracts key information from tables in a pdf
@@ -9,7 +9,7 @@ This does not always result in the "correct" result due to the inconsistency and
 Therefore, this has been written to account for the fact that it will fail at points. The aim is to capture the
 most commonly occuring cases to reduce the overall workload.
 
-<h2> Core Dependency </h2>
+## Core Dependency  
 
 This requires Python 3. It was developed in Python 3.7 and 3.8 so the known minimum is Python 3.7+
 
@@ -18,7 +18,7 @@ a pdf. As this package is a python wrapper of [tabula-java](https://github.com/t
 
 Why [Tabula](https://tabula.technology/) and not [Camelot](https://camelot-py.readthedocs.io/en/master/index.html)? The pdfs to be analysed resulted in Camelot throwing an error while Tabula did not. 
 
-<h2> Installation </h2>
+## Installation  
 
 Installation can be broken down into three main steps:
   1. Download the code base
@@ -28,7 +28,7 @@ After that, you're good to go!
 
 *N.B. on Operating System:* This was developed in Linux (Ubuntu 18.04) and has not been tested in any other operating system.
 
-<h3> Download the Code Base </h3>
+### Download the Code Base  
 
 This should be relatively painless. There are a couple of ways to do this,
   - Using git clone. Go to the folder you want to download into, then run this command
@@ -38,7 +38,7 @@ This should be relatively painless. There are a couple of ways to do this,
   - Download the zip file
   - Click the Green download code button 
 
-<h3> Setting up Python environment </h3>
+### Setting up Python environment  
 
 There are two ways to set up the Python environment - using [pip](https://pypi.org/project/pip/) or [Conda](https://github.com/conda/conda) to download the required Python packages. 
 
@@ -62,7 +62,7 @@ For pip installation, [requirements.txt](requirements.txt) is the `environment.y
        ```
   2. This should have all the requirement packages installed. If in doubt, this [post](https://stackoverflow.com/questions/29980798/where-does-pip-install-its-packages) is quite helpful to understand where pip has installed it to.
 
-<h3> Install Tabula Dependencies </h3>
+### Install Tabula Dependencies  
  
 Tabula requires Java 8+. I think [this](https://www.oracle.com/java/technologies/javase-jre8-downloads.html) is the link to download it. 
 
@@ -70,7 +70,7 @@ If using Tabula on Windows 10, their documentation contains a useful [page](http
 on how to get it to work.
 
 
-<h2> How to use? </h2>
+## How to use?  
 
 ### Overview
 
@@ -133,6 +133,117 @@ What are the inputs and what are the used for?
           "EN": 1,
       }`.
       Here, TM will not be allocated any IDs and AP will have double that of EN.
+
+#### Input Update
+
+##### Assumptions
+1. Banner file is input
+    - Replaces target_ids excel file
+    - Contains all previous and new IDs
+2. Treat banner file as the “ground truth”
+    - Implication: IDs from pdf files are a subset of IDs from the banner file
+    - Therefore, behaviour of the code should be
+        1. If an ID from the PDFs is found, __terminate__ – throw InvalidInput error
+        2. If a new ID is not amongst the PDF IDs, __terminate__
+ 
+
+##### Definition of new ID
+An ID is new if,
+1. Exists in banner file
+2. Not exist in existing IDs
+
+The new ID set is the difference between the set of banner IDs and the set of database IDs.
+
+ 
+##### What is the database?
+
+CSV file that contains,
+1. IDs
+2. Associated batch number
+ 
+
+##### What the code will do?
+1. Gets all the IDs from the PDFs
+2. Get IDs from banner file
+3. Get IDs from database
+    1. Check if database exists – Create if it doesn’t, read if it does
+    2. Find the largest previous batch number
+        1. Print to line previous (largest in database) batch number and current batch number from settings
+        2. If they are the same, behaviour depends on `settings.terminate_if_batch_num_repeated` variable. If `True`, it will __terminate__. This is to ensure that the order of the PDFs in the individual marker folders is “correct”. If `False`, user input is required. This is useful if getting of previous IDs is used in a different context.
+4. Find new IDs using set definition
+5. Check correspondence between new IDs and those in PDF folder. __Terminate__ is any of the above assumptions are violated
+ 
+
+##### When is database updated?
+
+It is the last “action” before the script ends
+
+##### Additional settings to configure
+
+For target ids file:
+```py
+  # The standard settings fall into two cases
+
+  # Case 1: File is banner
+  is_id_file_banner = True
+  is_banner_cumulative = True
+  which_column = "F"
+
+  # Case 2: File is not banner
+  is_id_file_banner = False
+  is_banner_cumulative = False
+  which_column = None
+
+  # A less standard setting would be 
+  # Please refer to the testing module (testing.py) to understand the implications or to the section below on "What behaviour is defined and what happens?"
+  is_id_file_banner = True
+  is_banner_cumulative = False
+```
+
+For database file:
+```py
+  # Vars that don't need changing:
+  database_headers = ["ID No.", "Batch No.", "Timestamp"]
+  database_header_id_num_index = 0
+  database_header_batch_index = 1
+  database_header_timestamp_index = 2
+
+  # Case 1: With database
+  database_of_extracted_pdfs = "previously_extracted.csv"
+  path_to_database_of_extracted_pdfs = get_full_file_path(
+      os.path.join(".", "data"), database_of_extracted_pdfs
+  )
+
+  # Case 2: Without database
+  database_of_extracted_pdfs = None
+  path_to_database_of_extracted_pdfs = None
+```
+
+For batch number condition:
+```py
+  # To terminate
+  terminate_if_batch_num_repeated = True
+  # To require user input
+  terminate_if_batch_num_repeated = False
+```
+
+##### What behaviour is defined and what happens?
+The following assume banner is target ID file and the associated PDF is present, 
+
+1. Target ID file is _not_ cumulative and _no_ database is present
+    - Extract all IDs that are in target ID file 
+2. Target ID file _is_ cumulative and _no_ database is present
+    - If batch number is 1, extract all IDs that are in target ID file 
+    - If batch number is _not_ 1, fails. No database but it is cumulative implies there is insufficient information or settings are incorrect
+3. Target ID file is _not_ cumulative and database _is_ present
+    - If database and target are disjoint, then succeed as target is truth
+    - If database intersects target, then remove database IDs from target 
+    - If database superset of target, then fails
+4. Target IDs is identical to database IDs
+    - Fails as there are no new IDs
+5. Target ID file _is_ cumulative and database _is_ present
+    - Typical use case
+    - Extracts new IDs
 
 ### Script Output
 
@@ -217,7 +328,7 @@ Another potential case would be the zero being dropped during the loading from t
 In this case, instituite a check during the loading phase then prepend a `"0"` to the ID as a `str`. 
 
 
-<h2> To Do </h2>
+## To Do  
 
 - [ ] Refactor!
 - [ ] Implement testing. This really should've been done during development
