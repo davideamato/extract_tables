@@ -363,14 +363,15 @@ def get_files_and_ids(abs_path):
 # @patch('testing.', return_value = "yes")
 def check_batch_num_against_database(past_batch_nums):
     # Check and get user input on whether to continue based on batch number
-    if max(past_batch_nums) > settings.batch_number:
+    prev_max_batch_num = max(past_batch_nums)
+    if prev_max_batch_num > settings.batch_number:
         raise InputError(
-            max(past_batch_nums) > settings.batch_number,
-            "Current batch number is less than largest previous batch number",
+            prev_max_batch_num > settings.batch_number,
+            f"Current batch number ({settings.batch_number}) is less than largest previous batch number ({prev_max_batch_num})",
         )
-    elif max(past_batch_nums) == settings.batch_number:
+    elif prev_max_batch_num == settings.batch_number:
         print(
-            f"Current batch number is {settings.batch_number} and is the same as max. previous batch number "
+            f"Current batch number is {settings.batch_number} and is the same as max. previous batch number ({prev_max_batch_num}) "
         )
         print("Is this correct? yes/no")
         # is_correct = input()
@@ -380,6 +381,7 @@ def check_batch_num_against_database(past_batch_nums):
         # if is_correct == "no":
         #     raise Exception
         get_batch_continue_input()
+
 
 def get_batch_continue_input():
     # print(
@@ -404,10 +406,16 @@ def read_database_file(database_path):
         # Put past ids into list, other information is for human
         for row in database_reader:
             database_ids.append(
-                int(row[settings.database_headers[settings.database_header_id_num_index]])
+                int(
+                    row[
+                        settings.database_headers[settings.database_header_id_num_index]
+                    ]
+                )
             )
             past_batch_nums.add(
-                int(row[settings.database_headers[settings.database_header_batch_index]])
+                int(
+                    row[settings.database_headers[settings.database_header_batch_index]]
+                )
             )
 
         check_batch_num_against_database(past_batch_nums)
