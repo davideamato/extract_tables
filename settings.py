@@ -57,6 +57,8 @@ path_to_database_of_extracted_pdfs = get_full_file_path(
     os.path.join(".", "data"), database_of_extracted_pdfs
 )
 
+terminate_if_batch_num_repeated = True
+
 # IMPORTANT NOTE: IT IS ASSUMED THAT THE BATCH NUMBERS WILL KEEP INCREASING
 # EVEN AFTER THE CYCLE CHANGES! THIS IS VITAL FOR THE REMAINING WORKFLOW!
 # THE BATCH NUMBERS MUST BE UNIQUE!!!

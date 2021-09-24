@@ -423,20 +423,30 @@ def get_files_and_ids(abs_path):
 def check_batch_num_against_database(past_batch_nums):
     # Check and get user input on whether to continue based on batch number
     prev_max_batch_num = max(past_batch_nums)
+    print(
+        f"Current batch number: {settings.batch_number}"
+        + f"Largest previous batch number: {prev_max_batch_num}"
+    )
     if prev_max_batch_num > settings.batch_number:
         raise InputError(
             "prev_max_batch_num > settings.batch_number",
             f"Current batch number ({settings.batch_number}) is less than largest previous batch number ({prev_max_batch_num})",
         )
     elif prev_max_batch_num == settings.batch_number:
-        print(
-            f"Current batch number is {settings.batch_number} and is the same as max. previous batch number ({prev_max_batch_num}) "
-        )
-        print("Is this correct? yes/no")
-        get_batch_continue_input()
+        if settings.terminate_if_batch_num_repeated:
+            raise InputError(
+                "prev_max_batch_num == settings.batch_number",
+                "Please increment batch number by 1",
+            )
+        else:
+            get_batch_continue_input(prev_max_batch_num)
 
 
-def get_batch_continue_input():
+def get_batch_continue_input(prev_max_batch_num):
+    print(
+        f"Current batch number is {settings.batch_number} and is the same as max. previous batch number ({prev_max_batch_num}) "
+    )
+    print("Is this correct? yes/no")
     is_correct = input()
     while is_correct not in {"yes", "no"}:
         is_correct = input("Please enter 'yes' or 'no' ")
