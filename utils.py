@@ -155,6 +155,7 @@ def handle_banner_and_database_permutations(ids_from_database):
     if settings.is_banner_cumulative and ids_from_database is None:
         msg = "WARNING: No database values found but banner is cumulative"
         if settings.batch_number != 1:
+            msg += f" and batch number ({settings.batch_number}) != 1 "
             raise InputError(True, msg)
         else:
             msg += (
@@ -187,10 +188,7 @@ def get_ids_from_database():
     return ids_from_database
 
 
-def check_ids_correspond(ids_from_pdf_folder):
-
-    check_target_id_file_settings()
-
+def get_data_from_target_file():
     if settings.is_id_file_banner:
         data_from_sheet = read_excel(
             settings.path_to_target_file,
@@ -203,7 +201,27 @@ def check_ids_correspond(ids_from_pdf_folder):
         data_from_sheet = read_excel(
             settings.path_to_target_file, engine="openpyxl", dtype=int, header=None
         )
-    ids_from_target_file = data_from_sheet.values.flatten().tolist()
+    return data_from_sheet.values.flatten().tolist()
+
+
+def check_ids_correspond(ids_from_pdf_folder):
+
+    check_target_id_file_settings()
+
+    # if settings.is_id_file_banner:
+    #     data_from_sheet = read_excel(
+    #         settings.path_to_target_file,
+    #         engine="openpyxl",
+    #         usecols=settings.which_column,
+    #         dtype=int,
+    #     )
+    #     # print(data_from_sheet)
+    # else:
+    #     data_from_sheet = read_excel(
+    #         settings.path_to_target_file, engine="openpyxl", dtype=int, header=None
+    #     )
+    # ids_from_target_file = data_from_sheet.values.flatten().tolist()
+    ids_from_target_file = get_data_from_target_file()
 
     # Enforce same type - both Integers
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
@@ -213,37 +231,7 @@ def check_ids_correspond(ids_from_pdf_folder):
     ids_from_pdf_folder = set(ids_from_pdf_folder)
     ids_from_target_file = set(ids_from_target_file)
 
-    # if settings.is_id_file_banner and settings.is_banner_cumulative:
-    #     ids_from_database = get_previous_ids(
-    #         settings.path_to_database_of_extracted_pdfs
-    #     )
-    #     # ids_from_database = set(ids_from_database)
-    #     # print(ids_from_database)
-    # else:
-    #     ids_from_database = None
-    #     # print(ids_from_database)
     ids_from_database = get_ids_from_database()
-
-    if settings.is_id_file_banner:
-        ids_from_database = get_previous_ids(
-            settings.path_to_database_of_extracted_pdfs
-        )
-        # ids_from_database = set(ids_from_database)
-        # print(ids_from_database)
-        if settings.is_banner_cumulative and ids_from_database is None:
-            msg = "WARNING: No database values but banner is cumulative"
-            print(msg)
-            logging.warning(msg)
-        elif not settings.is_banner_cumulative and ids_from_database is not None:
-            msg = (
-                "WARNING: Database values found but banner is not cumulative"
-                + "\nPlease remove "
-            )
-            print(msg)
-            logging.warning(msg)
-    else:
-        ids_from_database = None
-        # print(ids_from_database)
 
     if ids_from_database is not None:
 
@@ -255,12 +243,11 @@ def check_ids_correspond(ids_from_pdf_folder):
 
         if not ids_from_target_file.issuperset(ids_from_database):
             not_in_target = set(ids_from_database) - ids_from_target_file
-            print(
+            msg = (
                 f"Following IDs in database but not in target ids file: {not_in_target}"
             )
-            logging.error(
-                f"Following IDs in database but not in target ids file: {not_in_target}"
-            )
+            print(msg)
+            logging.error(msg)
             raise InputError(
                 not ids_from_target_file.issuperset(ids_from_database),
                 "Target ids file is not a super set of database IDs",
@@ -270,11 +257,9 @@ def check_ids_correspond(ids_from_pdf_folder):
             not_in_target = ids_from_pdf_folder - ids_from_target_file
             # print(f"PDFs for IDs found but not in target file")
             # print(f"IDs: {not_in_target}")
-            print(f"Following IDs in PDFs but not in target ids file: {not_in_target}")
-
-            logging.warning(
-                f"Following IDs in PDFs but not in target ids file: {not_in_target}"
-            )
+            msg = f"Following IDs in PDFs but not in target ids file: {not_in_target}"
+            print(msg)
+            logging.warning(msg)
 
             # raise InputError(
             #     not ids_from_target_file.issuperset(ids_from_database),
@@ -288,11 +273,9 @@ def check_ids_correspond(ids_from_pdf_folder):
             return list(new_ids)
         else:
             missing_ids = new_ids - ids_from_pdf_folder
-            logging.error(f"Following IDs are new but PDF not found: {missing_ids}",)
-            raise InputError(
-                ids_from_pdf_folder.issuperset(new_ids),
-                f"Following IDs are new but PDF not found: {missing_ids}",
-            )
+            msg = f"Following IDs are new but PDF not found: {missing_ids}"
+            logging.error(msg)
+            raise InputError(ids_from_pdf_folder.issuperset(new_ids), msg)
 
     else:
 
