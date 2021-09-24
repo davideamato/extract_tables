@@ -4,7 +4,6 @@ import csv
 import shutil
 from time import localtime, strftime
 from typing import Iterable
-from unittest.mock import patch
 
 from collections import Counter
 from pandas import read_excel
@@ -217,9 +216,10 @@ def check_ids_correspond(ids_from_pdf_folder):
     # Convert to set to allow for obtain desired set
     ids_from_pdf_folder = set(ids_from_pdf_folder)
     ids_from_target_file = set(ids_from_target_file)
-    ids_from_database = set(get_ids_from_database())
+    ids_from_database = get_ids_from_database()
 
     if ids_from_database is not None:
+        ids_from_database = set(ids_from_database)
 
         if not ids_from_target_file.issuperset(ids_from_database):
             not_in_target = ids_from_database - ids_from_target_file
