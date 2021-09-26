@@ -134,9 +134,9 @@ What are the inputs and what are the used for?
       }`.
       Here, TM will not be allocated any IDs and AP will have double that of EN.
 
-#### Input Update
+### Input Update
 
-##### Assumptions
+#### Assumptions
 1. Banner file is input
     - Replaces target_ids excel file
     - Contains all previous and new IDs
@@ -147,7 +147,7 @@ What are the inputs and what are the used for?
         2. If a new ID is not amongst the PDF IDs, __terminate__
  
 
-##### Definition of new ID
+#### Definition of new ID
 An ID is new if,
 1. Exists in banner file
 2. Not exist in existing IDs
@@ -155,14 +155,14 @@ An ID is new if,
 The new ID set is the difference between the set of banner IDs and the set of database IDs.
 
  
-##### What is the database?
+#### What is the database?
 
 CSV file that contains,
 1. IDs
 2. Associated batch number
  
 
-##### What the code will do?
+#### What the code will do?
 1. Gets all the IDs from the PDFs
 2. Get IDs from banner file
 3. Get IDs from database
@@ -174,11 +174,11 @@ CSV file that contains,
 5. Check correspondence between new IDs and those in PDF folder. __Terminate__ is any of the above assumptions are violated
  
 
-##### When is database updated?
+#### When is database updated?
 
 It is the last “action” before the script ends
 
-##### Additional settings to configure
+#### Additional settings to configure
 
 For target ids file:
 ```py
@@ -227,7 +227,7 @@ For batch number condition:
   terminate_if_batch_num_repeated = False
 ```
 
-##### What behaviour is defined and what happens?
+#### What behaviour is defined and what happens?
 The following assume banner is target ID file and the associated PDF is present, 
 
 1. Target ID file is _not_ cumulative and _no_ database is present
