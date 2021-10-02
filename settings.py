@@ -26,7 +26,7 @@ def get_full_path(path):
 # ID of an applicant
 pdf_filename_split_index = 2
 
-path_to_pdfs_to_extract = os.path.join(".", "pdf_subset")
+path_to_pdfs_to_extract = os.path.join(".", "pdfs")
 path_to_pdfs_to_extract = get_full_path(path_to_pdfs_to_extract)
 
 qualification_mapping_filename = "mapping.xlsx"
@@ -45,7 +45,8 @@ which_column = "F"
 # is_banner_cumulative = False
 # which_column = None
 
-path_to_target_file = os.path.join(".", "pdfs")
+# path_to_target_file = os.path.join(".", "pdfs")
+path_to_target_file = path_to_pdfs_to_extract
 path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
 
 database_headers = ["ID No.", "Batch No.", "Timestamp"]
@@ -80,9 +81,9 @@ path_to_pdf_pool = get_full_path(path_to_pdf_pool)
 output_path = os.path.join(".", "output")
 output_path = get_full_path(output_path)
 
-output_filename = "grades.xlsx"
+output_filename = f"grades_{batch_number}.xlsx"
 
-log_filename = "execution_log.log"
+log_filename = f"execution_log_{batch_number}.log"
 path_to_log = get_full_file_path(output_path, log_filename)
-ids_in_folder_file = "id_log.txt"
+ids_in_folder_file = f"id_log_{batch_number}.txt"
 path_to_folder_ids = get_full_file_path(output_path, ids_in_folder_file)
