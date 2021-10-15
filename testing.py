@@ -18,6 +18,7 @@ import utils
 unittest.TestLoader.sortTestMethodsUsing = None
 settings.terminate_if_batch_num_repeated = False
 
+
 def clear_folder(folder_path):
     if os.listdir(folder_path):
         # https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
@@ -36,7 +37,8 @@ class TestUpdateDatabase(unittest.TestCase):
     def setUp(self) -> None:
         self.output_folder = get_full_path(os.path.join(".", "test_update_database"))
         self.output_file = get_full_file_path(
-            self.output_folder, settings.database_of_extracted_pdfs,
+            self.output_folder,
+            settings.database_of_extracted_pdfs,
         )
 
         return super().setUp()
@@ -139,9 +141,9 @@ class TestIDCorrespondence(unittest.TestCase):
         # Succeeds
         # If database is provided but target file is not cumulative,
         # THEN there are three scenarios
-            # 1. database and target are disjoint => succeed as target is truth
-            # 2. database intersects target => remove database vals from target 
-            # 3. database superset of target => fails
+        # 1. database and target are disjoint => succeed as target is truth
+        # 2. database intersects target => remove database vals from target
+        # 3. database superset of target => fails
         path_to_files = get_full_path(
             os.path.join(".", "test_with_database_not_cumulative_disjoint")
         )
@@ -167,18 +169,17 @@ class TestIDCorrespondence(unittest.TestCase):
 
         correct_ids = {1491252509, 1491254202, 1493441903}
         ids_to_extract = check_ids_correspond(applicant_ids)
-        
-        self.assertSetEqual(correct_ids, set(ids_to_extract))
 
+        self.assertSetEqual(correct_ids, set(ids_to_extract))
 
     @patch("utils.get_batch_continue_input", return_value="yes")
     def test_banner_target_with_database_not_cumulative_intersect(self, mock_input):
         # Succeeds
         # If database is provided but target file is not cumulative,
         # THEN there are three scenarios
-            # 1. database and target are disjoint => succeed as target is truth
-            # 2. database intersects target => remove database vals from target 
-            # 3. database superset of target => fails
+        # 1. database and target are disjoint => succeed as target is truth
+        # 2. database intersects target => remove database vals from target
+        # 3. database superset of target => fails
         path_to_files = get_full_path(
             os.path.join(".", "test_with_database_not_cumulative_intersect")
         )
@@ -211,9 +212,7 @@ class TestIDCorrespondence(unittest.TestCase):
     @patch("utils.get_batch_continue_input", return_value="yes")
     def test_banner_target_database_target_same(self, mock_input):
         # Fails - No new IDs
-        path_to_files = get_full_path(
-            os.path.join(".", "test_database_target_same")
-        )
+        path_to_files = get_full_path(os.path.join(".", "test_database_target_same"))
 
         settings.is_id_file_banner = True
         settings.is_banner_cumulative = True
@@ -237,10 +236,7 @@ class TestIDCorrespondence(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             check_ids_correspond(applicant_ids)
 
-        self.assertTrue(
-            "No new IDs"
-            in str(context.exception)
-        )
+        self.assertTrue("No new IDs" in str(context.exception))
 
     def test_banner_target_with_database_is_cumulative(self):
         # Succeeds - Typical case
@@ -270,7 +266,7 @@ class TestIDCorrespondence(unittest.TestCase):
         settings.batch_number += 1
         correct_ids = {1491252509, 1491254202, 1493441903}
         ids_to_extract = check_ids_correspond(applicant_ids)
-        
+
         self.assertSetEqual(correct_ids, set(ids_to_extract))
 
 
