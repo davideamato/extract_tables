@@ -29,22 +29,16 @@ from extracted_students import ExtractedStudents
 from student import Student
 import settings
 
-# import pandas as pd
-# pd.set_option('display.max_columns', None)
-
 initialise_logger()
 
 PATH_TO_FILES = settings.path_to_pdfs_to_extract
 INTERNAL_MAPPING = get_internal_mapping(
     settings.path_to_mapping_file, settings.qualification_mapping_sheet_name
 )
-# print(INTERNAL_MAPPING)
 
 # Generates full path to the files to extract data from
 # Extracts unique IDs from file name
 ALL_FILES, APPLICANT_IDS = get_files_and_ids(PATH_TO_FILES)
-# print(ALL_FILES)
-# print(APPLICANT_IDS)
 
 # From the PDFs, these are the headers of the tables we want
 # They have been placed in a counter for easy comparison
@@ -117,8 +111,6 @@ if __name__ == "__main__":
                     grade_tables.append(table)
                     grade_counters.append(header_counter)
 
-                    # print(table)
-                    # print("")
                 elif EXIT_STRING in table_headers:
                     # Exit condition
                     exit_loop = True
@@ -129,7 +121,6 @@ if __name__ == "__main__":
                     Student(app_id, grade_tables, grade_counters), counter
                 )
                 copy_file(file, all_students, app_id)
-                # print("")
                 break
 
             # Go to next page in document
