@@ -388,7 +388,7 @@ def get_files_and_ids(abs_path):
 
     # Extract IDs from file names
     lst_of_ids = [
-        os.path.basename(file).split("_")[settings.pdf_filename_split_index]
+        os.path.basename(file).split(settings.pdf_filename_split_delimeter)[settings.pdf_filename_split_index]
         for file in lst_of_paths
     ]
 
