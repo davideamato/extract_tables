@@ -26,13 +26,13 @@ from random import randint
 
 class GradeEntry:
     """
-        Class to store the grades
+    Class to store the grades
     """
 
     def __init__(
         self, qualification, subject, grade, is_predicted, year, is_exam_result
     ):
-        if type(grade) is str:
+        if isinstance(grade, str):
             self.grade = escape_backslash_r(grade)
         else:
             self.grade = grade
@@ -42,7 +42,6 @@ class GradeEntry:
         self.is_exam_result = is_exam_result
         self.year = year
 
-        # self.grade_info = [self.grade, self.subject, self.qualification, self.is_predicted, self.is_exam_result, self.year]
         self.grade_info = [self.grade, self.subject]
 
     def __repr__(self):
@@ -68,7 +67,7 @@ class GradeEntry:
 
 class ExtractedStudents:
     """
-        Class that stores all the students and co-ordinates the output
+    Class that stores all the students and co-ordinates the output
     """
 
     def __init__(self, applicant_ids, internal_mapping):
@@ -114,7 +113,8 @@ class ExtractedStudents:
         allocation_details = settings.allocation_details
 
         # Get ratios from details
-        ratio = [val for val in allocation_details.values()]
+        # ratio = [val for val in allocation_details.values()]
+        ratio = list(allocation_details.values())
 
         # Total number of parts
         num_parts = sum(ratio)
@@ -191,17 +191,25 @@ class ExtractedStudents:
 
             ws.cell(row=row_counter, column=1, value="{}".format(student.unique_id))
 
-            if student.which_grades[desired_data]:
-                ws.cell(
-                    row=row_counter,
-                    column=2,
-                    value="{}".format(
-                        student.which_grades[desired_data][0].qualification
-                    ),
-                )
+            target_data = student.which_grades.get(desired_data)
+
+            if target_data is not None:
+                if len(target_data) > 0:
+                    ws.cell(
+                        row=row_counter,
+                        column=2,
+                        value="{}".format(target_data[0].qualification),
+                    )
+                else:
+                    ws.cell(
+                        row=row_counter,
+                        column=2,
+                        value="",
+                    )
+
                 col_counter = 3
 
-                for entry in student.which_grades[desired_data]:
+                for entry in target_data:
                     ws.cell(
                         row=row_counter,
                         column=col_counter,
@@ -213,6 +221,11 @@ class ExtractedStudents:
                         value="{}".format(entry.grade),
                     )
                     col_counter += 2
+            else:
+                raise InputError(
+                    False,
+                    f"Key {desired_data} given not found in dictionary {student.which_grades}",
+                )
 
         return ws
 
@@ -292,7 +305,16 @@ class ExtractedStudents:
 
             # Identify and populate cell with the main qualification
             main_qualification = student.get_main_qualification()
-            sanitised_string = self.internal_mapping[main_qualification]
+            sanitised_string = self.internal_mapping.get(main_qualification)
+
+            if main_qualification == "" or sanitised_string is None:
+                ws.cell(row=row_counter, column=2, value="")
+                ws.cell(
+                    row=row_counter,
+                    column=3,
+                    value="Need manual entry: no valid qual found",
+                )
+                continue
 
             if "United Kingdom" in sanitised_string:
                 uk_based = True
@@ -371,7 +393,11 @@ class ExtractedStudents:
                 continue
 
             self.populate_grades(
-                categorised_entries, ws, is_fm, row_counter, any_issues, uk_based
+                categorised_entries,
+                ws,
+                is_fm,
+                row_counter,
+                any_issues,
             )
 
             # Compress list of strings into a single string
@@ -386,8 +412,12 @@ class ExtractedStudents:
 
     @staticmethod
     def strip_overall_grade_spaces(overall_grades):
-        output_overall_grade = overall_grades[0]
-        if type(output_overall_grade) is str:
+        if len(overall_grades) > 0:
+            output_overall_grade = overall_grades[0]
+        else:
+            output_overall_grade = overall_grades
+
+        if isinstance(output_overall_grade, str):
             output_overall_grade = output_overall_grade.strip()
         else:
             output_overall_grade = str(output_overall_grade).strip()
@@ -400,7 +430,7 @@ class ExtractedStudents:
         if grade_val is None:
             # If grade is None, replace with a dash
             return "-"
-        elif type(grade_val) is not str:
+        elif not isinstance(grade_val, str):
             grade_val = str(grade_val).strip()
 
         if "(pass)" in grade_val:
@@ -415,7 +445,12 @@ class ExtractedStudents:
             return grade_val.strip()
 
     def populate_grades(
-        self, categorised_entries, ws, is_fm, row_counter, any_issues, uk_based
+        self,
+        categorised_entries,
+        ws,
+        is_fm,
+        row_counter,
+        any_issues,
     ):
         # Populate subject and grades
         subjectCounter = 0
@@ -690,7 +725,7 @@ class ExtractedStudents:
 
 class Student:
     """
-        Class for a single pdf/student
+    Class for a single pdf/student
     """
 
     def __init__(self, id, extracted_tables, table_headers):
@@ -773,7 +808,7 @@ class Student:
 
                 for entry in grade_entries:
                     # Convert to string
-                    if type(entry.grade) is not str:
+                    if not isinstance(entry.grade, str):
                         grade = str(entry.grade)
                     else:
                         grade = entry.grade
@@ -824,7 +859,7 @@ class Student:
 
     def is_detailed_entry(self, input_qualification, rowCounter):
         target = input_qualification["Date"][rowCounter]
-        if type(target) is not str:
+        if not isinstance(target, str):
             return False
 
         if target not in detail_string():
@@ -867,7 +902,14 @@ class Student:
             else:
                 grade = None
 
-            entry = GradeEntry(qualification, module_info, grade, True, None, False,)
+            entry = GradeEntry(
+                qualification,
+                module_info,
+                grade,
+                True,
+                None,
+                False,
+            )
             output.append(entry)
 
         return output
@@ -1005,7 +1047,7 @@ class Student:
                 )
                 self.predicted_entries.append(entry)
 
-            elif type(self.uncompleted_qualifications["Date"][row]) is str:
+            elif isinstance(self.uncompleted_qualifications["Date"][row],str):
                 if (
                     is_pred_grade & is_grade
                     and self.uncompleted_qualifications["Date"][row] in detail_string()
@@ -1040,7 +1082,12 @@ class Student:
                             grade = None
 
                         entry = GradeEntry(
-                            qualification, subject, grade, True, None, False,
+                            qualification,
+                            subject,
+                            grade,
+                            True,
+                            None,
+                            False,
                         )
                         self.predicted_entries.append(entry)
 
