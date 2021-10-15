@@ -12,6 +12,8 @@ import numpy as np
 import tabula
 import settings
 
+from random import randint
+
 
 class InputError(Exception):
     """Exception raised for errors in the input.
@@ -99,7 +101,7 @@ def check_output_dirs_exist():
     if not os.path.exists(settings.path_to_pdf_pool):
         raise NotADirectoryError("PDF pool does not exists")
 
-    marker_names = [key for key in settings.allocation_details.keys()]
+    marker_names = list(settings.allocation_details.keys())
 
     for name in marker_names:
         folder_name = name + str(settings.batch_number)
@@ -322,12 +324,12 @@ def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
     # Perform check to see if IDs from PDFs and target IDs correspond
     target_ids = check_ids_correspond(ids_from_all_pdfs)
     # Convert to numpy array to get argwhere to work
-    if type(target_ids) is Iterable:
+    if isinstance(target_ids, list):
         target_ids = np.asarray(target_ids)
     else:
         target_ids = np.asarray(list(target_ids))
 
-    if type(ids_from_all_pdfs) is not list:
+    if not isinstance(ids_from_all_pdfs, list):
         ids_from_all_pdfs = list(ids_from_all_pdfs)
 
     # Enforced type being integer for comparison
@@ -351,8 +353,19 @@ def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
     return sorted_pdf_paths, target_ids
 
 
-def copy_file(path_to_file, extracted_students_instance, id):
-    marker_name, numbering = extracted_students_instance.student_to_marker_mapping[id]
+def copy_file(path_to_file, extracted_students_instance, id_num):
+    marker_details = extracted_students_instance.student_to_marker_mapping.get(id_num)
+
+    if marker_details is not None:
+        marker_name, numbering = marker_details
+    else:
+        print(f"ID: {id_num} not found in assignment of student to marker")
+        print("\t Continuing by randomly assigning on the fly")
+        rand_index = randint(0, len(settings.allocation_details))
+        marker_name = list(settings.allocation_details.keys())[rand_index]
+        numbering = 0
+        print(f"\t Marker {marker_name} selected and numbering set to 0")
+
     original_filename = os.path.basename(path_to_file)
 
     new_filename = str(numbering) + "_" + original_filename
@@ -388,7 +401,9 @@ def get_files_and_ids(abs_path):
 
     # Extract IDs from file names
     lst_of_ids = [
-        os.path.basename(file).split(settings.pdf_filename_split_delimeter)[settings.pdf_filename_split_index]
+        os.path.basename(file).split(settings.pdf_filename_split_delimeter)[
+            settings.pdf_filename_split_index
+        ]
         for file in lst_of_paths
     ]
 
@@ -467,18 +482,21 @@ def read_database_file(database_path):
 
         # Put past ids into list, other information is for human
         for row in database_reader:
-            database_ids.append(
-                int(
-                    row[
-                        settings.database_headers[settings.database_header_id_num_index]
-                    ]
-                )
+            row_id = row.get(
+                settings.database_headers[settings.database_header_id_num_index]
             )
-            past_batch_nums.add(
-                int(
-                    row[settings.database_headers[settings.database_header_batch_index]]
-                )
+            if row_id is not None:
+                database_ids.append(int(row_id))
+            else:
+                raise Exception("Database file has been corrupted")
+
+            row_batch_num = row.get(
+                settings.database_headers[settings.database_header_batch_index]
             )
+            if row_batch_num is not None:
+                past_batch_nums.add(int(row_batch_num))
+            else:
+                raise Exception("Database file has been corrupted")
 
         check_batch_num_against_database(
             past_batch_nums,
@@ -540,8 +558,8 @@ def update_previous_id_database(database_path, new_ids):
 
 def check_broken_table(current_page_number, filename, current_table):
     """
-        Determines if a table continues onto the next page
-        If it does, return a the data in a form that can be appended to the original table
+    Determines if a table continues onto the next page
+    If it does, return a the data in a form that can be appended to the original table
     """
 
     # Extract tables from next page
@@ -603,7 +621,6 @@ def fix_broken_table(current_page_number, current_table, filename):
 
     if continued_values is not None:
         # add new row to end of DataFrame
-        # current_table.loc[len(current_table.index)] = continued_values
         updated_table = current_table.append(
             continued_values, ignore_index=True, sort=False
         )
@@ -816,7 +833,10 @@ def math_mapping():
         },
         "Romania- Diploma de Bacalaureat": {"Mathematics"},
         "France- Baccalaureat": {"Mathematics Specialism", "Expert Mathematics"},
-        "France - Baccalaureat General (from 2021)": {"mathematics", "Mathematics",},
+        "France - Baccalaureat General (from 2021)": {
+            "mathematics",
+            "Mathematics",
+        },
         "France- Option Internationale du Baccalaureat (OIB)": {
             "Mathematics Major (Specialism)",
             "Mathematics Experts (Advanced)",
@@ -831,7 +851,10 @@ def math_mapping():
             "Mathematics",
         },
         "India-Indian School Certificate (ISC)": {"Mathematics"},
-        "All India Senior School Certificate (CBSE)": {"Mathematics", "MATHEMATICS",},
+        "All India Senior School Certificate (CBSE)": {
+            "Mathematics",
+            "MATHEMATICS",
+        },
         "GCE A Level (H2)": {"Mathematics"},
         "Hong Kong Diploma of Secondary Education": {
             "Mathematics (compulsory component)",
@@ -909,10 +932,18 @@ def physics_mapping():
             "AP Physics C ELECTRICITY AND MAGNETISM",
             "AP Physics C MECHANICS",
         },
-        "Matura- Poland": {"Physics", "Physics - bilingual",},
-        "New Matura- Poland": {"Physics Level: Advanced",},
+        "Matura- Poland": {
+            "Physics",
+            "Physics - bilingual",
+        },
+        "New Matura- Poland": {
+            "Physics Level: Advanced",
+        },
         "Romania- Diploma de Bacalaureat": {"Physics"},
-        "France - Baccalaureat General (from 2021)": {"physics", "Physics",},
+        "France - Baccalaureat General (from 2021)": {
+            "physics",
+            "Physics",
+        },
         "France- Baccalaureat": {"Physics-Chemistry Specialism", "Expert Mathematics"},
         "France- Option Internationale du Baccalaureat (OIB)": {
             "Physics Chemistry Major (Specialism)",
@@ -925,13 +956,18 @@ def physics_mapping():
             "Physics and chemistry",
         },
         "India-Indian School Certificate (ISC)": {"Physics"},
-        "All India Senior School Certificate (CBSE)": {"Physics", "PHYSICS",},
+        "All India Senior School Certificate (CBSE)": {
+            "Physics",
+            "PHYSICS",
+        },
         "Singapore- Integrated Programme- Cambridge GCE Advanced Level": {"Physics"},
         "Singapore- Integrated Programme- Nat Uni Singapore High Sch of Maths & Science Dip": {
             "Physics"
         },
         "GCE A Level (H2)": {"Physics"},
-        "Hong Kong Diploma of Secondary Education": {"Physics",},
+        "Hong Kong Diploma of Secondary Education": {
+            "Physics",
+        },
         "Spain-Titulo de Bachiller": {"Physics and Chemistry", "Physics"},
         "Zeugnis der Allgemeine Hochschulreif e (Abitur)": {
             "Physics advanced course",
