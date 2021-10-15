@@ -3,19 +3,17 @@ import os
 
 from random import randint
 
-from utils import (
-    InputError,
-    is_abs_path,
-    math_mapping,
-    physics_mapping,
-    fm_mapping,
-    qualifications_with_overall_score,
-    is_abs_path,
+from pdf_strings import (
     math_mapping,
     physics_mapping,
     fm_mapping,
     qualifications_with_overall_score,
     ib_permutations,
+)
+
+from utils import (
+    InputError,
+    is_abs_path,
 )
 
 import settings
@@ -410,20 +408,20 @@ class ExtractedStudents:
         any_issues,
     ):
         # Populate subject and grades
-        subjectCounter = 0
+        subject_counter = 0
         map_subject_num_to_cols = {0: [5], 1: [6], 2: [7, 8], 3: [9, 10]}
 
         for subject_entries in categorised_entries.values():
 
             # If no entries, then go to next value
             if not subject_entries:
-                if subjectCounter > 1:
+                if subject_counter > 1:
                     continue
                 else:
-                    subjectCounter += 1
+                    subject_counter += 1
                     continue
 
-            excel_col = map_subject_num_to_cols.get(subjectCounter)
+            excel_col = map_subject_num_to_cols.get(subject_counter)
             # If there is only one subject entry, then just populate
             if len(subject_entries) == 1:
                 for col, val in zip(excel_col, subject_entries[0].grade_info):
@@ -431,16 +429,16 @@ class ExtractedStudents:
                     ws.cell(row=row_counter, column=col, value=val)
 
             # if it is at the 3rd subject, and not FM then iterate over all
-            elif subjectCounter == 2 and not is_fm:
+            elif subject_counter == 2 and not is_fm:
                 for entry in subject_entries[:2]:
-                    excel_col = map_subject_num_to_cols.get(subjectCounter)
+                    excel_col = map_subject_num_to_cols.get(subject_counter)
                     for col, val in zip(excel_col, entry.grade_info):
                         val = self.sanitise_grade_of_pass(val)
                         ws.cell(row=row_counter, column=col, value=val)
-                    subjectCounter += 1
+                    subject_counter += 1
 
             # If there is FM and there are more than 4 subjects, populate with 1st
-            elif subjectCounter == 3 and len(subject_entries) > 1:
+            elif subject_counter == 3 and len(subject_entries) > 1:
                 for col, val in zip(excel_col, subject_entries[0].grade_info):
                     val = self.sanitise_grade_of_pass(val)
                     ws.cell(row=row_counter, column=col, value=val)
@@ -458,7 +456,7 @@ class ExtractedStudents:
 
                 map_counter_to_subject = {0: "math", 1: "physics", 2: "3rd", 3: "4th"}
                 any_issues.append(
-                    "For {}, selected ".format(map_counter_to_subject[subjectCounter])
+                    "For {}, selected ".format(map_counter_to_subject[subject_counter])
                 )
 
                 # # REFACTOR
@@ -482,7 +480,7 @@ class ExtractedStudents:
                     val = self.sanitise_grade_of_pass(val)
                     ws.cell(row=row_counter, column=col, value=val)
 
-            subjectCounter += 1
+            subject_counter += 1
 
         overall_grade = ws.cell(row=row_counter, column=12).value
         if overall_grade is None:

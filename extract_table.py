@@ -17,13 +17,15 @@ from utils import (
     copy_pdfs_to_pool,
     get_current_time,
     initialise_logger,
-    desired_tables,
     fix_broken_table,
-    get_exit_string,
     get_files_and_ids,
     update_previous_id_database,
     get_internal_mapping,
     order_pdfs_to_target_id_input,
+)
+from pdf_strings import (
+    desired_tables,
+    get_exit_string,
 )
 from extracted_students import ExtractedStudents
 from student import Student

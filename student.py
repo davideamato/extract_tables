@@ -3,7 +3,7 @@
 """
 
 from collections import Counter
-from utils import (
+from pdf_strings import (
     desired_tables,
     detail_string,
     valid_exams,
@@ -20,8 +20,8 @@ class Student:
     Class for a single pdf/student
     """
 
-    def __init__(self, id, extracted_tables, table_headers):
-        self.unique_id = id
+    def __init__(self, id_num, extracted_tables, table_headers):
+        self.unique_id = id_num
 
         self.completed_qualifications = None
         self.uncompleted_qualifications = None
@@ -78,7 +78,7 @@ class Student:
             # Get grade entries that are not empty
             non_empty_grade_entries_key = [
                 entry_key
-                for entry_key in self.which_grades.keys()
+                for entry_key in self.which_grades
                 if self.which_grades.get(entry_key)
             ]
 
