@@ -24,6 +24,7 @@ def get_full_path(path):
 # _ is used as a delimeter to split the filename of the pdf
 # This index is for which item in the list (from split) corresponds to the
 # ID of an applicant
+pdf_filename_split_delimeter = "_"
 pdf_filename_split_index = 2
 
 path_to_pdfs_to_extract = os.path.join(".", "pdfs")
@@ -45,7 +46,6 @@ which_column = "F"
 # is_banner_cumulative = False
 # which_column = None
 
-# path_to_target_file = os.path.join(".", "pdfs")
 path_to_target_file = path_to_pdfs_to_extract
 path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
 
@@ -53,6 +53,16 @@ database_headers = ["ID No.", "Batch No.", "Timestamp"]
 database_header_id_num_index = 0
 database_header_batch_index = 1
 database_header_timestamp_index = 2
+
+assert (
+    max(
+        database_header_id_num_index,
+        database_header_batch_index,
+        database_header_timestamp_index,
+    )
+    < len(database_headers)
+)
+
 database_of_extracted_pdfs = "previously_extracted.csv"
 path_to_database_of_extracted_pdfs = get_full_file_path(
     os.path.join(".", "data"), database_of_extracted_pdfs
