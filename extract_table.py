@@ -25,7 +25,7 @@ from utils import (
     get_internal_mapping,
     order_pdfs_to_target_id_input,
 )
-from student import ExtractedStudents
+from extracted_students import ExtractedStudents
 from student import Student
 import settings
 
