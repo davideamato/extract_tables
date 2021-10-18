@@ -4,6 +4,7 @@ import csv
 import shutil
 
 from time import localtime, strftime
+from copy import deepcopy
 from random import randint
 
 import tabula
@@ -217,6 +218,8 @@ def check_ids_correspond(ids_from_pdf_folder):
 
     ids_from_target_file = get_data_from_target_file()
 
+    order_preserved_target_ids = deepcopy(ids_from_target_file)
+
     # Enforce same type - both Integers
     ids_from_pdf_folder = [int(item) for item in ids_from_pdf_folder]
 
@@ -269,7 +272,8 @@ def check_ids_correspond(ids_from_pdf_folder):
             raise InputError("not new_ids", "TERMINATE: No new IDs")
 
         if ids_from_pdf_folder.issuperset(new_ids):
-            return list(new_ids)
+            # return list(new_ids)
+            return [target_id for target_id in order_preserved_target_ids if target_id in new_ids]
         else:
             missing_ids = new_ids - ids_from_pdf_folder
             missing_ids = ", ".join([str(item) for item in list(missing_ids)])
@@ -308,9 +312,9 @@ def check_ids_correspond(ids_from_pdf_folder):
             print(msg)
             logging.warning(msg)
 
-            return list(ids_from_target_file)
+            return order_preserved_target_ids
         elif ids_from_target_file == intersection:
-            return list(ids_from_target_file)
+            return order_preserved_target_ids
         else:
             file_not_found = ids_from_target_file - intersection
             file_not_found = ", ".join([str(item) for item in list(file_not_found)])
