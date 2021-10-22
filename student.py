@@ -317,7 +317,7 @@ class Student:
 
             elif (not is_pred_grade) & (not is_grade):
 
-                if "Unnamed" in self.uncompleted_qualifications["Grade"][row]:
+                if "Unnamed" in str(self.uncompleted_qualifications["Grade"][row]):
                     valid_grade = self.uncompleted_qualifications["Predicted\rGrade"][
                         row
                     ]
