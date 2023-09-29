@@ -1,9 +1,79 @@
-"""
-    Module for configuring the script
-"""
+#########################################
+############## USER INPUTS ##############
+#########################################
+############## MAIN INPUTS ##############
+#########################################
+
+# IMPORTANT NOTE: IT IS ASSUMED THAT THE BATCH NUMBERS WILL KEEP INCREASING
+# EVEN AFTER THE CYCLE CHANGES! THIS IS VITAL FOR THE REMAINING WORKFLOW!
+# THE BATCH NUMBERS MUST BE UNIQUE!!!
+batch_number = 1
+cycle = 'Nov'
+
+# Base directory where the files are located
+base_directory = '../Shirin'
+# Name of banner file
+banner_name = 'Batch ' + str(batch_number) + '.xlsx'
+# Keys are the initials of markers, values are the weighting of applications to be allocated
+# to that person.
+allocation_details = {
+    "DA": 1,
+    "PV": 1,
+}
+
+#########################################
+############ AUXILIARY INPUTS ###########
+#########################################
+
+# Location of the PDF files
+path_to_pdfs = 'PDFs from UCAS/' + 'Batch ' + str(batch_number)
+
+# Location of the mapping file
+path_to_mapping = ''
+# Name of mapping file
+mapping_name = 'mapping.xlsx'
+
+# Path to banner file
+path_to_banner = 'Excel from Banner'
+
+# Path to database CSV
+path_to_database = 'data'
+# Name of database CSV
+database_name = 'previously_extracted.csv'
+
+# Path to output directory
+output_path = 'output'
+
+
+# _ is used as a delimeter to split the filename of the pdf
+# This index is for which item in the list (from split) corresponds to the
+# ID of an applicant
+pdf_filename_split_delimeter = "_"
+pdf_filename_split_index = 2
+
+# Sheet name of the qualification mapping in mapping file
+qualification_mapping_sheet_name = "Mapping"
+maths_mapping_sheet_name = 'Maths'
+physics_mapping_sheet_name = 'Physics'
+further_maths_mapping_sheet_name = 'FM'
+
+is_id_file_banner = True
+is_banner_cumulative = True
+# Column in banner file that contains IDs
+which_column = "F"
+
+database_headers = ["ID No.", "Batch No.", "Timestamp"]
+database_header_id_num_index = 0
+database_header_batch_index = 1
+database_header_timestamp_index = 2
+
+terminate_if_batch_num_repeated = True
+
+#########################################
+############# END OF INPUTS #############
+#########################################
 
 import os
-
 
 def get_full_file_path(path, filename):
     """Combines path and filename to return full abs path as raw string"""
@@ -17,42 +87,11 @@ def get_full_path(path):
     return os.path.abspath(path).encode("unicode-escape").decode()
 
 
-##############################################
-############### INPUT RELATED ################
-##############################################
+path_to_pdfs_to_extract = get_full_path(os.path.join(base_directory, path_to_pdfs))
 
-# _ is used as a delimeter to split the filename of the pdf
-# This index is for which item in the list (from split) corresponds to the
-# ID of an applicant
-pdf_filename_split_delimeter = "_"
-pdf_filename_split_index = 2
+path_to_mapping_file = get_full_file_path(os.path.join(base_directory, path_to_mapping), mapping_name)
 
-path_to_pdfs_to_extract = os.path.join(".", "pdfs")
-path_to_pdfs_to_extract = get_full_path(path_to_pdfs_to_extract)
-
-qualification_mapping_filename = "mapping.xlsx"
-qualification_mapping_sheet_name = "Mapping"
-path_to_mapping_file = os.path.join(".", "pdfs")
-path_to_mapping_file = get_full_file_path(
-    path_to_mapping_file, qualification_mapping_filename
-)
-
-# target_ucas_id_file = "target_ids.xlsx"
-target_ucas_id_file = "Banner_Example.xlsx"
-is_id_file_banner = True
-is_banner_cumulative = True
-which_column = "F"
-# is_id_file_banner = False
-# is_banner_cumulative = False
-# which_column = None
-
-path_to_target_file = path_to_pdfs_to_extract
-path_to_target_file = get_full_file_path(path_to_target_file, target_ucas_id_file)
-
-database_headers = ["ID No.", "Batch No.", "Timestamp"]
-database_header_id_num_index = 0
-database_header_batch_index = 1
-database_header_timestamp_index = 2
+path_to_target_file = get_full_file_path(os.path.join(base_directory, path_to_banner), banner_name)
 
 assert (
     max(
@@ -63,33 +102,18 @@ assert (
     < len(database_headers)
 )
 
-database_of_extracted_pdfs = "previously_extracted.csv"
-path_to_database_of_extracted_pdfs = get_full_file_path(
-    os.path.join(".", "data"), database_of_extracted_pdfs
-)
+path_to_database_of_extracted_pdfs = get_full_file_path(os.path.join(base_directory, path_to_database), database_name)
 
-terminate_if_batch_num_repeated = True
+output_path = get_full_path(os.path.join(base_directory, output_path))
 
-# IMPORTANT NOTE: IT IS ASSUMED THAT THE BATCH NUMBERS WILL KEEP INCREASING
-# EVEN AFTER THE CYCLE CHANGES! THIS IS VITAL FOR THE REMAINING WORKFLOW!
-# THE BATCH NUMBERS MUST BE UNIQUE!!!
-batch_number = 1
-cycle = "Nov"
-allocation_details = {
-    "AP": 1,
-    "TM": 1,
-    "EN": 1,
-}
-
-##############################################
-############### OUTPUT RELATED ###############
-##############################################
-
-path_to_pdf_pool = os.path.join(".", "pool")
+path_to_pdf_pool = os.path.join(base_directory, output_path, "pool")
 path_to_pdf_pool = get_full_path(path_to_pdf_pool)
 
-output_path = os.path.join(".", "output")
-output_path = get_full_path(output_path)
+if not os.path.exists(path_to_pdf_pool):
+    os.makedirs(path_to_pdf_pool)
+
+if not os.path.exists(path_to_database_of_extracted_pdfs):
+    os.makedirs(os.path.join(base_directory, path_to_database))
 
 output_filename = f"grades_{batch_number}.xlsx"
 

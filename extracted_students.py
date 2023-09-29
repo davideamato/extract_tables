@@ -4,9 +4,6 @@ import os
 from random import randint
 
 from pdf_strings import (
-    math_mapping,
-    physics_mapping,
-    fm_mapping,
     qualifications_with_overall_score,
     ib_permutations,
 )
@@ -14,6 +11,7 @@ from pdf_strings import (
 from utils import (
     InputError,
     is_abs_path,
+    escape_backslash_r,
 )
 
 import settings
@@ -25,14 +23,17 @@ class ExtractedStudents:
     Class that stores all the students and co-ordinates the output
     """
 
-    def __init__(self, applicant_ids, internal_mapping):
+    def __init__(self, applicant_ids, math_mapping, physics_mapping, fm_mapping):
         self.student_ids = applicant_ids
+        self.math_mapping = math_mapping
+        self. physics_mapping = physics_mapping
+        self. fm_mapping = fm_mapping
 
         self.num_students = len(applicant_ids)
 
         self.all_students = [None] * self.num_students
 
-        self.internal_mapping = internal_mapping
+        #self.internal_mapping = internal_mapping
 
         self.marker_allocation = self.assign_students_to_marker()
         # print(self.marker_allocation)
@@ -248,7 +249,7 @@ class ExtractedStudents:
             ws.cell(row=row_counter, column=15, value=settings.batch_number)
 
             # Categorise each entry into subjects
-            categorised_entries = self.sort_into_subjects(student)
+            categorised_entries = self.sort_into_subjects(student, self.math_mapping, self.physics_mapping, self.fm_mapping)
 
             # Identify if FM is presetn
             if categorised_entries["fm"]:
@@ -260,9 +261,8 @@ class ExtractedStudents:
 
             # Identify and populate cell with the main qualification
             main_qualification = student.get_main_qualification()
-            sanitised_string = self.internal_mapping.get(main_qualification)
 
-            if main_qualification == "" or sanitised_string is None:
+            if main_qualification == "" or main_qualification is None:
                 ws.cell(row=row_counter, column=2, value="")
                 ws.cell(
                     row=row_counter,
@@ -271,19 +271,19 @@ class ExtractedStudents:
                 )
                 continue
 
-            if "United Kingdom" in sanitised_string:
+            if "United Kingdom" in main_qualification:
                 uk_based = True
             else:
                 uk_based = False
 
-            if "A Levels" in sanitised_string:
-                sanitised_string = self.update_al_string(
-                    categorised_entries, sanitised_string, is_fm
+            if "A Levels" in main_qualification:
+                main_qualification = self.update_al_string(
+                    categorised_entries, main_qualification, is_fm
                 )
 
             # Fill in the qualification to the worksheet
             ws.cell(
-                row=row_counter, column=2, value="{}".format(sanitised_string.strip())
+                row=row_counter, column=2, value="{}".format(main_qualification.strip())
             )
 
             # Create log for issues
@@ -582,6 +582,8 @@ class ExtractedStudents:
             any_issues[-1] += "highest most recent "
 
             return lst_of_entries[grades.index(max(grades))]
+        else:
+            return lst_of_entries[years.index(max_year)]
 
     @staticmethod
     def compress_log(log):
@@ -627,7 +629,7 @@ class ExtractedStudents:
         return log
 
     @staticmethod
-    def sort_into_subjects(student):
+    def sort_into_subjects(student, math_mapping, physics_mapping, fm_mapping):
 
         categorised_entries = {
             "math": [],
@@ -641,13 +643,11 @@ class ExtractedStudents:
             # List of entries are not empty
             if grade_entries:
                 for entry in grade_entries:
-                    if entry.subject in math_mapping().get(entry.qualification, set()):
+                    if escape_backslash_r(entry.subject).lower() in {s.lower() for s in math_mapping.get(entry.qualification, set())}:
                         categorised_entries["math"].append(entry)
-                    elif entry.subject in physics_mapping().get(
-                        entry.qualification, set()
-                    ):
+                    elif escape_backslash_r(entry.subject).lower() in {s.lower() for s in physics_mapping.get(entry.qualification, set())}:
                         categorised_entries["physics"].append(entry)
-                    elif entry.subject in fm_mapping().get(entry.qualification, set()):
+                    elif escape_backslash_r(entry.subject).lower() in {s.lower() for s in fm_mapping.get(entry.qualification, set())}:
                         categorised_entries["fm"].append(entry)
                     else:
                         categorised_entries["additional_subjects"].append(entry)

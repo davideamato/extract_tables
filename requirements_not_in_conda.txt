@@ -1,3 +1,2 @@
 tabula-py==2.2.0
-tabula==1.0.5
 tqdm==4.62.0

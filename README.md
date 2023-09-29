@@ -69,6 +69,9 @@ Tabula requires Java 8+. I think [this](https://www.oracle.com/java/technologies
 If using Tabula on Windows 10, their documentation contains a useful [page](https://tabula-py.readthedocs.io/en/latest/getting_started.html#get-tabula-py-working-windows-10) 
 on how to get it to work.
 
+#### Module 'tabula' has no attribute 'read_pdf'
+If you encounter an error stating that module `tabula` has no attribute `read_pdf`, this is likely due to a namespace conflict between `tabula` and `tabula-py`. Remove the `tabula` package from the environment and only keep `tabula-py` to resolve this.
+See [this post on StackOverflow](https://stackoverflow.com/questions/60377106/python3-module-tabula-has-no-attribute-read-pdf) for an explanation.
 
 ## How to use?  
 
@@ -82,37 +85,39 @@ Further details on each of the components will be provided in the following sect
 
 ### User Inputs
 
-As an output of this script involves copying the PDF files from one location to another, it is important that the ouput paths exists. 
-It had been intended that the script would automatically create the output path if it did not exist. 
-However, due to time constraints on the project and the unexpected difficulties in achieving this. 
-This feature was not implemented. 
-Moreover, this could be a sanity check for the user to ensure that the output location has been correctly specified in [settings.py](settings.py).
-
-__IMPORTANT__: An implicit assumption made is that the IDs do not contain a leading 0. 
-If it does, this will be dropped. This dropping occurs when the ID is converted to an integer. 
-If the leading zero is required, change within [utils.py](utils.py) that the type enforced should be `str` instead of `int`.
-
 What are the inputs and what are the used for?
 1. PDFs to extract data from
    - These are the PDFs in which the data to be extracted reside in. It is assumed that this data are all in tables.
    - All these files must sit within a single folder
-   - The path to this folder must be provided in the [settings.py](settings.py) file
+   - The default path to this folder is `'base_dir\pdfs'` but can be changed in the [settings.py](settings.py) file using the `path_to_pdfs` variable.
    - Certain assumptions have been made about the structure and layout of these files. Further details on this can be found in section below on maintaining this script.
    - The structure of the filename has been assumed to be as follows: `<text>_<text>_IDNumber_unicode.pdf`. The ID number for each PDF is extracted from here.
    - If duplicates exist, they will be ignored.
 2. Internal mapping excel file
-   - This file contains what the strings (qualification names) in the PDFs maps to the string used within the master excel.
-   - The structure is as follows:
-     - First column - String that is used within the master excel.
-     - Subsequent columns - Strings found in the PDFs. There can be multiple, more columns just need to be populated.
+   - This file contains various strings that appear on the PDFs, and what the code will map them to. Each qualification (such as A-Levels) may appear differently on each application, and this file aims to map all apparent names to the qualification names.
+   - The 'Mapping' sheet contains all valid qualification names in the PDFs, and what the code will map them to in the master excel. The structure is as follows:
+     - First column - Qualification string that is used within the master excel.
+     - Subsequent columns - Qualification name found in the PDFs. There can be multiple, more columns just need to be populated.
      - No headers
-3. Target ID Excel file
-   - This contains all the IDs which the data will be extracted for.
-   - The values here _must_ correspond to the the ID numbers extracted from the PDF filenames. If this is not the case, the script will raise an error and terminate execution.
+     - If a qualification name does not appear on this sheet after column A, the code will not regard it as a valid qualification and will not read the results of that qualification.
+   - The 'Maths', 'Physics' and 'FM' sheets contain valid Mathematics, Physics and Further Mathematics subject names for each qualification. The structure is the same for all sheets:
+     - First column - The qualification for which the subject names are listed.
+     - Subsequent columns - Subject names for the relevant subject that may appear in the PDFs. There can be as many columns as necessary.
+     - No headers
+     - If a subject name does not appear on these sheets, the code will not regard it as a valid Maths, Physics or Further Maths subject.
+    - This file is by default located in `'base_dir\pdfs\'` and is named `'mapping.xlsx'`, but these can be changed in the [settings.py](settings.py) file.
+3. Banner file
+   - This contains all the previous and new IDs.
    - __IMPORTANT__: The order of the IDs in the output Excel file will match the order provided in this file. For the order of the IDs, in the folder for each marker, to correspond to the what appears in _master_, the order provided must correspond to the internal source sheet. 
-   - The assumed structure is that: 1) No headers, 2) IDs are all placed within a single column.
-   - This almost equivalent to a csv file. However, to remain consistent with the other inputs being an excel file. 
-4. [settings.py](settings.py)
+   - Currently the IDs are read from column F, but this can be changed in the [settings.py](settings.py) file.
+   - It is assumed that the column has a header in row 1.
+   - This file is by default located in `'base_dir\pdfs\'`, but this can be changed in the [settings.py](settings.py) file.
+4. Database file
+   - CSV file that contains previously extracted IDs and batch numbers. This file ensures that if the banner file is cumulative, the same ID is not extracted twice.
+   - The code determines all new IDs by comparing the banner and database files. These new IDs _must_ be an exact match to IDs extracted from PDF names. Otherwise, the code will give an error and terminate.
+   - At the start of an admissions cycle, (for batch 1) this file can be missing and will be automatically created.
+   - This file is by default located in `'base_dir\data\'` and is named `'previously_extracted.csv'`, but this can be changed in the [settings.py](settings.py) file.
+5. [settings.py](settings.py)
    - Besides updating the path to the input files, name of the output files, and path to the output location; administrative allocation information _must_ be provided here.
    - The allocation information _necessary_ for the master excel.
    - What is the allocation information?
@@ -134,118 +139,13 @@ What are the inputs and what are the used for?
       }`.
       Here, TM will not be allocated any IDs and AP will have double that of EN.
 
-### Input Update
-
-#### Assumptions
-1. Banner file is input
-    - Replaces target_ids excel file
-    - Contains all previous and new IDs
-2. Treat banner file as the “ground truth”
-    - Implication: IDs from pdf files are a subset of IDs from the banner file
-    - Therefore, behaviour of the code should be
-        1. If an ID from the PDFs is found, __terminate__ – throw InvalidInput error
-        2. If a new ID is not amongst the PDF IDs, __terminate__
- 
-
-#### Definition of new ID
-An ID is new if,
-1. Exists in banner file
-2. Not exist in existing IDs
-
-The new ID set is the difference between the set of banner IDs and the set of database IDs.
-
- 
-#### What is the database?
-
-CSV file that contains,
-1. IDs
-2. Associated batch number
- 
-
-#### What the code will do?
-1. Gets all the IDs from the PDFs
-2. Get IDs from banner file
-3. Get IDs from database
-    1. Check if database exists – Create if it doesn’t, read if it does
-    2. Find the largest previous batch number
-        1. Print to line previous (largest in database) batch number and current batch number from settings
-        2. If they are the same, behaviour depends on `settings.terminate_if_batch_num_repeated` variable. If `True`, it will __terminate__. This is to ensure that the order of the PDFs in the individual marker folders is “correct”. If `False`, user input is required. This is useful if getting of previous IDs is used in a different context.
-4. Find new IDs using set definition
-5. Check correspondence between new IDs and those in PDF folder. __Terminate__ is any of the above assumptions are violated
- 
-
-#### When is database updated?
-
-It is the last “action” before the script ends
-
-#### Additional settings to configure
-
-For target ids file:
-```py
-  # The standard settings fall into two cases
-
-  # Case 1: File is banner
-  is_id_file_banner = True
-  is_banner_cumulative = True
-  which_column = "F"
-
-  # Case 2: File is not banner
-  is_id_file_banner = False
-  is_banner_cumulative = False
-  which_column = None
-
-  # A less standard setting would be 
-  # Please refer to the testing module (testing.py) to understand the implications or to the section below on "What behaviour is defined and what happens?"
-  is_id_file_banner = True
-  is_banner_cumulative = False
-```
-
-For database file:
-```py
-  # Vars that don't need changing:
-  database_headers = ["ID No.", "Batch No.", "Timestamp"]
-  database_header_id_num_index = 0
-  database_header_batch_index = 1
-  database_header_timestamp_index = 2
-
-  # Case 1: With database
-  database_of_extracted_pdfs = "previously_extracted.csv"
-  path_to_database_of_extracted_pdfs = get_full_file_path(
-      os.path.join(".", "data"), database_of_extracted_pdfs
-  )
-
-  # Case 2: Without database
-  database_of_extracted_pdfs = None
-  path_to_database_of_extracted_pdfs = None
-```
-
-For batch number condition:
-```py
-  # To terminate
-  terminate_if_batch_num_repeated = True
-  # To require user input
-  terminate_if_batch_num_repeated = False
-```
-
-#### What behaviour is defined and what happens?
-The following assume banner is target ID file and the associated PDF is present, 
-
-1. Target ID file is _not_ cumulative and _no_ database is present
-    - Extract all IDs that are in target ID file 
-2. Target ID file _is_ cumulative and _no_ database is present
-    - If batch number is 1, extract all IDs that are in target ID file 
-    - If batch number is _not_ 1, fails. No database but it is cumulative implies there is insufficient information or settings are incorrect
-3. Target ID file is _not_ cumulative and database _is_ present
-    - If database and target are disjoint, then succeed as target is truth
-    - If database intersects target, then remove database IDs from target 
-    - If database superset of target, then fails
-4. Target IDs is identical to database IDs
-    - Fails as there are no new IDs
-5. Target ID file _is_ cumulative and database _is_ present
-    - Typical use case
-    - Extracts new IDs
+__IMPORTANT__: An implicit assumption made is that the IDs do not contain a leading 0. 
+If it does, this will be dropped. This dropping occurs when the ID is converted to an integer. 
+If the leading zero is required, change within [utils.py](utils.py) that the type enforced should be `str` instead of `int`.
 
 ### Script Output
+
+The default output directory of the script is `'base_dir\output\'`. The script will automatically create any output directories.
 
 The main output is the excel file containing the grades. 
 It has been structured for use in the `Grades Source sheet` of the Master Excel. 
@@ -274,6 +174,41 @@ Once these have been sorted, the script can be run in the terminal,
 This will execute the script and a progress bar will print on a single line.
 Upon sucessful execution, the outputs will be generated in the locations specified in [settings.py](settings.py).
 
+## Accompanying programs
+
+### `extract_subject_names.py`
+
+In order to make it easier to determine any subject names that appear in the applications, an accompanying program was written to extract all Maths, Physics and Further Maths subject names for each valid qualification. Subject names do change between years, and if a new subject name appears the code will not recognise it as a valid Maths/Physics/FM subject. This program will use a permissive string search to gather most Maths/Physics/FM subjects per qualification and present the results to the user. The user can then filter the subjects and copy the valid ones into the mapping file. The code _DOES NOT_ check if a subject is valid or is accepted by the department. It merely searches all subjects that contain the string 'physics' or 'mathematics'. It is the responsibility of the user to check if a given subject should be accepted.
+
+The input of the code is very similar to the main code, but it does not require a database file and will not provide a file based output. The output will be written to the terminal.
+
+The code can be run using the following command:
+
+  ```
+  python extract_subject_names.py
+  ```
+
+## Code Structure and Development
+
+
+#### What behaviour is defined and what happens?
+
+The following assume banner is target ID file and the associated PDF is present, 
+
+1. Target ID file is _not_ cumulative and _no_ database is present
+    - Extract all IDs that are in target ID file 
+2. Target ID file _is_ cumulative and _no_ database is present
+    - If batch number is 1, extract all IDs that are in target ID file 
+    - If batch number is _not_ 1, fails. No database but it is cumulative implies there is insufficient information or settings are incorrect
+3. Target ID file is _not_ cumulative and database _is_ present
+    - If database and target are disjoint, then succeed as target is truth
+    - If database intersects target, then remove database IDs from target 
+    - If database superset of target, then fails
+4. Target IDs is identical to database IDs
+    - Fails as there are no new IDs
+5. Target ID file _is_ cumulative and database _is_ present
+    - Typical use case
+    - Extracts new IDs
 
 ## How has this been structured? 
 
@@ -332,7 +267,7 @@ In this case, instituite a check during the loading phase then prepend a `"0"` t
 
 - [ ] Refactor!
 - [ ] Implement testing. This really should've been done during development
-- [ ] Create path if it does not exist
+- [x] Create path if it does not exist
 - [ ] Create the foolproof but unmaintanable beast of an exe file 
 
 

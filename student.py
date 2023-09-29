@@ -20,8 +20,9 @@ class Student:
     Class for a single pdf/student
     """
 
-    def __init__(self, id_num, extracted_tables, table_headers):
+    def __init__(self, id_num, extracted_tables, table_headers, internal_mapping):
         self.unique_id = id_num
+        self.internal_mapping = internal_mapping
 
         self.completed_qualifications = None
         self.uncompleted_qualifications = None
@@ -87,7 +88,7 @@ class Student:
 
                 current_entries = self.which_grades.get(grade_entries_key)
 
-                # Filter out standard level subjects
+                # Filter out standard level subjects and extended essays
                 grade_entries = [
                     entry
                     for entry in current_entries
@@ -95,6 +96,8 @@ class Student:
                         "S" in str(entry.grade).upper()
                         or "stand lvl" in str(entry.subject).lower()
                         or "standard lvl" in str(entry.subject).lower()
+                        or 'ext essay' in str(entry.subject).lower()
+                        or 'extended essay' in str(entry.subject).lower()
                     )
                 ]
 
@@ -112,6 +115,11 @@ class Student:
                     elif "h" in grade:
                         entry.grade = grade.replace("h", "")
                         entry.grade_info[0] = entry.grade
+
+                    # Get actual subject name
+                    subject = entry.subject.split('Value:')[0].split('Predicted Grade:')[0].split("Grade:")[0].strip()
+                    entry.subject = subject
+                    entry.grade_info[1] = subject
 
                 self.which_grades[grade_entries_key] = grade_entries
 
@@ -143,7 +151,7 @@ class Student:
                     # It is the qualification we are looking for.
                     # The grade is not None AND year is not None (implies it is a module/detail entry)
                     if (
-                        target_qualification in item.qualification
+                        target_qualification == item.qualification
                         and item.grade is not None
                         and item.year is not None
                     ):
@@ -176,33 +184,44 @@ class Student:
             qualification = None
 
         output = []
-        all_module_details = input_qualification["Body"][rowCounter]
 
-        # Ignores the first entry which would just be the date
-        individual_modules = all_module_details.split("Title:")[1:]
-        # print(individual_modules)
-        for module in individual_modules:
+        if self.is_qual_valid(qualification):
 
-            module_info = module.split("Date:")[0]
+            qualification = self.get_valid_qualification(qualification)
 
-            if "Predicted Grade:" in module_info:
-                grade = module_info.split("Predicted Grade:")[0]
-            elif "Grade:" in module_info:
-                grade = module_info.split("Grade:")[0]
-            elif "Value:" in module_info:
-                grade = module_info.split("Value:")[0]
-            else:
-                grade = None
+            all_module_details = input_qualification["Body"][rowCounter]
 
-            entry = GradeEntry(
-                qualification,
-                module_info,
-                grade,
-                True,
-                None,
-                False,
-            )
-            output.append(entry)
+            # Ignores the first entry which would just be the date
+            individual_modules = all_module_details.split("Title:")[1:]
+            # print(individual_modules)
+            for module in individual_modules:
+
+                module_info = module.split("Date:")[0]
+                predicted = False
+                exam = False
+
+                if "Predicted Grade:" in module_info:
+                    grade = module_info.split("Predicted Grade:")[1]
+                    predicted = True
+                elif "Grade:" in module_info:
+                    grade = module_info.split("Grade:")[1]
+                elif "Value:" in module_info:
+                    grade = module_info.split("Value:")[1]
+                else:
+                    grade = None
+
+                if grade is not None:
+                    grade = ''.join(e for e in grade if e.isnumeric())
+
+                entry = GradeEntry(
+                    qualification,
+                    module_info,
+                    grade,
+                    predicted,
+                    None,
+                    exam,
+                )
+                output.append(entry)
 
         return output
 
@@ -212,10 +231,12 @@ class Student:
 
         for row in self.completed_qualifications.index:
 
-            if self.is_completed_qual_valid(row):
+            if self.is_qual_valid(self.completed_qualifications["Exam"][row]):
+
+                qual = self.get_valid_qualification(self.completed_qualifications['Exam'][row])
 
                 entry = GradeEntry(
-                    self.completed_qualifications["Exam"][row],
+                    qual,
                     self.completed_qualifications["Subject"][row],
                     self.completed_qualifications["Grade"][row],
                     False,
@@ -225,9 +246,7 @@ class Student:
 
                 self.completed_entries.append(entry)
 
-            elif self.is_detailed_entry(
-                self.completed_qualifications, row
-            ) and self.is_completed_qual_valid(row - 1):
+            elif self.is_detailed_entry(self.completed_qualifications, row):
 
                 detailed_entries = self.handle_detailed_entry(
                     self.completed_qualifications, row
@@ -236,25 +255,17 @@ class Student:
 
         return self.completed_entries
 
-    def is_completed_qual_valid(self, row):
-        if isna(self.completed_qualifications["Exam"][row]):
-            return False
-
-        if self.completed_qualifications["Exam"][row] in valid_exams():
-            return True
-        else:
-            return False
-
     def examresult_entries(self):
         if self.exam_results is None:
             return None
 
         for row in self.exam_results.index:
 
-            if self.is_examresult_valid(row):
+            if self.is_qual_valid(self.exam_results["Exam Level"][row]):
 
+                qual = self.get_valid_qualification(self.exam_results['Exam Level'][row])
                 entry = GradeEntry(
-                    self.exam_results["Exam Level"][row],
+                    qual,
                     self.exam_results["Subject"][row],
                     self.exam_results["Grade"][row],
                     False,
@@ -270,15 +281,6 @@ class Student:
                 self.results_entries += detailed_entries
 
         return self.results_entries
-
-    def is_examresult_valid(self, row):
-        if isna(self.exam_results["Exam Level"][row]):
-            return False
-
-        if self.exam_results["Exam Level"][row] in valid_exams():
-            return True
-        else:
-            return False
 
     def predicted_grade_entries(self):
         if self.uncompleted_qualifications is None:
@@ -305,15 +307,19 @@ class Student:
                 else:
                     qualification = self.uncompleted_qualifications["Exam"][row]
 
-                entry = GradeEntry(
-                    qualification,
-                    self.uncompleted_qualifications["Subject"][row],
-                    valid_grade,
-                    True,
-                    self.uncompleted_qualifications["Date"][row].split("-")[-1],
-                    False,
-                )
-                self.predicted_entries.append(entry)
+                if self.is_qual_valid(qualification):
+
+                    qualification = self.get_valid_qualification(qualification)
+
+                    entry = GradeEntry(
+                        qualification,
+                        self.uncompleted_qualifications["Subject"][row],
+                        valid_grade,
+                        True,
+                        self.uncompleted_qualifications["Date"][row].split("-")[-1],
+                        False,
+                    )
+                    self.predicted_entries.append(entry)
 
             elif (not is_pred_grade) & (not is_grade):
 
@@ -329,58 +335,36 @@ class Student:
                 else:
                     qualification = self.uncompleted_qualifications["Exam"][row]
 
-                entry = GradeEntry(
-                    qualification,
-                    self.uncompleted_qualifications["Subject"][row],
-                    valid_grade,
-                    True,
-                    self.uncompleted_qualifications["Date"][row].split("-")[-1],
-                    False,
-                )
-                self.predicted_entries.append(entry)
+                if self.is_qual_valid(qualification):
 
-            elif isinstance(self.uncompleted_qualifications["Date"][row], str):
-                if (
-                    is_pred_grade & is_grade
-                    and self.uncompleted_qualifications["Date"][row] in detail_string()
-                ):
-                    all_module_details = self.uncompleted_qualifications["Body"][row]
+                    qualification = self.get_valid_qualification(qualification)
 
-                    if isna(self.uncompleted_qualifications["Exam"][row - 1]):
-                        qualification = self.uncompleted_qualifications["Body"][row - 1]
-                    else:
-                        qualification = self.uncompleted_qualifications["Exam"][row - 1]
+                    entry = GradeEntry(
+                        qualification,
+                        self.uncompleted_qualifications["Subject"][row],
+                        valid_grade,
+                        True,
+                        self.uncompleted_qualifications["Date"][row].split("-")[-1],
+                        False,
+                    )
+                    self.predicted_entries.append(entry)
 
-                    # Ignores the first entry which would just be the date
-                    individual_modules = all_module_details.split("Title:")[1:]
-                    # print(individual_modules)
-                    for module in individual_modules:
-                        module_info = module.split("Date:")[0]
+            elif self.is_detailed_entry(self.uncompleted_qualifications, row):
 
-                        if "Predicted Grade:" in module_info:
-                            split = module_info.split("Predicted Grade:")
-                            subject = split[0]
-                            grade = split[1]
-                        elif "Grade:" in module_info:
-                            split = module_info.split("Grade:")
-                            subject = split[0]
-                            grade = split[1]
-                        elif "Value:" in module_info:
-                            split = module_info.split("Value:")
-                            subject = split[0]
-                            grade = split[1]
-                        else:
-                            subject = module_info
-                            grade = None
-
-                        entry = GradeEntry(
-                            qualification,
-                            subject,
-                            grade,
-                            True,
-                            None,
-                            False,
-                        )
-                        self.predicted_entries.append(entry)
+                detailed_entries = self.handle_detailed_entry(self.uncompleted_qualifications, row)
+                self.predicted_entries += detailed_entries
 
         return self.predicted_entries
+
+    def is_qual_valid(self, qual):
+        if isna(qual):
+            return False
+
+        qual = ''.join(char for char in str(qual) if char.isprintable() and not char.isspace())
+        if qual in [''.join(char for char in exam if char.isprintable() and not char.isspace()) for exam in valid_exams(self.internal_mapping)]:
+            return True
+        else:
+            return False
+
+    def get_valid_qualification(self, qual):
+        return self.internal_mapping.get(''.join(e for e in str(qual) if e.isprintable() and not e.isspace()))

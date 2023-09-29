@@ -9,7 +9,7 @@ from random import randint
 
 import tabula
 import numpy as np
-from pandas import read_excel
+from pandas import read_excel, Series
 
 import settings
 
@@ -30,8 +30,6 @@ class InputError(Exception):
 
 
 def initialise_logger():
-    if not os.path.exists(settings.output_path):
-        raise NotADirectoryError("Output Directory NOT Found")
 
     if os.path.exists(settings.path_to_log):
         os.remove(settings.path_to_log)
@@ -68,11 +66,42 @@ def get_internal_mapping(path_to_file, sheet_name):
             if val is None:
                 # Value in first column is the desired string
                 val = cell.value
-            else:
+            elif cell.value is not None:
                 # Other values is what we have
-                output_dict[cell.value] = val
+                output_dict[''.join(e for e in str(cell.value) if e.isprintable() and not e.isspace())] = val
 
     logging.info("Mapping file loaded")
+
+    return output_dict
+
+
+def get_subject_mapping(path_to_file, sheet_name):
+    if not path_to_file.endswith(".xlsx"):
+        logging.error("Mapping file not in xlsx format")
+        raise InputError(
+            'not path_to_file.endswith(".xlsx")', "Input file must be in xlsx format"
+        )
+
+    input_file = path_to_file
+
+    from openpyxl import load_workbook
+
+    wb = load_workbook(filename=input_file, read_only=True)
+    ws = wb[sheet_name]
+
+    # Maps values in columns after 2nd to value in 1st column
+    output_dict = dict()
+
+    for row in ws.rows:
+        qual = None
+        for cell in row:
+            if qual is None:
+                # Value in first column is the qualification
+                qual = cell.value
+                output_dict[qual] = set()
+            elif cell.value is not None:
+                # Other values is subject names
+                output_dict[qual].add(cell.value)
 
     return output_dict
 
@@ -96,19 +125,13 @@ def is_abs_path(input_path):
 
 
 def check_output_dirs_exist():
-    if not os.path.exists(settings.output_path):
-        raise NotADirectoryError("Output folder does not exists")
-
-    if not os.path.exists(settings.path_to_pdf_pool):
-        raise NotADirectoryError("PDF pool does not exists")
-
     marker_names = list(settings.allocation_details.keys())
 
     for name in marker_names:
         folder_name = name + str(settings.batch_number)
         marker_path = os.path.join(settings.output_path, folder_name)
         if not os.path.exists(marker_path):
-            raise NotADirectoryError(f"{folder_name} Folder does not exists")
+            os.makedirs(marker_path)
 
 
 def check_target_id_file_settings():
@@ -149,7 +172,7 @@ def is_database_path_valid():
         else:
             return False
 
-    _, ext = os.path.splitext(settings.database_of_extracted_pdfs)
+    _, ext = os.path.splitext(settings.database_name)
 
     if ext != ".csv":
         raise InputError(True, "Database file MUST be a .csv")
@@ -322,11 +345,21 @@ def check_ids_correspond(ids_from_pdf_folder):
             logging.error(msg)
             raise InputError("ids_from_target_file != intersection", msg)
 
+def remove_extra_pdfs(target_ids, pdf_paths, pdf_ids):
+
+    not_in_target = list(set(pdf_ids) - set(target_ids))
+    extra_locs = [np.argwhere(np.asarray(pdf_ids) == id) for id in not_in_target]
+
+    filtered_pdf_ids = [pdf_ids[i] for i in range(0, len(pdf_ids)) if i not in extra_locs]
+    filtered_pdf_paths = [pdf_paths[i] for i in range(0, len(pdf_paths)) if i not in extra_locs]
+
+    return (filtered_pdf_paths, filtered_pdf_ids) 
 
 def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
 
     # Perform check to see if IDs from PDFs and target IDs correspond
     target_ids = check_ids_correspond(ids_from_all_pdfs)
+
     # Convert to numpy array to get argwhere to work
     if isinstance(target_ids, list):
         target_ids = np.asarray(target_ids)
@@ -338,6 +371,8 @@ def order_pdfs_to_target_id_input(all_pdf_paths, ids_from_all_pdfs):
 
     # Enforced type being integer for comparison
     ids_from_all_pdfs = [int(item) for item in ids_from_all_pdfs]
+    # Remove extra pdfs from list
+    all_pdf_paths, ids_from_all_pdfs = remove_extra_pdfs(target_ids, all_pdf_paths, ids_from_all_pdfs)
 
     # Location of ID from pdfs in target ids list
     id_locs = [
@@ -588,7 +623,7 @@ def check_broken_table(current_page_number, filename, current_table):
     if top_table.empty:
         table_length = len(top_table_header)
         if table_length == current_table_length:
-            return top_table_header.to_series()
+            return Series(top_table_header.values, index=current_table_header)
         elif detail_string() in top_table_header:
             return move_data_out_of_header(
                 top_table, current_table_header, table_length

@@ -7,7 +7,6 @@ import subprocess
 from collections import Counter
 from tqdm import tqdm
 
-
 import logging
 import tabula
 
@@ -16,6 +15,7 @@ from utils import (
     copy_file,
     copy_pdfs_to_pool,
     get_current_time,
+    get_subject_mapping,
     initialise_logger,
     fix_broken_table,
     get_files_and_ids,
@@ -37,6 +37,9 @@ PATH_TO_FILES = settings.path_to_pdfs_to_extract
 INTERNAL_MAPPING = get_internal_mapping(
     settings.path_to_mapping_file, settings.qualification_mapping_sheet_name
 )
+MATH_MAPPING = get_subject_mapping(settings.path_to_mapping_file, settings.maths_mapping_sheet_name)
+PHYS_MAPPING = get_subject_mapping(settings.path_to_mapping_file, settings.physics_mapping_sheet_name)
+FM_MAPPING = get_subject_mapping(settings.path_to_mapping_file, settings.further_maths_mapping_sheet_name)
 
 # Generates full path to the files to extract data from
 # Extracts unique IDs from file name
@@ -57,7 +60,7 @@ if __name__ == "__main__":
     ALL_FILES, APPLICANT_IDS = order_pdfs_to_target_id_input(ALL_FILES, APPLICANT_IDS)
 
     # Initialise object to store extracted information
-    all_students = ExtractedStudents(APPLICANT_IDS, INTERNAL_MAPPING)
+    all_students = ExtractedStudents(APPLICANT_IDS, MATH_MAPPING, PHYS_MAPPING, FM_MAPPING)
     counter = 0
 
     total_num_files = len(ALL_FILES)
@@ -90,7 +93,7 @@ if __name__ == "__main__":
                 logging.warning("EOF reached before exit condition")
                 logging.warning(f"Check file with ID: {app_id}")
                 all_students.add_student_sequentially(
-                    Student(app_id, grade_tables, grade_counters), counter
+                    Student(app_id, grade_tables, grade_counters, INTERNAL_MAPPING), counter
                 )
                 copy_file(file, all_students, app_id)
                 # If EOF reached before exit table
@@ -120,7 +123,7 @@ if __name__ == "__main__":
             if exit_loop:
                 # Add completed form to all students
                 all_students.add_student_sequentially(
-                    Student(app_id, grade_tables, grade_counters), counter
+                    Student(app_id, grade_tables, grade_counters, INTERNAL_MAPPING), counter
                 )
                 copy_file(file, all_students, app_id)
                 break
