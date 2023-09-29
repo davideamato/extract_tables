@@ -33,7 +33,7 @@ After that, you're good to go!
 This should be relatively painless. There are a couple of ways to do this,
   - Using git clone. Go to the folder you want to download into, then run this command
       ```
-      git clone https://github.com/IDEA-lab-IC/extract_tables.git
+      git clone https://github.com/davideamato/extract_tables.git
       ```
   - Download the zip file
   - Click the Green download code button 
